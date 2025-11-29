@@ -7,6 +7,7 @@ const cors = require('cors');
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
 const session = require('express-session');
+const MongoStore = require('connect-mongo');
 const { MongoClient, ObjectId } = require('mongodb');
 const bcrypt = require('bcrypt'); // if this gives issues on Windows, use: const bcrypt = require('bcryptjs');
 
@@ -23,7 +24,10 @@ const CREDENTIALS = {
 // ---------- Middleware ----------
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-app.use(cors());
+app.use(cors({
+  origin: true, // Allow all origins (or specify your Vercel domain)
+  credentials: true, // Allow cookies to be sent
+}));
 app.use(morgan('dev'));
 app.use(express.json());
 
@@ -32,12 +36,22 @@ app.use(maintenanceGuard);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Configure session store - use MongoDB for serverless (Vercel) compatibility
+const sessionStore = MongoStore.create({
+  mongoUrl: MONGO_URI,
+  touchAfter: 24 * 3600, // lazy session update
+  ttl: 24 * 60 * 60, // 24 hours
+});
+
 app.use(session({
   secret: process.env.SESSION_SECRET || 'langkaan2-secret-key-2024',
+  store: sessionStore,
   resave: false,
   saveUninitialized: false,
   cookie: {
     secure: process.env.NODE_ENV === 'production',  // true in production (Vercel uses HTTPS)
+    httpOnly: true,
+    sameSite: 'lax', // Works for same-site requests on Vercel
     maxAge: 24 * 60 * 60 * 1000  // default 1 day
   }
 }));
