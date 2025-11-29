@@ -5,6 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Request Documents — Barangay Langkaan II</title>
 
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            'inter': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -14,7 +26,7 @@
 <script defer src="/base-header.js"></script>
 <script defer src="/base.js"></script>
 
-<body>
+<body class="font-inter">
 <div class="dashboard-container">
   <nav class="sidebar" id="sidebar">
     <div class="sidebar-header">
@@ -23,7 +35,7 @@
     </div>
 
     <ul class="sidebar-menu" id="navList">
-      <li><a href="/user/dashboard" data-tooltip="Dashboard"><span class="icon">🏠</span><span class="label">Dashboard</span></a></li>
+      <li><a href="/user/dashboard" data-tooltip="Dashboard"><span class="icon">🏠︎</span><span class="label">Dashboard</span></a></li>
       <li><a href="/user/document-permits" class="active" data-tooltip="Request Documents"><span class="icon">📄</span><span class="label">Request Documents</span></a></li>
       <li><a href="/user/community" data-tooltip="Community"><span class="icon">🤝</span><span class="label">Community</span></a></li>
       <li><a href="/user/cases" data-tooltip="Report Cases"><span class="icon">⚖️</span><span class="label">Report Cases</span></a></li>
@@ -60,106 +72,147 @@
     </header>
 
     <div class="content-area">
-      <div style="background:#e3f2fd;color:#1565c0;padding:12px 16px;border-radius:8px;margin-bottom:20px;">
-        <strong>ℹ️ Resident Portal</strong> — View and request your documents here. Only your requests are visible.
-      </div>
-
-      <div class="toolbar">
-        <div class="toolbar-left">
-          <button class="btn btn-primary" id="addNewBtn">+ Request New Document</button>
-        </div>
-        <div class="toolbar-right">
-          <div class="search">
-            <input id="searchInput" type="text" placeholder="Search by type, purpose"/>
-            <span class="icon">🔍</span>
+      <!-- Info Banner -->
+      <div class="bg-[#1a237e] text-white px-5 py-4 rounded-lg mb-6 shadow-sm">
+        <div class="flex items-start gap-3">
+          <div class="text-xl mt-0.5">ℹ️</div>
+          <div>
+            <strong class="font-semibold block mb-1">Resident Portal</strong>
+            <p class="text-sm m-0 leading-relaxed opacity-95">View and request your documents here. Only your requests are visible.</p>
           </div>
         </div>
       </div>
 
-      <div class="table-wrap">
-        <table class="table" id="docsTable">
-          <thead>
-            <tr>
-              <th>Type of Document</th>
-              <th>Number of Copies</th>
-              <th>Date Requested</th>
-              <th>Date Released</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="reqTbody">
-            <!-- rows injected by user-document-permits.js -->
-          </tbody>
-        </table>
+      <!-- Action Bar -->
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <button class="inline-flex items-center gap-2 px-5 py-3 bg-[#3498db] hover:bg-[#2980b9] text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200" id="addNewBtn">
+          <span class="text-lg">+</span>
+          <span>Request New Document</span>
+        </button>
+        <div class="relative w-full sm:w-auto sm:min-w-[320px]">
+          <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+          </div>
+          <input id="searchInput" type="text" placeholder="Search by type, purpose..." class="w-full pl-12 pr-4 py-3 bg-white rounded-xl border border-gray-200 focus:border-[#3498db] focus:ring-2 focus:ring-[#3498db]/20 outline-none transition-all shadow-sm hover:shadow-md"/>
+        </div>
       </div>
 
-      <div class="pager" id="pager" style="display:none"></div>
+      <!-- Table Card -->
+      <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full" id="docsTable">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider border-b border-gray-200">Type of Document</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider border-b border-gray-200">Number of Copies</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider border-b border-gray-200">Date Requested</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider border-b border-gray-200">Date Released</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider border-b border-gray-200">Status</th>
+              </tr>
+            </thead>
+            <tbody id="reqTbody" class="divide-y divide-gray-100 [&_tr:hover]:bg-blue-50/50 transition-colors">
+              <!-- rows injected by user-document-permits.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="pager mt-6" id="pager" style="display:none"></div>
     </div>
   </main>
 </div>
 
 <!-- Add/Edit Modal -->
-<div class="modal" id="formModal" aria-hidden="true">
-  <div class="sheet">
-    <div class="sheet-head">
-      <h3 id="formTitle">Request Document</h3>
-      <button class="btn btn-outline" id="closeFormX">✕</button>
+<div class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center p-5 z-50 animate-fadeIn" id="formModal" aria-hidden="true">
+  <div class="w-full max-w-[640px] bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all animate-slideUp">
+    <!-- Modal Header -->
+    <div class="bg-[#3498db] px-6 py-5 flex justify-between items-center">
+      <h3 id="formTitle" class="text-xl font-bold text-white m-0">Request Document</h3>
+      <button class="w-8 h-8 rounded-lg bg-white/20 hover:bg-white/30 text-white font-semibold transition-colors flex items-center justify-center" id="closeFormX">✕</button>
     </div>
-    <div class="sheet-body">
-      <form id="docForm" class="grid-2">
-        <div class="field">
-          <label>Type of Document</label>
-          <select id="typeOfDocument" required>
-            <option>Barangay Clearance</option>
-            <option>Certificate of Indigency</option>
-            <option>Certificate of Residency</option>
-            <option>Barangay ID</option>
-            <option>Construction Permit</option>
-          </select>
+    
+    <!-- Modal Body -->
+    <div class="p-6 bg-gray-50">
+      <form id="docForm" class="space-y-5">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-gray-700 mb-2 text-sm font-semibold">Type of Document <span class="text-red-500">*</span></label>
+            <select id="typeOfDocument" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white text-gray-900 focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 transition-all shadow-sm hover:border-gray-300">
+              <option>Barangay Clearance</option>
+              <option>Certificate of Indigency</option>
+              <option>Certificate of Residency</option>
+              <option>Barangay ID</option>
+              <option>Construction Permit</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-gray-700 mb-2 text-sm font-semibold">Number of Copies <span class="text-red-500">*</span></label>
+            <input id="numberOfCopies" type="number" min="1" value="1" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white text-gray-900 focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 transition-all shadow-sm hover:border-gray-300"/>
+          </div>
         </div>
-        <div class="field">
-          <label>Number of Copies</label>
-          <input id="numberOfCopies" type="number" min="1" value="1" required/>
+        
+        <div>
+          <label class="block text-gray-700 mb-2 text-sm font-semibold">Requester's Name <span class="text-red-500">*</span></label>
+          <input id="requesterName" type="text" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white text-gray-900 focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 transition-all shadow-sm hover:border-gray-300"/>
         </div>
-        <div class="field" style="grid-column:1/-1">
-          <label>Requester's Name</label>
-          <input id="requesterName" type="text" required/>
+        
+        <div>
+          <label class="block text-gray-700 mb-2 text-sm font-semibold">Requester's Address <span class="text-red-500">*</span></label>
+          <input id="address" type="text" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white text-gray-900 focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 transition-all shadow-sm hover:border-gray-300"/>
         </div>
-        <div class="field" style="grid-column:1/-1">
-          <label>Requester's Address</label>
-          <input id="address" type="text" required/>
+        
+        <div>
+          <label class="block text-gray-700 mb-2 text-sm font-semibold">Purpose <span class="text-red-500">*</span></label>
+          <input id="purpose" type="text" placeholder="e.g. Employment, Scholarship" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white text-gray-900 focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 transition-all shadow-sm hover:border-gray-300"/>
         </div>
-        <div class="field" style="grid-column:1/-1">
-          <label>Purpose</label>
-          <input id="purpose" type="text" placeholder="e.g. Employment, Scholarship" required/>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-gray-700 mb-2 text-sm font-semibold">Payment Method</label>
+            <select id="paymentMethod" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white text-gray-900 focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 transition-all shadow-sm hover:border-gray-300">
+              <option value="">Select Payment Method</option>
+              <option>GCash</option>
+              <option>GoTyme</option>
+              <option>Local Bank</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-gray-700 mb-2 text-sm font-semibold">Payment Status</label>
+            <select id="paymentStatus" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white text-gray-900 focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 transition-all shadow-sm hover:border-gray-300">
+              <option value="">No payment found</option>
+              <option>Successfully Paid</option>
+              <option>Pending</option>
+              <option>Failed</option>
+            </select>
+          </div>
         </div>
-        <div class="field">
-          <label>Payment Method</label>
-          <select id="paymentMethod">
-            <option value="">Select Payment Method</option>
-            <option>GCash</option>
-            <option>GoTyme</option>
-            <option>Local Bank</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Payment Status</label>
-          <select id="paymentStatus">
-            <option value="">No payment found</option>
-            <option>Successfully Paid</option>
-            <option>Pending</option>
-            <option>Failed</option>
-          </select>
-        </div>
+        
         <input type="hidden" id="docId"/>
       </form>
     </div>
-    <div class="sheet-foot">
-      <button class="btn btn-outline" id="cancelForm">Cancel</button>
-      <button class="btn btn-primary" id="saveForm">Submit Request</button>
+    
+    <!-- Modal Footer -->
+    <div class="flex justify-end gap-3 px-6 py-4 bg-white border-t border-gray-200">
+      <button class="px-5 py-2.5 rounded-xl border-2 border-gray-300 bg-white text-gray-700 font-semibold hover:bg-gray-50 hover:border-gray-400 transition-all shadow-sm" id="cancelForm">Cancel</button>
+      <button class="px-5 py-2.5 rounded-xl bg-[#3498db] hover:bg-[#2980b9] text-white font-semibold transition-all shadow-lg hover:shadow-xl" id="saveForm">Submit Request</button>
     </div>
   </div>
 </div>
+
+<style>
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fadeIn { animation: fadeIn 0.2s ease-out; }
+  .animate-slideUp { animation: slideUp 0.3s ease-out; }
+</style>
 
 <script defer src="/user/user-document-permits.js"></script>
 </body>

@@ -19,12 +19,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/base.css">
 <style>
-  /* Preserve existing color scheme with Tailwind arbitrary values */
-  .sidebar-bg { background-color: #2c3e50; }
-  .sidebar-header-bg { background-color: #34495e; }
-  .sidebar-hover { background-color: #34495e; }
-  .text-sidebar { color: #bdc3c7; }
   .bg-primary-btn { background-color: #3498db; }
   .bg-ghost-btn { background-color: #ecf0f1; }
   .text-primary-btn { color: #2c3e50; }
@@ -38,122 +34,160 @@
   .bg-note-box { background-color: #fff4e5; color: #8e5b13; border-color: #f5cba7; }
 </style>
 </head>
-<body class="font-inter text-[#333] bg-[#f8f9fa]">
-<div class="flex min-h-screen">
+<script defer src="/base-header.js"></script>
+<script defer src="/base.js"></script>
+<body class="font-inter">
+<div class="dashboard-container">
   <!-- Sidebar -->
-  <nav class="w-[250px] sidebar-bg text-white shadow-[2px_0_5px_rgba(0,0,0,0.1)] flex flex-col relative z-10">
-    <div class="p-5 sidebar-header-bg flex items-center gap-2.5 border-b border-white/10">
-      <img src="https://scontent.fmnl25-7.fna.fbcdn.net/v/t1.15752-9/521855138_708847785308771_2003273510610048423_n.png?_nc_cat=102&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeHDFSpZtSsJSKuyQM7o0VleafGYk3KEJmFp8ZiTcoQmYS-9dL9WVlBLaCm6fdRpBPzL3iz4ANsXkhyOl_XQY57t&_nc_ohc=ixNedG93Qg0Q7kNvwGBrifR&_nc_oc=AdlJKrVlPOjbyH0hRHyOH82O4R5vm6oafmhvPpvfgHaEm_uxBTHPbZvqR7BJvu_VA1c&_nc_zt=23&_nc_ht=scontent.fmnl25-7.fna&oh=03_Q7cD3QHh5Q7Ftgg21vXwURVdGXmmtkpPIn5QRbjLL3mDko9YiQ&oe=68F399EB" alt="Logo" class="w-[30px] h-[30px] rounded-full object-cover">
-      <h3 class="text-lg font-semibold leading-tight">Barangay Langkaan II<br><small class="text-sm opacity-80">Resident Portal</small></h3>
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <img src="https://scontent.fmnl31-1.fna.fbcdn.net/v/t1.15752-9/566459805_2304695176635817_7965723576219961744_n.png?_nc_cat=100&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeFvsvFPtYKGEdwHZwyXJu6hLWJQAEjhjVotYlAASOGNWmCLSn6KIuOYN8ElKlNNHQrO159FSCuwFcll7OgdlzCP&_nc_ohc=yiA3bhEGnNAQ7kNvwGUy1mZ&_nc_oc=AdkuAJIw6rTtWuKWDNP7QJAFplSOwMhvUK5rJ7b_uZdCToSR1sT73c7CFJ5zrYhIU-I&_nc_zt=23&_nc_ht=scontent.fmnl31-1.fna&oh=03_Q7cD3gGocOn0qEMEx3iINh9aOx48m0LIlXIab9IT08mckx_JZw&oe=692126F5" alt="Logo">
+      <h3 class="sidebar-title">Barangay Langkaan II<br><small style="font-size:0.85em;opacity:0.8;">Resident Portal</small></h3>
     </div>
-    <ul class="list-none p-5 m-0 overflow-auto flex-1" id="navList">
-      <li class="mb-1"><a href="/user/dashboard" data-tooltip="Dashboard" class="flex items-center gap-2.5 px-5 py-3 text-sidebar no-underline hover:sidebar-hover hover:text-white transition-colors duration-150"><span class="icon">🏠</span><span class="label">Dashboard</span></a></li>
-      <li class="mb-1"><a href="/user/document-permits" data-tooltip="Request Documents" class="flex items-center gap-2.5 px-5 py-3 text-sidebar no-underline hover:sidebar-hover hover:text-white transition-colors duration-150"><span class="icon">📄</span><span class="label">Request Documents</span></a></li>
-      <li class="mb-1"><a href="/user/community" data-tooltip="Community" class="flex items-center gap-2.5 px-5 py-3 text-sidebar no-underline hover:sidebar-hover hover:text-white transition-colors duration-150"><span class="icon">🤝</span><span class="label">Community</span></a></li>
-      <li class="mb-1"><a href="/user/cases" class="active flex items-center gap-2.5 px-5 py-3 sidebar-hover text-white no-underline transition-colors duration-150" data-tooltip="Report Cases"><span class="icon">⚖️</span><span class="label">Report Cases</span></a></li>
-      <li class="mb-1"><a href="/user/health" data-tooltip="Health Services" class="flex items-center gap-2.5 px-5 py-3 text-sidebar no-underline hover:sidebar-hover hover:text-white transition-colors duration-150"><span class="icon">🏥</span><span class="label">Health Services</span></a></li>
-      <li class="mb-1"><a href="/user/disaster" data-tooltip="Disaster Info" class="flex items-center gap-2.5 px-5 py-3 text-sidebar no-underline hover:sidebar-hover hover:text-white transition-colors duration-150"><span class="icon">🚨</span><span class="label">Disaster Info</span></a></li>
-      <li class="mt-12 mb-1"><a href="/user/settings" data-tooltip="Settings" class="flex items-center gap-2.5 px-5 py-3 text-sidebar no-underline hover:sidebar-hover hover:text-white transition-colors duration-150"><span class="icon">⚙️</span><span class="label">Settings</span></a></li>
-      <li class="mb-1"><a href="#" onclick="logout()" data-tooltip="Log out" class="flex items-center gap-2.5 px-5 py-3 text-sidebar no-underline hover:sidebar-hover hover:text-white transition-colors duration-150"><span class="icon">🚪</span><span class="label">Log out</span></a></li>
+
+    <ul class="sidebar-menu" id="navList">
+      <li><a href="/user/dashboard" data-tooltip="Dashboard"><span class="icon">🏠︎</span><span class="label">Dashboard</span></a></li>
+      <li><a href="/user/document-permits" data-tooltip="Request Documents"><span class="icon">📄</span><span class="label">Request Documents</span></a></li>
+      <li><a href="/user/community" data-tooltip="Community"><span class="icon">🤝</span><span class="label">Community</span></a></li>
+      <li><a href="/user/cases" class="active" data-tooltip="Report Cases"><span class="icon">⚖️</span><span class="label">Report Cases</span></a></li>
+      <li><a href="/user/health" data-tooltip="Health Services"><span class="icon">🏥</span><span class="label">Health Services</span></a></li>
+      <li><a href="/user/disaster" data-tooltip="Disaster Info"><span class="icon">🚨</span><span class="label">Disaster Info</span></a></li>
+
+      <li style="margin-top:50px;"><a href="/user/settings" data-tooltip="Settings"><span class="icon">⚙️</span><span class="label">Settings</span></a></li>
+      <li><a href="#" onclick="logout()" data-tooltip="Log out"><span class="icon">🚪</span><span class="label">Log out</span></a></li>
     </ul>
   </nav>
 
   <!-- Main Content -->
-  <main class="flex-1 flex flex-col">
-    <header class="sticky top-0 z-5 bg-white px-8 py-4 shadow-[0_2px_4px_rgba(0,0,0,0.1)] flex justify-between items-center border-b border-[#ecf0f1] gap-3">
-      <h1 class="text-2xl text-[#2c3e50] m-0 font-semibold">Report Cases & Incidents</h1>
-      <div class="flex items-center gap-3 relative">
-        <button id="notifBtn" class="bg-transparent border-none cursor-pointer text-lg relative" aria-label="Notifications">
-          🔔
-          <span id="notifDot" class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#e74c3c] hidden"></span>
-        </button>
-        <div class="w-9 h-9 rounded-full bg-primary-btn flex items-center justify-center text-white font-semibold shadow-sm" id="avatar">U</div>
-        <span id="username" class="font-medium text-[#2c3e50]">User</span>
-        <div class="absolute right-0 top-[110%] bg-white border border-[#ecf0f1] rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.2)] w-80 max-h-[380px] overflow-auto p-2.5 hidden z-20" id="notifPanel">
-          <div class="flex justify-between items-center mb-2 text-xs text-[#7f8c8d] font-semibold px-2 py-1">
-            <span>Case Notifications</span>
-            <button class="bg-ghost-btn text-primary-btn px-2 py-1 text-[11px] rounded-md hover:opacity-90 transition-opacity" id="notifMarkAll">Mark all as read</button>
-          </div>
-          <ul class="list-none p-0 m-0" id="notifList"></ul>
-          <div id="notifEmpty" class="text-xs text-muted-meta text-center py-2">No notifications yet.</div>
+  <main class="main-content">
+    <header class="header">
+      <div class="header-left">
+        <button class="hamburger" id="hamburgerBtn" aria-label="Toggle sidebar"><span></span></button>
+        <h1>Report Cases & Incidents</h1>
+      </div>
+      <div class="user-info" id="userChip">
+        <button class="btn btn-outline" id="notifBtn" title="Notifications">🔔</button>
+        <div class="user-avatar" id="avatar">U</div>
+        <span id="username" class="user-name">User</span>
+
+        <div class="notif-panel" id="notifPanel">
+          <div class="notif-head">Case Notifications</div>
+          <div class="notif-item" id="notifEmpty">No notifications yet.</div>
+          <ul id="notifList"></ul>
+        </div>
+
+        <div class="dropdown" id="userMenu">
+          <div class="item" id="goProfile">👤 Profile</div>
+          <div class="item" id="goSettings">⚙️ Settings</div>
+          <div class="item" id="doLogout">🚪 Log out</div>
         </div>
       </div>
     </header>
 
-    <div class="flex-1 p-8 overflow-y-auto">
-      <div class="bg-[#e3f2fd] text-[#1565c0] px-4 py-3 rounded-lg mb-5">
-        <strong>ℹ️ Resident Portal</strong> — You can view and report your own cases here. Only your submitted reports are visible.
+    <div class="content-area">
+      <!-- Info Banner -->
+      <div class="bg-[#1a237e] text-white px-5 py-4 rounded-lg mb-6 shadow-sm">
+        <div class="flex items-start gap-3">
+          <div class="text-xl mt-0.5">ℹ️</div>
+          <div>
+            <strong class="font-semibold block mb-1">Resident Portal</strong>
+            <p class="text-sm m-0 leading-relaxed opacity-95">You can view and report your own cases here. Only your submitted reports are visible.</p>
+          </div>
+        </div>
       </div>
 
       <!-- Stats Grid -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-        <div class="bg-white border border-[#ecf0f1] rounded-xl p-4 shadow-sm">
-          <h4 class="text-xs text-[#7f8c8d] mb-1.5 font-medium">My Cases</h4>
-          <div class="text-2xl font-bold text-[#2c3e50]" id="sTotal">0</div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+        <div class="bg-white border-2 border-[#e3f2fd] rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-xl bg-[#3498db] flex items-center justify-center shadow-md">
+              <span class="text-xl">📋</span>
+            </div>
+          </div>
+          <h4 class="text-xs text-gray-600 mb-1.5 font-semibold uppercase tracking-wide">My Cases</h4>
+          <div class="text-3xl font-bold text-gray-900" id="sTotal">0</div>
         </div>
-        <div class="bg-white border border-[#ecf0f1] rounded-xl p-4 shadow-sm">
-          <h4 class="text-xs text-[#7f8c8d] mb-1.5 font-medium">Reported</h4>
-          <div class="text-2xl font-bold text-[#2c3e50]" id="sPending">0</div>
+        <div class="bg-white border-2 border-[#dbeafe] rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-xl bg-[#2980b9] flex items-center justify-center shadow-md">
+              <span class="text-xl">⏳</span>
+            </div>
+          </div>
+          <h4 class="text-xs text-gray-600 mb-1.5 font-semibold uppercase tracking-wide">Reported</h4>
+          <div class="text-3xl font-bold text-gray-900" id="sPending">0</div>
         </div>
-        <div class="bg-white border border-[#ecf0f1] rounded-xl p-4 shadow-sm">
-          <h4 class="text-xs text-[#7f8c8d] mb-1.5 font-medium">Ongoing</h4>
-          <div class="text-2xl font-bold text-[#2c3e50]" id="sOngoing">0</div>
+        <div class="bg-white border-2 border-[#e1f5fe] rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-xl bg-[#3498db] flex items-center justify-center shadow-md">
+              <span class="text-xl">🔄</span>
+            </div>
+          </div>
+          <h4 class="text-xs text-gray-600 mb-1.5 font-semibold uppercase tracking-wide">Ongoing</h4>
+          <div class="text-3xl font-bold text-gray-900" id="sOngoing">0</div>
         </div>
-        <div class="bg-white border border-[#ecf0f1] rounded-xl p-4 shadow-sm">
-          <h4 class="text-xs text-[#7f8c8d] mb-1.5 font-medium">Resolved</h4>
-          <div class="text-2xl font-bold text-[#2c3e50]" id="sResolved">0</div>
+        <div class="bg-white border-2 border-[#e3f2fd] rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-xl bg-[#2980b9] flex items-center justify-center shadow-md">
+              <span class="text-xl">✅</span>
+            </div>
+          </div>
+          <h4 class="text-xs text-gray-600 mb-1.5 font-semibold uppercase tracking-wide">Resolved</h4>
+          <div class="text-3xl font-bold text-gray-900" id="sResolved">0</div>
         </div>
       </div>
 
       <!-- Main Card -->
-      <div class="bg-white rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.1)] overflow-hidden">
-        <div class="px-6 py-5 border-b border-[#ecf0f1] bg-[#f8f9fa] flex justify-between items-center">
-          <h3 class="text-lg text-[#2c3e50] m-0 font-semibold">My Reports</h3>
-          <div><button class="px-4 py-2.5 rounded-lg border-none cursor-pointer bg-primary-btn text-white font-semibold hover:opacity-90 transition-opacity shadow-sm" id="btnAdd">Report New Case</button></div>
+      <div class="bg-white rounded-2xl shadow-lg border-2 border-gray-100 overflow-hidden">
+          <div class="px-6 py-5 border-b border-gray-200 bg-[#e3f2fd] flex justify-between items-center">
+          <h3 class="text-xl text-gray-900 m-0 font-bold">My Reports</h3>
+          <button class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#3498db] hover:bg-[#2980b9] text-white font-semibold transition-all shadow-lg hover:shadow-xl" id="btnAdd">
+            <span>+</span>
+            <span>Report New Case</span>
+          </button>
         </div>
         <div class="p-6">
           <!-- Filter Chips -->
-          <div class="flex gap-2 flex-wrap mb-3" id="chips">
-            <div class="chip active px-3 py-2 rounded-2xl bg-primary-btn text-white cursor-pointer text-sm font-medium transition-all duration-150 hover:shadow-md" data-status="">All</div>
-            <div class="chip px-3 py-2 rounded-2xl bg-ghost-btn text-[#2c3e50] cursor-pointer text-sm font-medium transition-all duration-150 hover:shadow-md hover:bg-[#d5d9dc]" data-status="Pending">Pending</div>
-            <div class="chip px-3 py-2 rounded-2xl bg-ghost-btn text-[#2c3e50] cursor-pointer text-sm font-medium transition-all duration-150 hover:shadow-md hover:bg-[#d5d9dc]" data-status="Ongoing">Ongoing</div>
-            <div class="chip px-3 py-2 rounded-2xl bg-ghost-btn text-[#2c3e50] cursor-pointer text-sm font-medium transition-all duration-150 hover:shadow-md hover:bg-[#d5d9dc]" data-status="Resolved">Resolved</div>
-            <div class="chip px-3 py-2 rounded-2xl bg-ghost-btn text-[#2c3e50] cursor-pointer text-sm font-medium transition-all duration-150 hover:shadow-md hover:bg-[#d5d9dc]" data-status="Cancelled">Cancelled</div>
+          <div class="flex gap-2.5 flex-wrap mb-5" id="chips">
+            <div class="chip active px-4 py-2.5 rounded-xl bg-[#3498db] hover:bg-[#2980b9] text-white cursor-pointer text-sm font-semibold transition-all duration-200 hover:shadow-lg" data-status="">All</div>
+            <div class="chip px-4 py-2.5 rounded-xl bg-gray-100 text-gray-700 cursor-pointer text-sm font-semibold transition-all duration-200 hover:bg-gray-200 hover:shadow-md" data-status="Pending">Pending</div>
+            <div class="chip px-4 py-2.5 rounded-xl bg-gray-100 text-gray-700 cursor-pointer text-sm font-semibold transition-all duration-200 hover:bg-gray-200 hover:shadow-md" data-status="Ongoing">Ongoing</div>
+            <div class="chip px-4 py-2.5 rounded-xl bg-gray-100 text-gray-700 cursor-pointer text-sm font-semibold transition-all duration-200 hover:bg-gray-200 hover:shadow-md" data-status="Resolved">Resolved</div>
+            <div class="chip px-4 py-2.5 rounded-xl bg-gray-100 text-gray-700 cursor-pointer text-sm font-semibold transition-all duration-200 hover:bg-gray-200 hover:shadow-md" data-status="Cancelled">Cancelled</div>
           </div>
 
           <!-- Toolbar -->
-          <div class="flex gap-2.5 flex-wrap items-center mb-3">
-            <input id="fQ" class="px-3 py-2.5 border border-input rounded-lg bg-white min-w-[200px] focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all" placeholder="Search case ID, type…">
-            <select id="fType" class="px-3 py-2.5 border border-input rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all">
+          <div class="flex flex-wrap gap-3 items-center mb-5 p-4 bg-gray-50 rounded-xl">
+            <input id="fQ" class="flex-1 min-w-[200px] px-4 py-3 border-2 border-gray-200 rounded-xl bg-white focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 transition-all shadow-sm" placeholder="Search case ID, type…">
+            <select id="fType" class="px-4 py-3 border-2 border-gray-200 rounded-xl bg-white focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 transition-all shadow-sm">
               <option value="">All types</option>
             </select>
-            <select id="fPriority" class="px-3 py-2.5 border border-input rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all">
+            <select id="fPriority" class="px-4 py-3 border-2 border-gray-200 rounded-xl bg-white focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 transition-all shadow-sm">
               <option value="">Priority</option>
               <option value="Low">Low</option>
               <option value="Medium">Medium</option>
               <option value="High">High</option>
               <option value="Critical">Critical</option>
             </select>
-            <input id="fFrom" type="date" class="px-3 py-2.5 border border-input rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all">
-            <input id="fTo" type="date" class="px-3 py-2.5 border border-input rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all">
-            <button class="px-4 py-2.5 rounded-lg border-none cursor-pointer bg-ghost-btn text-primary-btn font-medium hover:opacity-90 transition-opacity" id="btnFilter">Apply</button>
+            <input id="fFrom" type="date" class="px-4 py-3 border-2 border-gray-200 rounded-xl bg-white focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 transition-all shadow-sm">
+            <input id="fTo" type="date" class="px-4 py-3 border-2 border-gray-200 rounded-xl bg-white focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 transition-all shadow-sm">
+            <button class="px-5 py-3 rounded-xl border-2 border-gray-300 bg-white text-gray-700 font-semibold hover:bg-gray-50 hover:border-gray-400 transition-all shadow-sm" id="btnFilter">Apply</button>
           </div>
 
           <!-- Table -->
-          <div class="bg-white rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.1)] overflow-hidden">
+          <div class="bg-white rounded-xl border-2 border-gray-100 overflow-hidden">
             <div class="overflow-x-auto">
-              <table class="w-full border-collapse" id="tbl">
-                <thead>
-                  <tr>
-                    <th class="sticky top-0 bg-[#f8f9fa] border-b border-[#ecf0f1] px-3 py-3 text-left text-xs text-[#7f8c8d] font-semibold select-none cursor-pointer hover:text-[#3498db] transition-colors">Case/Report ID</th>
-                    <th class="sticky top-0 bg-[#f8f9fa] border-b border-[#ecf0f1] px-3 py-3 text-left text-xs text-[#7f8c8d] font-semibold select-none cursor-pointer hover:text-[#3498db] transition-colors">Type of Incident</th>
-                    <th class="sticky top-0 bg-[#f8f9fa] border-b border-[#ecf0f1] px-3 py-3 text-left text-xs text-[#7f8c8d] font-semibold select-none cursor-pointer hover:text-[#3498db] transition-colors">Date & Time Reported</th>
-                    <th class="sticky top-0 bg-[#f8f9fa] border-b border-[#ecf0f1] px-3 py-3 text-left text-xs text-[#7f8c8d] font-semibold select-none cursor-pointer hover:text-[#3498db] transition-colors">Date & Time of Incident</th>
-                    <th class="sticky top-0 bg-[#f8f9fa] border-b border-[#ecf0f1] px-3 py-3 text-left text-xs text-[#7f8c8d] font-semibold select-none cursor-pointer hover:text-[#3498db] transition-colors">Status</th>
-                    <th class="sticky top-0 bg-[#f8f9fa] border-b border-[#ecf0f1] px-3 py-3 text-left text-xs text-[#7f8c8d] font-semibold select-none w-[100px]">Actions</th>
+              <table class="w-full" id="tbl">
+            <thead class="bg-gray-50">
+              <tr>
+                    <th class="sticky top-0 bg-gray-50 border-b border-gray-200 px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider select-none cursor-pointer hover:text-[#3498db] transition-colors">Case/Report ID</th>
+                    <th class="sticky top-0 bg-gray-50 border-b border-gray-200 px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider select-none cursor-pointer hover:text-[#3498db] transition-colors">Type of Incident</th>
+                    <th class="sticky top-0 bg-gray-50 border-b border-gray-200 px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider select-none cursor-pointer hover:text-[#3498db] transition-colors">Date & Time Reported</th>
+                    <th class="sticky top-0 bg-gray-50 border-b border-gray-200 px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider select-none cursor-pointer hover:text-[#3498db] transition-colors">Date & Time of Incident</th>
+                    <th class="sticky top-0 bg-gray-50 border-b border-gray-200 px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider select-none cursor-pointer hover:text-[#3498db] transition-colors">Status</th>
+                    <th class="sticky top-0 bg-gray-50 border-b border-gray-200 px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider select-none w-[120px]">Actions</th>
                   </tr>
                 </thead>
-                <tbody class="[&_tr:hover_td]:bg-[#fbfcfd] transition-colors"></tbody>
+                <tbody class="divide-y divide-gray-100 [&_tr:hover]:bg-blue-50/50 transition-colors"></tbody>
               </table>
             </div>
           </div>

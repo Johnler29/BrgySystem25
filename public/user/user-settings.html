@@ -51,12 +51,18 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/base.css">
+<style>
+  .bg-primary-btn { background-color: #3498db; }
+  .bg-ghost-btn { background-color: #ecf0f1; }
+  .text-primary-btn { color: #2c3e50; }
+  .border-input { border-color: #dfe6e9; }
+</style>
 </head>
 
 <script defer src="/base-header.js"></script>
 <script defer src="/base.js"></script>
 
-<body>
+<body class="font-inter">
 <div class="dashboard-container">
   <!-- Sidebar -->
   <nav class="sidebar" id="sidebar">
@@ -66,7 +72,7 @@
     </div>
 
     <ul class="sidebar-menu" id="navList">
-      <li><a href="/user/dashboard" data-tooltip="Dashboard"><span class="icon">🏠</span><span class="label">Dashboard</span></a></li>
+      <li><a href="/user/dashboard" data-tooltip="Dashboard"><span class="icon">🏠︎</span><span class="label">Dashboard</span></a></li>
       <li><a href="/user/document-permits" data-tooltip="Request Documents"><span class="icon">📄</span><span class="label">Request Documents</span></a></li>
       <li><a href="/user/community" data-tooltip="Community"><span class="icon">🤝</span><span class="label">Community</span></a></li>
       <li><a href="/user/cases" data-tooltip="Report Cases"><span class="icon">⚖️</span><span class="label">Report Cases</span></a></li>

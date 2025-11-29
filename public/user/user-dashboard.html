@@ -54,12 +54,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/base.css">
+  <link rel="stylesheet" href="/base.css">
 </head>
 <script defer src="/base-header.js"></script>
 <script defer src="/base.js"></script>
-<body>
+<body class="font-inter">
 <div class="dashboard-container">
+  <!-- Sidebar -->
   <nav class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <img src="https://scontent.fmnl31-1.fna.fbcdn.net/v/t1.15752-9/566459805_2304695176635817_7965723576219961744_n.png?_nc_cat=100&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeFvsvFPtYKGEdwHZwyXJu6hLWJQAEjhjVotYlAASOGNWmCLSn6KIuOYN8ElKlNNHQrO159FSCuwFcll7OgdlzCP&_nc_ohc=yiA3bhEGnNAQ7kNvwGUy1mZ&_nc_oc=AdkuAJIw6rTtWuKWDNP7QJAFplSOwMhvUK5rJ7b_uZdCToSR1sT73c7CFJ5zrYhIU-I&_nc_zt=23&_nc_ht=scontent.fmnl31-1.fna&oh=03_Q7cD3gGocOn0qEMEx3iINh9aOx48m0LIlXIab9IT08mckx_JZw&oe=692126F5" alt="Logo">
@@ -104,86 +105,148 @@
     </header>
 
     <div class="content-area">
-      <p class="muted mb-3.5">Welcome to your resident portal</p>
+      <p class="text-gray-500 mb-6 text-sm font-medium">Welcome to your resident portal</p>
 
-      <!-- hero -->
-<div class="hero bg-cover bg-center" style="background-image:url('https://scontent.fmnl31-1.fna.fbcdn.net/v/t39.30808-6/559179917_811371128144813_2033939863166001982_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=833d8c&_nc_eui2=AeErwaGGf-IyGwfaZCYiCt0yQxibiW0L6D5DGJuJbQvoPqlRxNY4Qf4qLUA0w7ktwF93q9XhhNXGhlq-5cSw0Flw&_nc_ohc=a_okqPIPTocQ7kNvwGEM_gk&_nc_oc=AdmgEYHbYJHtkBCGx_lfFTKBzFWInzf_Hjv6gYAo_3FLOmQPuqWnhhA1Carobj8i3II&_nc_zt=23&_nc_ht=scontent.fmnl31-1.fna&_nc_gid=F3f9Alyblno22Cprh-zSRA&oh=00_AfcSKtL2vBzTv9DRqun0DAlXTtDBVg68Z_ogYt2si8WsZQ&oe=68FF6C7C');">
-  <div class="hero-badge">
-    <img src="https://scontent.fmnl31-1.fna.fbcdn.net/v/t1.15752-9/566459805_2304695176635817_7965723576219961744_n.png?_nc_cat=100&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeFvsvFPtYKGEdwHZwyXJu6hLWJQAEjhjVotYlAASOGNWmCLSn6KIuOYN8ElKlNNHQrO159FSCuwFcll7OgdlzCP&_nc_ohc=yiA3bhEGnNAQ7kNvwGUy1mZ&_nc_oc=AdkuAJIw6rTtWuKWDNP7QJAFplSOwMhvUK5rJ7b_uZdCToSR1sT73c7CFJ5zrYhIU-I&_nc_zt=23&_nc_ht=scontent.fmnl31-1.fna&oh=03_Q7cD3gGocOn0qEMEx3iINh9aOx48m0LIlXIab9IT08mckx_JZw&oe=692126F5" alt="Barangay Logo" class="w-[120px] h-auto rounded-full shadow-[0_0_10px_rgba(0,0,0,0.3)]">
-  </div>
-</div>
+      <!-- Hero Banner -->
+      <div class="relative h-[240px] rounded-2xl mb-8 overflow-hidden shadow-xl bg-cover bg-center" style="background-image:url('https://scontent.fmnl31-1.fna.fbcdn.net/v/t39.30808-6/559179917_811371128144813_2033939863166001982_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=833d8c&_nc_eui2=AeErwaGGf-IyGwfaZCYiCt0yQxibiW0L6D5DGJuJbQvoPqlRxNY4Qf4qLUA0w7ktwF93q9XhhNXGhlq-5cSw0Flw&_nc_ohc=a_okqPIPTocQ7kNvwGEM_gk&_nc_oc=AdmgEYHbYJHtkBCGx_lfFTKBzFWInzf_Hjv6gYAo_3FLOmQPuqWnhhA1Carobj8i3II&_nc_zt=23&_nc_ht=scontent.fmnl31-1.fna&_nc_gid=F3f9Alyblno22Cprh-zSRA&oh=00_AfcSKtL2vBzTv9DRqun0DAlXTtDBVg68Z_ogYt2si8WsZQ&oe=68FF6C7C');">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-3">
+          <img src="https://scontent.fmnl31-1.fna.fbcdn.net/v/t1.15752-9/566459805_2304695176635817_7965723576219961744_n.png?_nc_cat=100&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeFvsvFPtYKGEdwHZwyXJu6hLWJQAEjhjVotYlAASOGNWmCLSn6KIuOYN8ElKlNNHQrO159FSCuwFcll7OgdlzCP&_nc_ohc=yiA3bhEGnNAQ7kNvwGUy1mZ&_nc_oc=AdkuAJIw6rTtWuKWDNP7QJAFplSOwMhvUK5rJ7b_uZdCToSR1sT73c7CFJ5zrYhIU-I&_nc_zt=23&_nc_ht=scontent.fmnl31-1.fna&oh=03_Q7cD3gGocOn0qEMEx3iINh9aOx48m0LIlXIab9IT08mckx_JZw&oe=692126F5" alt="Barangay Logo" class="w-24 h-24 rounded-full shadow-2xl ring-4 ring-white/30">
+        </div>
+      </div>
 
-      <!-- quick widgets -->
-      <section class="widget-row">
-        <div class="widget" id="clockWidget">
-          <div class="muted">Local Time</div>
-          <div class="clock-time" id="clockTime">--:--</div>
-          <div class="muted" id="clockDate">—</div>
+      <!-- Quick Widgets -->
+      <section class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+        <div class="bg-white border-2 border-gray-100 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow" id="clockWidget">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-xl bg-[#e3f2fd] flex items-center justify-center">
+              <span class="text-xl">🕐</span>
+            </div>
+            <div class="text-gray-500 text-sm font-medium">Local Time</div>
+          </div>
+          <div class="text-3xl font-bold text-gray-900 mb-1" id="clockTime">--:--</div>
+          <div class="text-gray-500 text-sm" id="clockDate">—</div>
         </div>
 
-        <div class="widget" id="weatherWidget">
-          <div class="muted">Weather</div>
-          <div class="weather-temp" id="weatherTemp">--°C</div>
-          <div class="weather-desc" id="weatherDesc">Allow location to load weather</div>
+        <div class="bg-white border-2 border-gray-100 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow" id="weatherWidget">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-xl bg-[#e3f2fd] flex items-center justify-center">
+              <span class="text-xl">☀️</span>
+            </div>
+            <div class="text-gray-500 text-sm font-medium">Weather</div>
+          </div>
+          <div class="text-3xl font-bold text-gray-900 mb-1" id="weatherTemp">--°C</div>
+          <div class="text-gray-500 text-sm" id="weatherDesc">Allow location to load weather</div>
         </div>
 
-        <div class="widget">
-          <div class="muted">Quick Actions</div>
-          <div class="flex gap-2 mt-2.5 flex-wrap">
-            <a class="btn btn-outline" href="/user/document-permits">Request Document</a>
-            <a class="btn btn-outline" href="/user/community">View Events</a>
-            <a class="btn btn-outline" href="/user/cases">Report Case</a>
+        <div class="bg-white border-2 border-gray-100 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl bg-[#e3f2fd] flex items-center justify-center">
+              <span class="text-xl">⚡</span>
+            </div>
+            <div class="text-gray-500 text-sm font-medium">Quick Actions</div>
+          </div>
+          <div class="flex flex-col gap-2.5">
+            <a class="px-4 py-2.5 rounded-xl border-2 border-[#3498db] bg-[#e3f2fd] text-[#1565c0] font-semibold hover:bg-[#bbdefb] hover:border-[#2980b9] transition-all text-sm no-underline text-center" href="/user/document-permits">📄 Request Document</a>
+            <a class="px-4 py-2.5 rounded-xl border-2 border-[#3498db] bg-[#e3f2fd] text-[#1565c0] font-semibold hover:bg-[#bbdefb] hover:border-[#2980b9] transition-all text-sm no-underline text-center" href="/user/community">🤝 View Events</a>
+            <a class="px-4 py-2.5 rounded-xl border-2 border-[#3498db] bg-[#e3f2fd] text-[#1565c0] font-semibold hover:bg-[#bbdefb] hover:border-[#2980b9] transition-all text-sm no-underline text-center" href="/user/cases">⚖️ Report Case</a>
           </div>
         </div>
       </section>
 
-      <!-- stats -->
-      <div class="stats-grid">
-        <div class="stat-card"><h3 id="myDocuments">0</h3><p>My Documents</p></div>
-        <div class="stat-card red"><h3 id="pendingRequests">0</h3><p>Pending Requests</p></div>
-        <div class="stat-card amber"><h3 id="myCases">0</h3><p>My Cases</p></div>
-        <div class="stat-card green"><h3 id="releasedDocs">0</h3><p>Released Documents</p></div>
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+        <div class="bg-white border-2 border-[#e3f2fd] rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-12 h-12 rounded-xl bg-[#3498db] flex items-center justify-center shadow-md">
+              <span class="text-2xl">📄</span>
+            </div>
+          </div>
+          <h3 class="text-3xl font-bold text-gray-900 mb-1" id="myDocuments">0</h3>
+          <p class="text-sm text-gray-600 font-medium">My Documents</p>
+        </div>
+        <div class="bg-white border-2 border-[#dbeafe] rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-12 h-12 rounded-xl bg-[#2980b9] flex items-center justify-center shadow-md">
+              <span class="text-2xl">⏳</span>
+            </div>
+          </div>
+          <h3 class="text-3xl font-bold text-gray-900 mb-1" id="pendingRequests">0</h3>
+          <p class="text-sm text-gray-600 font-medium">Pending Requests</p>
+        </div>
+        <div class="bg-white border-2 border-[#e1f5fe] rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-12 h-12 rounded-xl bg-[#3498db] flex items-center justify-center shadow-md">
+              <span class="text-2xl">⚖️</span>
+            </div>
+          </div>
+          <h3 class="text-3xl font-bold text-gray-900 mb-1" id="myCases">0</h3>
+          <p class="text-sm text-gray-600 font-medium">My Cases</p>
+        </div>
+        <div class="bg-white border-2 border-[#e3f2fd] rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-12 h-12 rounded-xl bg-[#2980b9] flex items-center justify-center shadow-md">
+              <span class="text-2xl">✅</span>
+            </div>
+          </div>
+          <h3 class="text-3xl font-bold text-gray-900 mb-1" id="releasedDocs">0</h3>
+          <p class="text-sm text-gray-600 font-medium">Released Documents</p>
+        </div>
       </div>
 
-      <!-- grid -->
-      <div class="dashboard-grid">
+      <!-- Main Content Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-6">
         <div>
-          <div class="dashboard-card mb-5">
-            <div class="dashboard-card-header"><h3>My Document Requests</h3></div>
-            <div class="dashboard-card-content">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-3">
-                <div class="text-2xl font-bold text-[#3498db]">Status: <span id="docStatus">Loading...</span></div>
+          <div class="bg-white border-2 border-gray-100 rounded-2xl shadow-lg mb-6 overflow-hidden">
+            <div class="px-6 py-5 border-b border-gray-200 bg-[#e3f2fd]">
+              <h3 class="text-xl text-gray-900 m-0 font-bold">My Document Requests</h3>
+            </div>
+            <div class="p-6">
+              <div class="mb-4">
+                <div class="text-sm text-gray-500 mb-1">Current Status</div>
+                <div class="text-2xl font-bold text-[#1565c0]"><span id="docStatus">Loading...</span></div>
               </div>
-              <div class="skel" id="requestsSkel"><div class="skel-line"></div><div class="skel-line"></div><div class="skel-line"></div></div>
-              <a href="/user/document-permits" class="btn btn-primary mt-3 inline-block">Request New Document</a>
+              <div class="space-y-2 mb-4" id="requestsSkel">
+                <div class="h-3 bg-gray-200 rounded-lg animate-pulse"></div>
+                <div class="h-3 bg-gray-200 rounded-lg animate-pulse"></div>
+                <div class="h-3 bg-gray-200 rounded-lg animate-pulse"></div>
+              </div>
+              <a href="/user/document-permits" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#3498db] hover:bg-[#2980b9] text-white font-semibold transition-all shadow-lg hover:shadow-xl no-underline">
+                <span>+</span>
+                <span>Request New Document</span>
+              </a>
             </div>
           </div>
 
-          <div class="dashboard-card">
-            <div class="dashboard-card-header"><h3>My Recent Activities</h3></div>
-            <div class="dashboard-card-content" id="recentActivities"></div>
+          <div class="bg-white border-2 border-gray-100 rounded-2xl shadow-lg overflow-hidden">
+            <div class="px-6 py-5 border-b border-gray-200 bg-[#e3f2fd]">
+              <h3 class="text-xl text-gray-900 m-0 font-bold">My Recent Activities</h3>
+            </div>
+            <div class="p-6" id="recentActivities"></div>
           </div>
         </div>
 
         <aside>
-          <div class="calendar-widget mb-5">
-            <div class="calendar-header" id="calMonth">January</div>
-            <div class="calendar-grid" id="calGrid"></div>
+          <div class="bg-white border-2 border-gray-100 rounded-2xl shadow-lg mb-6 p-6">
+            <div class="text-xl font-bold text-gray-900 mb-4" id="calMonth">January</div>
+            <div class="grid grid-cols-7 gap-2 text-xs" id="calGrid"></div>
           </div>
 
-          <div class="dashboard-card mb-5">
-            <div class="dashboard-card-header"><h3>Upcoming Events</h3></div>
-            <div class="dashboard-card-content">
-              <div class="event-list" id="eventList"></div>
+          <div class="bg-white border-2 border-gray-100 rounded-2xl shadow-lg overflow-hidden">
+            <div class="px-6 py-5 border-b border-gray-200 bg-[#e3f2fd]">
+              <h3 class="text-xl text-gray-900 m-0 font-bold">Upcoming Events</h3>
+            </div>
+            <div class="p-6">
+              <div class="space-y-3" id="eventList"></div>
             </div>
           </div>
 
-          <div class="dashboard-card">
-            <div class="dashboard-card-header"><h3>Announcements</h3></div>
-            <div class="dashboard-card-content">
-              <div class="announce-row"><div class="announce-dot dot-green"></div><div><div class="font-semibold">Barangay Clean-up Drive</div><div class="announce-meta">April 25, 2025 • 7:00 AM</div></div></div>
-              <div class="announce-row"><div class="announce-dot dot-amber"></div><div><div class="font-semibold">Typhoon Alert: Stay Indoors & Prepare</div><div class="announce-meta">Check your emergency kits</div></div></div>
-              <div class="announce-row"><div class="announce-dot dot-blue"></div><div><div class="font-semibold">Vaccination: Booster Shots Available</div><div class="announce-meta">Barangay Hall</div></div></div>
+          <div class="bg-white border border-[#ecf0f1] rounded-xl shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-[#ecf0f1] bg-[#f8f9fa]"><h3 class="text-lg text-[#2c3e50] m-0 font-semibold">Announcements</h3></div>
+            <div class="p-6">
+              <div class="flex gap-3 mb-3"><div class="w-2 h-2 rounded-full bg-[#27ae60] mt-2 flex-shrink-0"></div><div><div class="font-semibold text-[#2c3e50]">Barangay Clean-up Drive</div><div class="text-sm text-[#7f8c8d]">April 25, 2025 • 7:00 AM</div></div></div>
+              <div class="flex gap-3 mb-3"><div class="w-2 h-2 rounded-full bg-[#f39c12] mt-2 flex-shrink-0"></div><div><div class="font-semibold text-[#2c3e50]">Typhoon Alert: Stay Indoors & Prepare</div><div class="text-sm text-[#7f8c8d]">Check your emergency kits</div></div></div>
+              <div class="flex gap-3"><div class="w-2 h-2 rounded-full bg-[#3498db] mt-2 flex-shrink-0"></div><div><div class="font-semibold text-[#2c3e50]">Vaccination: Booster Shots Available</div><div class="text-sm text-[#7f8c8d]">Barangay Hall</div></div></div>
             </div>
           </div>
         </aside>

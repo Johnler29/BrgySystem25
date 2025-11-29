@@ -37,8 +37,17 @@
 
   const fmt = (d) => (d ? new Date(d).toISOString().slice(0, 10) : "—");
   const badge = (s) => {
-    const map = { Released: "b-yes", Pending: "b-no", "Pick-up Ready": "b-info", Declined: "b-no" };
-    return `<span class="badge ${map[s] || "b-info"}">${s || "Pending"}</span>`;
+    const status = s || "Pending";
+    const statusMap = {
+      "Released": "bg-[#e3f2fd] text-[#1565c0] border-[#64b5f6]",
+      "PICK-UP READY": "bg-[#dbeafe] text-[#1e40af] border-[#60a5fa]",
+      "Pick-up Ready": "bg-[#dbeafe] text-[#1e40af] border-[#60a5fa]",
+      "Pending": "bg-[#dbeafe] text-[#1e40af] border-[#60a5fa]",
+      "Declined": "bg-[#e3f2fd] text-[#1565c0] border-[#64b5f6]",
+      "Processing": "bg-[#e1f5fe] text-[#0277bd] border-[#4fc3f7]"
+    };
+    const classes = statusMap[status] || "bg-[#e3f2fd] text-[#1565c0] border-[#64b5f6]";
+    return `<span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold border ${classes}">${status}</span>`;
   };
 
   function renderRows(rows) {
@@ -46,18 +55,19 @@
     tb.innerHTML = "";
 
     if (!rows.length) {
-      tb.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#777;">No document requests found.</td></tr>`;
+      tb.innerHTML = `<tr><td colspan="5" class="px-6 py-12 text-center"><div class="flex flex-col items-center gap-3"><div class="text-4xl">📄</div><p class="text-gray-500 font-medium">No document requests found.</p><p class="text-sm text-gray-400">Click "Request New Document" to get started.</p></div></td></tr>`;
       return;
     }
 
     rows.forEach((d) => {
       const tr = document.createElement("tr");
+      tr.className = "group";
       tr.innerHTML = `
-        <td>${d.typeOfDocument || "—"}</td>
-        <td>${d.numberOfCopies ?? 1}</td>
-        <td>${fmt(d.dateRequested)}</td>
-        <td>${fmt(d.dateReleased)}</td>
-        <td>${badge(d.status)}</td>
+        <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm font-semibold text-gray-900">${d.typeOfDocument || "—"}</div></td>
+        <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm text-gray-700">${d.numberOfCopies ?? 1}</div></td>
+        <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm text-gray-700">${fmt(d.dateRequested)}</div></td>
+        <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm text-gray-700">${fmt(d.dateReleased)}</div></td>
+        <td class="px-6 py-4 whitespace-nowrap">${badge(d.status)}</td>
       `;
       tb.appendChild(tr);
     });

@@ -19,7 +19,7 @@ img{max-width:100%;display:block} a{text-decoration:none;color:inherit} button{f
 /* --- Sidebar --- */
 .sidebar{
   width:264px;background:#2c3e50;color:#fff;box-shadow:2px 0 5px rgba(0,0,0,.08);
-  display:flex;flex-direction:column;transition:width .22s ease;position:relative;z-index:10;
+  display:flex;flex-direction:column;transition:width .22s ease;position:fixed;top:0;left:0;height:100vh;z-index:10;overflow:hidden;
 }
 .sidebar.collapsed{width:84px}
 
@@ -31,8 +31,11 @@ img{max-width:100%;display:block} a{text-decoration:none;color:inherit} button{f
 .sidebar.collapsed .sidebar-title{display:none} /* collapsed: logo only */
 
 /* Nav */
-.sidebar-menu{list-style:none;padding:10px 0;margin:0;overflow:auto}
-.sidebar-menu li{margin-bottom:2px}
+.sidebar-menu{list-style:none;padding:10px 0;margin:0;overflow-y:auto;overflow-x:hidden;flex:1;display:flex;flex-direction:column;scrollbar-width:none;-ms-overflow-style:none;min-height:0}
+.sidebar-menu::-webkit-scrollbar{display:none}
+.sidebar-menu li{margin-bottom:2px;flex-shrink:0}
+.sidebar-menu li[style*="margin-top"]{margin-top:auto!important;padding-top:20px;border-top:1px solid rgba(255,255,255,.1);flex-shrink:0}
+.sidebar-menu li[style*="margin-top"] + li{flex-shrink:0;margin-top:0!important}
 .sidebar-menu a, .sidebar-menu button.nav-link{
   width:100%;text-align:left;background:transparent;border:0;color:#c9d3db;
   display:flex;align-items:center;gap:12px;padding:12px 14px;border-left:3px solid transparent;
@@ -64,7 +67,8 @@ img{max-width:100%;display:block} a{text-decoration:none;color:inherit} button{f
 .sidebar.collapsed .submenu{display:none}
 
 /* --- Main / Header --- */
-.main-content{flex:1;display:flex;flex-direction:column}
+.main-content{flex:1;display:flex;flex-direction:column;margin-left:264px;transition:margin-left .22s ease}
+.sidebar.collapsed ~ .main-content{margin-left:84px}
 .header{
   position:sticky;top:0;z-index:5;background:var(--surface);padding:10px 16px;
   box-shadow:0 2px 4px rgba(0,0,0,.06);display:flex;justify-content:space-between;align-items:center;
@@ -206,8 +210,8 @@ img{max-width:100%;display:block} a{text-decoration:none;color:inherit} button{f
 
 @media (max-width: 768px){
   .dashboard-container{flex-direction:column}
-  .sidebar{width:100%;order:2}
-  .main-content{order:1}
+  .sidebar{width:100%;order:2;position:relative;height:auto}
+  .main-content{order:1;margin-left:0}
   
   /* Responsive Table - Card Layout on Mobile */
   .table-wrap{

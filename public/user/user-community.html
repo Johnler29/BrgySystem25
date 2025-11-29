@@ -4,24 +4,25 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Community — Barangay Langkaan II</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          'inter': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        }
+      }
+    }
+  }
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/base.css">
 <style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Inter',sans-serif;color:#333;background:#f0f2f5}
-  .dashboard-container{display:flex;min-height:100vh}
-  .sidebar{width:250px;background:#2c3e50;color:#fff}
-  .sidebar-header{padding:20px;background:#34495e;display:flex;align-items:center;gap:10px}
-  .sidebar-header img{width:30px;height:30px;border-radius:50%}
-  .sidebar-header h3{font-size:1.05rem;font-weight:600}
-  .sidebar-menu{list-style:none;padding:16px 0}
-  .sidebar-menu a{display:block;padding:12px 20px;color:#bdc3c7;text-decoration:none}
-  .sidebar-menu a:hover,.sidebar-menu a.active{background:#34495e;color:#fff}
-
-  .main-content{flex:1;display:flex;flex-direction:column}
-  .header{background:#fff;padding:14px 24px;box-shadow:0 2px 4px rgba(0,0,0,.06);display:flex;justify-content:space-between;align-items:center}
-  .header h1{font-size:1.3rem;color:#2c3e50}
-  .user{display:flex;align-items:center;gap:12px}
-  .avatar{width:34px;height:34px;border-radius:50%;background:#3498db;color:#fff;font-weight:600;display:flex;align-items:center;justify-content:center}
+  .bg-primary-btn { background-color: #3498db; }
+  .bg-ghost-btn { background-color: #ecf0f1; }
+  .text-primary-btn { color: #2c3e50; }
+  .border-input { border-color: #dfe6e9; }
 
   .shell{flex:1;padding:26px}
   .grid{display:grid;grid-template-columns: minmax(0,1.4fr) 420px; gap:18px; align-items:start; max-width:1300px; margin:0 auto}
@@ -74,20 +75,24 @@
   .toast.show{opacity:1;transform:translateY(0)}
 </style>
 </head>
-<body>
+<script defer src="/base-header.js"></script>
+<script defer src="/base.js"></script>
+<body class="font-inter">
 <div class="dashboard-container">
-  <nav class="sidebar">
+  <nav class="sidebar" id="sidebar">
     <div class="sidebar-header">
-      <img src="https://scontent.fmnl25-7.fna.fbcdn.net/v/t1.15752-9/521855138_708847785308771_2003273510610048423_n.png?_nc_cat=102&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeHDFSpZtSsJSKuyQM7o0VleafGYk3KEJmFp8ZiTcoQmYS-9dL9WVlBLaCm6fdRpBPzL3iz4ANsXkhyOl_XQY57t&_nc_ohc=ixNedG93Qg0Q7kNvwGBrifR&_nc_oc=AdlJKrVlPOjbyH0hRHyOH82O4R5vm6oafmhvPpvfgHaEm_uxBTHPbZvqR7BJvu_VA1c&_nc_zt=23&_nc_ht=scontent.fmnl25-7.fna&oh=03_Q7cD3QHh5Q7Ftgg21vXwURVdGXmmtkpPIn5QRbjLL3mDko9YiQ&oe=68F399EB" alt="Logo">
+      <img src="https://scontent.fmnl31-1.fna.fbcdn.net/v/t1.15752-9/566459805_2304695176635817_7965723576219961744_n.png?_nc_cat=100&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeFvsvFPtYKGEdwHZwyXJu6hLWJQAEjhjVotYlAASOGNWmCLSn6KIuOYN8ElKlNNHQrO159FSCuwFcll7OgdlzCP&_nc_ohc=yiA3bhEGnNAQ7kNvwGUy1mZ&_nc_oc=AdkuAJIw6rTtWuKWDNP7QJAFplSOwMhvUK5rJ7b_uZdCToSR1sT73c7CFJ5zrYhIU-I&_nc_zt=23&_nc_ht=scontent.fmnl31-1.fna&oh=03_Q7cD3gGocOn0qEMEx3iINh9aOx48m0LIlXIab9IT08mckx_JZw&oe=692126F5" alt="Logo">
       <h3 class="sidebar-title">Barangay Langkaan II<br><small style="font-size:0.85em;opacity:0.8;">Resident Portal</small></h3>
     </div>
+
     <ul class="sidebar-menu" id="navList">
-      <li><a href="/user/dashboard" data-tooltip="Dashboard"><span class="icon">🏠</span><span class="label">Dashboard</span></a></li>
+      <li><a href="/user/dashboard" data-tooltip="Dashboard"><span class="icon">🏠︎</span><span class="label">Dashboard</span></a></li>
       <li><a href="/user/document-permits" data-tooltip="Request Documents"><span class="icon">📄</span><span class="label">Request Documents</span></a></li>
       <li><a href="/user/community" class="active" data-tooltip="Community"><span class="icon">🤝</span><span class="label">Community</span></a></li>
       <li><a href="/user/cases" data-tooltip="Report Cases"><span class="icon">⚖️</span><span class="label">Report Cases</span></a></li>
       <li><a href="/user/health" data-tooltip="Health Services"><span class="icon">🏥</span><span class="label">Health Services</span></a></li>
       <li><a href="/user/disaster" data-tooltip="Disaster Info"><span class="icon">🚨</span><span class="label">Disaster Info</span></a></li>
+
       <li style="margin-top:50px;"><a href="/user/settings" data-tooltip="Settings"><span class="icon">⚙️</span><span class="label">Settings</span></a></li>
       <li><a href="#" onclick="logout()" data-tooltip="Log out"><span class="icon">🚪</span><span class="label">Log out</span></a></li>
     </ul>
@@ -95,22 +100,50 @@
 
   <main class="main-content">
     <header class="header">
-      <h1>Community</h1>
-      <div class="user">
-        🔔
-        <div class="avatar" id="avatar">U</div>
-        <span id="username">User</span>
+      <div class="header-left">
+        <button class="hamburger" id="hamburgerBtn" aria-label="Toggle sidebar"><span></span></button>
+        <h1>Community</h1>
+      </div>
+      <div class="user-info">
+        <button class="btn btn-outline" id="notifBtn" title="Notifications">🔔</button>
+        <div class="user-avatar" id="avatar">U</div>
+        <span id="username" class="user-name">User</span>
+
+        <div class="notif-panel" id="notifPanel">
+          <div class="notif-head">Notifications</div>
+          <div class="notif-item">No new notifications.</div>
+        </div>
+
+        <div class="dropdown" id="userMenu">
+          <div class="item" id="goProfile">👤 Profile</div>
+          <div class="item" id="goSettings">⚙️ Settings</div>
+          <div class="item" id="doLogout">🚪 Log out</div>
+        </div>
       </div>
     </header>
 
-    <div class="shell">
-      <div style="background:#e3f2fd;color:#1565c0;padding:12px 16px;border-radius:8px;margin-bottom:14px;">
-        <strong>ℹ️ Resident Portal</strong> — View community posts and events. Only administrators can create posts.
+    <div class="content-area">
+      <!-- Info Banner -->
+      <div class="bg-[#1a237e] text-white px-5 py-4 rounded-lg mb-6 shadow-sm">
+        <div class="flex items-start gap-3">
+          <div class="text-xl mt-0.5">ℹ️</div>
+          <div>
+            <strong class="font-semibold block mb-1">Resident Portal</strong>
+            <p class="text-sm m-0 leading-relaxed opacity-95">View community posts and events. Only administrators can create posts.</p>
+          </div>
+        </div>
       </div>
 
-      <div class="toolbar">
-        <div class="search">🔎 <input id="search" placeholder="Search posts or events"></div>
-        <select id="filterCategory" class="btn btn-light">
+      <div class="flex gap-3 items-center mb-6">
+        <div class="relative flex-1">
+          <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+          </div>
+          <input id="search" placeholder="Search posts or events" class="w-full pl-12 pr-4 py-3 bg-white rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-sm hover:shadow-md">
+        </div>
+        <select id="filterCategory" class="px-4 py-3 bg-white rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-sm hover:shadow-md cursor-pointer">
           <option value="">All Categories</option>
           <option>Announcement</option>
           <option>Health</option>
@@ -120,32 +153,32 @@
         </select>
       </div>
 
-      <div class="grid">
-        <div class="content">
-          <div id="feed" class="feed"></div>
-          <div style="text-align:center;margin:12px 0;">
-            <button id="loadMore" class="btn btn-light">Load more</button>
+      <div class="grid grid-cols-[minmax(0,1.4fr)_420px] gap-4.5 items-start max-w-[1300px] mx-auto">
+        <div class="flex flex-col gap-4">
+          <div id="feed" class="flex flex-col gap-4"></div>
+          <div class="text-center my-3">
+            <button id="loadMore" class="bg-white px-3.5 py-2.5 rounded-lg border border-[#eee] shadow-[0_2px_6px_rgba(0,0,0,0.06)] cursor-pointer">Load more</button>
           </div>
         </div>
 
-        <div class="widgets">
-          <div class="card widget">
-            <div class="cal-head">
-              <h4 id="calLabel">April 2025</h4>
-              <div style="display:flex;gap:6px">
-                <button id="prevMonth" class="btn btn-light">←</button>
-                <button id="nextMonth" class="btn btn-light">→</button>
+        <div class="space-y-4">
+          <div class="bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] p-3.5">
+            <div class="flex justify-between items-center mb-2.5">
+              <h4 id="calLabel" class="text-base mb-2.5 text-[#2c3e50] m-0">April 2025</h4>
+              <div class="flex gap-1.5">
+                <button id="prevMonth" class="bg-white px-2 py-1 rounded-lg border border-[#eee] shadow-[0_2px_6px_rgba(0,0,0,0.06)] cursor-pointer">←</button>
+                <button id="nextMonth" class="bg-white px-2 py-1 rounded-lg border border-[#eee] shadow-[0_2px_6px_rgba(0,0,0,0.06)] cursor-pointer">→</button>
               </div>
             </div>
-            <div id="calendar" class="mini-calendar"></div>
-            <div style="display:flex;gap:8px;margin-top:10px">
-              <button id="clearDate" class="btn btn-light" style="flex:1">Clear date</button>
+            <div id="calendar" class="grid grid-cols-7 gap-1 text-xs"></div>
+            <div class="flex gap-2 mt-2.5">
+              <button id="clearDate" class="flex-1 bg-white px-2 py-1 rounded-lg border border-[#eee] shadow-[0_2px_6px_rgba(0,0,0,0.06)] cursor-pointer">Clear date</button>
             </div>
           </div>
 
-          <div class="card widget">
-            <h4>Upcoming Events</h4>
-            <div id="eventList" class="list"></div>
+          <div class="bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] p-3.5">
+            <h4 class="text-base mb-2.5 text-[#2c3e50] m-0">Upcoming Events</h4>
+            <div id="eventList" class="flex flex-col gap-2.5"></div>
           </div>
 
           <div class="card widget">

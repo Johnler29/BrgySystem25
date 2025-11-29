@@ -32,11 +32,22 @@
 })();
 </script>
 
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          'inter': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        }
+      }
+    }
+  }
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/base.css">
-
 <style>
   .bg-primary-btn { background-color: #3498db; }
   .bg-ghost-btn { background-color: #ecf0f1; }
@@ -53,7 +64,7 @@
 <script defer src="/base-header.js"></script>
 <script defer src="/base.js"></script>
 
-<body>
+<body class="font-inter">
 <div class="dashboard-container">
   <!-- Sidebar -->
   <nav class="sidebar" id="sidebar">
@@ -100,70 +111,97 @@
     </header>
 
     <div class="content-area">
-      <div class="bg-[#e3f2fd] text-[#1565c0] px-4 py-3 rounded-lg mb-5">
-        <strong>ℹ️ Resident Portal</strong> — View disaster information, emergency alerts, and report emergencies here.
+      <!-- Info Banner -->
+      <div class="bg-[#1a237e] text-white px-5 py-4 rounded-lg mb-6 shadow-sm">
+        <div class="flex items-start gap-3">
+          <div class="text-xl mt-0.5">ℹ️</div>
+          <div>
+            <strong class="font-semibold block mb-1">Resident Portal</strong>
+            <p class="text-sm m-0 leading-relaxed opacity-95">View disaster information, emergency alerts, and report emergencies here.</p>
+          </div>
+        </div>
       </div>
 
       <!-- Alert Banner -->
-      <div id="alertBanner" class="hidden" style="background:linear-gradient(90deg,#3498db,#2980b9);color:#fff;padding:14px 16px;border-radius:14px;margin-bottom:18px;display:flex;align-items:flex-start;gap:10px;box-shadow:0 4px 12px rgba(52,152,219,0.3);">
-        <div style="font-size:1.8rem;line-height:1;">🚨</div>
-        <div style="flex:1;">
-          <div id="alertTitle" style="font-weight:700;margin-bottom:4px;">Emergency Alert</div>
-          <div id="alertMessage" style="font-size:0.9rem;opacity:.95;">No active alerts at this time.</div>
+      <div id="alertBanner" class="hidden bg-[#2980b9] text-white px-5 py-4 rounded-xl mb-6 shadow-xl flex items-start gap-4">
+        <div class="text-3xl">🚨</div>
+        <div class="flex-1">
+          <div id="alertTitle" class="font-bold text-lg mb-1">Emergency Alert</div>
+          <div id="alertMessage" class="text-sm opacity-95">No active alerts at this time.</div>
         </div>
       </div>
 
       <!-- Quick Actions -->
-      <div style="display:flex;flex-wrap:wrap;gap:10px;margin:18px 0;">
-        <button class="btn btn-primary" style="background:linear-gradient(90deg,#e74c3c,#c0392b);box-shadow:0 4px 12px rgba(231,76,60,0.3);" id="btnEmergency">🚨 Report Emergency</button>
-        <button class="btn" style="background:linear-gradient(90deg,#f39c12,#e67e22);" id="btnIncident">⚠️ Log Incident</button>
+      <div class="flex flex-wrap gap-3 mb-6">
+        <button class="inline-flex items-center gap-2 px-5 py-3 bg-[#3498db] hover:bg-[#2980b9] text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all" id="btnEmergency">🚨 Report Emergency</button>
+        <button class="inline-flex items-center gap-2 px-5 py-3 bg-[#2980b9] hover:bg-[#1e3a8a] text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all" id="btnIncident">⚠️ Log Incident</button>
       </div>
 
       <!-- Statistics -->
-      <div class="stats-grid" style="margin-bottom:20px;">
-        <div class="stat-card">
-          <h4 class="muted" style="font-size:0.78rem;margin:0 0 4px;">My Reports</h4>
-          <h3 id="sTotal">0</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+        <div class="bg-white border-2 border-[#e3f2fd] rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-xl bg-[#3498db] flex items-center justify-center shadow-md">
+              <span class="text-xl">📋</span>
+            </div>
+          </div>
+          <h4 class="text-xs text-gray-600 mb-1.5 font-semibold uppercase tracking-wide">My Reports</h4>
+          <h3 class="text-3xl font-bold text-gray-900 m-0" id="sTotal">0</h3>
         </div>
-        <div class="stat-card red">
-          <h4 class="muted" style="font-size:0.78rem;margin:0 0 4px;">Critical</h4>
-          <h3 id="sCritical">0</h3>
+        <div class="bg-white border-2 border-[#e3f2fd] rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-xl bg-[#2980b9] flex items-center justify-center shadow-md">
+              <span class="text-xl">🔴</span>
+            </div>
+          </div>
+          <h4 class="text-xs text-gray-600 mb-1.5 font-semibold uppercase tracking-wide">Critical</h4>
+          <h3 class="text-3xl font-bold text-gray-900 m-0" id="sCritical">0</h3>
         </div>
-        <div class="stat-card amber">
-          <h4 class="muted" style="font-size:0.78rem;margin:0 0 4px;">Ongoing</h4>
-          <h3 id="sOngoing">0</h3>
+        <div class="bg-white border-2 border-[#dbeafe] rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-xl bg-[#3498db] flex items-center justify-center shadow-md">
+              <span class="text-xl">🔄</span>
+            </div>
+          </div>
+          <h4 class="text-xs text-gray-600 mb-1.5 font-semibold uppercase tracking-wide">Ongoing</h4>
+          <h3 class="text-3xl font-bold text-gray-900 m-0" id="sOngoing">0</h3>
         </div>
-        <div class="stat-card green">
-          <h4 class="muted" style="font-size:0.78rem;margin:0 0 4px;">Resolved</h4>
-          <h3 id="sResolved">0</h3>
+        <div class="bg-white border-2 border-[#e3f2fd] rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-xl bg-[#2980b9] flex items-center justify-center shadow-md">
+              <span class="text-xl">✅</span>
+            </div>
+          </div>
+          <h4 class="text-xs text-gray-600 mb-1.5 font-semibold uppercase tracking-wide">Resolved</h4>
+          <h3 class="text-3xl font-bold text-gray-900 m-0" id="sResolved">0</h3>
         </div>
       </div>
 
       <!-- Main Card -->
-      <div class="dashboard-card">
-        <div class="dashboard-card-header">
-          <h3>Emergency Information</h3>
+      <div class="bg-white border-2 border-gray-100 rounded-2xl shadow-lg overflow-hidden">
+        <div class="px-6 py-5 border-b border-gray-200 bg-[#e3f2fd]">
+          <h3 class="text-xl text-gray-900 m-0 font-bold">Emergency Information</h3>
         </div>
-        <div class="dashboard-card-content">
+        <div class="p-6">
           <!-- Tabs -->
-          <div id="tabs" class="flex border-b border-[#ecf0f1] mb-5 flex-wrap overflow-x-auto" style="gap:4px;">
-            <div class="tab active px-4 py-3 cursor-pointer border-b-2 border-transparent text-[#7f8c8d] text-sm whitespace-nowrap hover:text-[#e74c3c] transition-colors" data-tab="incidents">My Reports</div>
-            <div class="tab px-4 py-3 cursor-pointer border-b-2 border-transparent text-[#7f8c8d] text-sm whitespace-nowrap hover:text-[#e74c3c] transition-colors" data-tab="announcements">Announcements</div>
-            <div class="tab px-4 py-3 cursor-pointer border-b-2 border-transparent text-[#7f8c8d] text-sm whitespace-nowrap hover:text-[#e74c3c] transition-colors" data-tab="contacts">Emergency Contacts</div>
+          <div id="tabs" class="flex border-b-2 border-gray-200 mb-5 flex-wrap overflow-x-auto gap-2">
+            <div class="tab active px-5 py-3 cursor-pointer border-b-3 border-[#3498db] text-[#1565c0] text-sm font-semibold whitespace-nowrap transition-colors" data-tab="incidents">My Reports</div>
+            <div class="tab px-5 py-3 cursor-pointer border-b-3 border-transparent text-gray-600 text-sm font-semibold whitespace-nowrap hover:text-[#1565c0] transition-colors" data-tab="announcements">Announcements</div>
+            <div class="tab px-5 py-3 cursor-pointer border-b-3 border-transparent text-gray-600 text-sm font-semibold whitespace-nowrap hover:text-[#1565c0] transition-colors" data-tab="contacts">Emergency Contacts</div>
           </div>
 
           <!-- Toolbar -->
-          <div class="flex gap-2.5 flex-wrap items-center mb-3">
-            <input id="fQ" class="px-3 py-2.5 border border-input rounded-lg bg-white min-w-[200px] text-sm" placeholder="Search incidents, locations...">
-            <input id="fFrom" type="date" class="px-3 py-2.5 border border-input rounded-lg bg-white text-sm">
-            <input id="fTo" type="date" class="px-3 py-2.5 border border-input rounded-lg bg-white text-sm">
-            <select id="fStatus" class="px-3 py-2.5 border border-input rounded-lg bg-white text-sm">
+          <div class="flex flex-wrap gap-3 items-center mb-5 p-4 bg-gray-50 rounded-xl">
+            <input id="fQ" class="flex-1 min-w-[200px] px-4 py-3 border-2 border-gray-200 rounded-xl bg-white text-sm focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 transition-all shadow-sm" placeholder="Search incidents, locations...">
+            <input id="fFrom" type="date" class="px-4 py-3 border-2 border-gray-200 rounded-xl bg-white text-sm focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 transition-all shadow-sm">
+            <input id="fTo" type="date" class="px-4 py-3 border-2 border-gray-200 rounded-xl bg-white text-sm focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 transition-all shadow-sm">
+            <select id="fStatus" class="px-4 py-3 border-2 border-gray-200 rounded-xl bg-white text-sm focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 transition-all shadow-sm">
               <option value="">All Status</option>
               <option value="Critical">Critical</option>
               <option value="Ongoing">Ongoing</option>
               <option value="Resolved">Resolved</option>
             </select>
-            <button class="btn" style="background:#ecf0f1;color:#2c3e50;" id="btnFilter">Apply</button>
+            <button class="px-5 py-3 rounded-xl border-2 border-gray-300 bg-white text-gray-700 font-semibold hover:bg-gray-50 hover:border-gray-400 transition-all shadow-sm" id="btnFilter">Apply</button>
           </div>
 
           <!-- Table -->
@@ -222,8 +260,8 @@
       </form>
     </div>
     <footer class="sheet-foot">
-      <button class="btn" id="btnCancel">Cancel</button>
-      <button class="btn btn-primary" id="btnSave">Submit Report</button>
+      <button class="px-5 py-2.5 rounded-xl border-2 border-gray-300 bg-white text-gray-700 font-semibold hover:bg-gray-50 hover:border-gray-400 transition-all shadow-sm" id="btnCancel">Cancel</button>
+      <button class="px-5 py-2.5 rounded-xl bg-[#3498db] hover:bg-[#2980b9] text-white font-semibold transition-all shadow-lg hover:shadow-xl" id="btnSave">Submit Report</button>
     </footer>
   </div>
 </div>

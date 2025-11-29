@@ -73,14 +73,15 @@
   //---- state + helpers
   let state = { page:1, limit:10, status:'', q:'', from:'', to:'', sort:'desc', type:'', priority:'' };
   const badge = s => {
-    const map = {
-      'Pending': 'bg-pending',
-      'Ongoing': 'bg-ongoing',
-      'Resolved': 'bg-resolved',
-      'Cancelled': 'bg-cancelled'
+    const status = s || 'Pending';
+    const statusMap = {
+      'Pending': 'bg-[#dbeafe] text-[#1e40af] border-[#60a5fa]',
+      'Ongoing': 'bg-[#e1f5fe] text-[#0277bd] border-[#4fc3f7]',
+      'Resolved': 'bg-[#e3f2fd] text-[#1565c0] border-[#64b5f6]',
+      'Cancelled': 'bg-[#e3f2fd] text-[#1565c0] border-[#64b5f6]'
     };
-    const cls = map[s] || 'bg-ghost-btn text-primary-btn';
-    return `<span class="px-2 py-1 rounded-2xl text-xs font-bold ${cls}">${s}</span>`;
+    const classes = statusMap[status] || 'bg-[#e3f2fd] text-[#1565c0] border-[#64b5f6]';
+    return `<span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold border ${classes}">${status}</span>`;
   };
   const fmt   = d => d ? new Date(d).toLocaleString() : '';
 
@@ -119,18 +120,22 @@
 
   function renderRows(rows){
     tblBody.innerHTML = '';
+    if (!rows.length) {
+      tblBody.innerHTML = `<tr><td colspan="6" class="px-6 py-12 text-center"><div class="flex flex-col items-center gap-3"><div class="text-4xl">⚖️</div><p class="text-gray-500 font-medium">No cases found.</p><p class="text-sm text-gray-400">Click "Report New Case" to get started.</p></div></td></tr>`;
+      return;
+    }
     rows.forEach(r=>{
       const tr = document.createElement('tr');
-      tr.className = 'border-b border-[#f2f3f4]';
+      tr.className = 'group';
       tr.innerHTML = `
-        <td class="px-3 py-3 text-sm">${r.caseId}</td>
-        <td class="px-3 py-3 text-sm">${r.typeOfCase}</td>
-        <td class="px-3 py-3 text-sm">${fmt(r.createdAt)}</td>
-        <td class="px-3 py-3 text-sm">${fmt(r.dateOfIncident)}</td>
-        <td class="px-3 py-3 text-sm">${badge(r.status)}</td>
-        <td class="px-3 py-3">
+        <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm font-semibold text-gray-900">${r.caseId}</div></td>
+        <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm text-gray-700">${r.typeOfCase}</div></td>
+        <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm text-gray-700">${fmt(r.createdAt)}</div></td>
+        <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm text-gray-700">${fmt(r.dateOfIncident)}</div></td>
+        <td class="px-6 py-4 whitespace-nowrap">${badge(r.status)}</td>
+        <td class="px-6 py-4 whitespace-nowrap">
           <div class="flex gap-2">
-            <button class="px-3 py-1.5 rounded-lg border-none cursor-pointer bg-ghost-btn text-primary-btn font-medium hover:opacity-90 transition-opacity text-sm" data-act="view" data-id="${r._id}">View</button>
+            <button class="px-4 py-2 rounded-xl border-2 border-gray-300 bg-white text-gray-700 font-semibold hover:bg-gray-50 hover:border-gray-400 transition-all shadow-sm text-sm" data-act="view" data-id="${r._id}">View</button>
           </div>
         </td>
       `;
@@ -273,14 +278,16 @@
       if(!j.ok) return alert('Not found');
       const r = j.row;
       dCaseId.textContent = r.caseId;
+      const status = r.status || 'Pending';
       const statusMap = {
-        'Pending': 'bg-pending',
-        'Ongoing': 'bg-ongoing',
-        'Resolved': 'bg-resolved',
-        'Cancelled': 'bg-cancelled'
+        'Pending': 'bg-[#dbeafe] text-[#1e40af] border-[#60a5fa]',
+        'Ongoing': 'bg-[#e1f5fe] text-[#0277bd] border-[#4fc3f7]',
+        'Resolved': 'bg-[#e3f2fd] text-[#1565c0] border-[#64b5f6]',
+        'Cancelled': 'bg-[#e3f2fd] text-[#1565c0] border-[#64b5f6]'
       };
-      dStatus.className = 'px-2 py-1 rounded-2xl text-xs font-bold ' + (statusMap[r.status] || 'bg-ghost-btn text-primary-btn');
-      dStatus.textContent = r.status;
+      const classes = statusMap[status] || 'bg-[#e3f2fd] text-[#1565c0] border-[#64b5f6]';
+      dStatus.className = 'inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold border ' + classes;
+      dStatus.textContent = status;
 
       dBody.innerHTML = `
         <div class="grid grid-cols-[140px_1fr] gap-2 mb-2"><div class="text-[#7f8c8d] text-sm">Type</div><div class="font-semibold text-[#2c3e50]">${r.typeOfCase}</div></div>

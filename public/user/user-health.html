@@ -32,43 +32,35 @@
 })();
 </script>
 
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          'inter': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        }
+      }
+    }
+  }
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/base.css">
-
 <style>
-  /* Modern minimalist design - Blue & Dark Blue Theme */
-  :root {
-    --health-primary: #3498db;
-    --health-primary-light: #e3f2fd;
-    --health-accent: #2980b9;
-    --health-accent-light: #bbdefb;
-    --health-warning: #1e3a8a;
-    --health-warning-light: #c5d5f5;
-    --health-success: #2563eb;
-    --health-success-light: #dbeafe;
-    --health-muted: #6b7280;
-    --health-border: #e5e7eb;
-    --health-bg: #fafafa;
-  }
-
-  body {
-    background: var(--health-bg);
-  }
-
-  .bg-primary-btn { background-color: var(--health-primary); }
-  .bg-success-btn { background-color: var(--health-accent); }
+  .bg-primary-btn { background-color: #3498db; }
+  .bg-success-btn { background-color: #2980b9; }
   .bg-ghost-btn { background-color: #f3f4f6; }
   .text-primary-btn { color: #1f2937; }
-  .border-input { border-color: var(--health-border); }
+  .border-input { border-color: #e5e7eb; }
 
-  .bg-active { background-color: var(--health-success-light); color: var(--health-success); }
-  .bg-completed { background-color: var(--health-accent-light); color: #1565c0; }
-  .bg-scheduled { background-color: var(--health-accent-light); color: #2563eb; }
-  .bg-pending { background-color: var(--health-warning-light); color: #1e40af; }
-  .bg-ongoing { background-color: var(--health-accent-light); color: #2563eb; }
-  .bg-resolved { background-color: var(--health-success-light); color: var(--health-success); }
+  .bg-active { background-color: #dbeafe; color: #2563eb; }
+  .bg-completed { background-color: #bbdefb; color: #1565c0; }
+  .bg-scheduled { background-color: #bbdefb; color: #2563eb; }
+  .bg-pending { background-color: #c5d5f5; color: #1e40af; }
+  .bg-ongoing { background-color: #bbdefb; color: #2563eb; }
+  .bg-resolved { background-color: #dbeafe; color: #2563eb; }
 
   /* Modern info banner */
   .info-banner {
@@ -446,7 +438,7 @@
 <script defer src="/base-header.js"></script>
 <script defer src="/base.js"></script>
 
-<body>
+<body class="font-inter">
 <div class="dashboard-container">
   <!-- Sidebar -->
   <nav class="sidebar" id="sidebar">
@@ -462,6 +454,7 @@
       <li><a href="/user/cases" data-tooltip="Report Cases"><span class="icon">⚖️</span><span class="label">Report Cases</span></a></li>
       <li><a href="/user/health" class="active" data-tooltip="Health Services"><span class="icon">🏥</span><span class="label">Health Services</span></a></li>
       <li><a href="/user/disaster" data-tooltip="Disaster Info"><span class="icon">🚨</span><span class="label">Disaster Info</span></a></li>
+
       <li style="margin-top:50px;"><a href="/user/settings" data-tooltip="Settings"><span class="icon">⚙️</span><span class="label">Settings</span></a></li>
       <li><a href="#" onclick="logout()" data-tooltip="Log out"><span class="icon">🚪</span><span class="label">Log out</span></a></li>
     </ul>
@@ -493,90 +486,121 @@
     </header>
 
     <div class="content-area">
-      <div class="info-banner">
-        <strong>Resident Portal</strong> — View your personal health records and program participation here.
+      <!-- Info Banner -->
+      <div class="bg-[#1a237e] text-white px-5 py-4 rounded-lg mb-6 shadow-sm">
+        <div class="flex items-start gap-3">
+          <div class="text-xl mt-0.5">🏥</div>
+          <div>
+            <strong class="font-semibold block mb-1">Resident Portal</strong>
+            <p class="text-sm m-0 leading-relaxed opacity-95">View your personal health records and program participation here.</p>
+          </div>
+        </div>
       </div>
 
       <!-- Statistics -->
-      <div class="stats-grid" style="margin-bottom:32px;">
-        <div class="stat-modern">
-          <h4>My Records</h4>
-          <h3 id="sTotal">0</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+        <div class="bg-white border-2 border-[#e3f2fd] rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all relative overflow-hidden">
+          <div class="absolute top-0 left-0 right-0 h-1.5 bg-[#3498db]"></div>
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-xl bg-[#3498db] flex items-center justify-center shadow-md">
+              <span class="text-xl">📋</span>
+            </div>
+          </div>
+          <h4 class="text-xs text-gray-600 mb-2 font-semibold uppercase tracking-wide">My Records</h4>
+          <h3 class="text-3xl font-bold text-gray-900 m-0 leading-none" id="sTotal">0</h3>
         </div>
-        <div class="stat-modern blue">
-          <h4>Active Programs</h4>
-          <h3 id="sActive">0</h3>
+        <div class="bg-white border-2 border-[#e3f2fd] rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all relative overflow-hidden">
+          <div class="absolute top-0 left-0 right-0 h-1.5 bg-[#2980b9]"></div>
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-xl bg-[#2980b9] flex items-center justify-center shadow-md">
+              <span class="text-xl">✅</span>
+            </div>
+          </div>
+          <h4 class="text-xs text-gray-600 mb-2 font-semibold uppercase tracking-wide">Active Programs</h4>
+          <h3 class="text-3xl font-bold text-gray-900 m-0 leading-none" id="sActive">0</h3>
         </div>
-        <div class="stat-modern">
-          <h4>Scheduled</h4>
-          <h3 id="sScheduled">0</h3>
+        <div class="bg-white border-2 border-[#dbeafe] rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all relative overflow-hidden">
+          <div class="absolute top-0 left-0 right-0 h-1.5 bg-[#3498db]"></div>
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-xl bg-[#3498db] flex items-center justify-center shadow-md">
+              <span class="text-xl">📅</span>
+            </div>
+          </div>
+          <h4 class="text-xs text-gray-600 mb-2 font-semibold uppercase tracking-wide">Scheduled</h4>
+          <h3 class="text-3xl font-bold text-gray-900 m-0 leading-none" id="sScheduled">0</h3>
         </div>
-        <div class="stat-modern">
-          <h4>Completed</h4>
-          <h3 id="sCompleted">0</h3>
+        <div class="bg-white border-2 border-[#e1f5fe] rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all relative overflow-hidden">
+          <div class="absolute top-0 left-0 right-0 h-1.5 bg-[#2980b9]"></div>
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-xl bg-[#2980b9] flex items-center justify-center shadow-md">
+              <span class="text-xl">🎯</span>
+            </div>
+          </div>
+          <h4 class="text-xs text-gray-600 mb-2 font-semibold uppercase tracking-wide">Completed</h4>
+          <h3 class="text-3xl font-bold text-gray-900 m-0 leading-none" id="sCompleted">0</h3>
         </div>
       </div>
 
       <!-- Main Card -->
-      <div class="card-modern">
-        <div class="card-modern-header">
-          <h3>My Health Records</h3>
+      <div class="bg-white border-2 border-gray-100 rounded-2xl overflow-hidden mb-6 shadow-lg">
+        <div class="px-6 py-5 border-b border-gray-200 bg-[#e3f2fd]">
+          <h3 class="text-xl font-bold text-gray-900 m-0">My Health Records</h3>
         </div>
-        <div class="card-modern-content">
+        <div class="p-6">
           <!-- Tabs -->
-          <div id="tabs" class="tabs-modern">
-            <div class="tab-modern tab active" data-tab="patient-data">Patient Data</div>
-            <div class="tab-modern tab" data-tab="family-planning">Family Planning</div>
-            <div class="tab-modern tab" data-tab="post-partum">Post Partum</div>
-            <div class="tab-modern tab" data-tab="child-immunization">Child Immunization</div>
-            <div class="tab-modern tab" data-tab="individual-treatment">Treatment Records</div>
-            <div class="tab-modern tab" data-tab="patient-data-record">My Profile</div>
-            <div class="tab-modern tab" data-tab="pregnancy-tracking">Pregnancy Tracking</div>
-            <div class="tab-modern tab" data-tab="pre-natal">Pre-Natal Visits</div>
-            <div class="tab-modern tab" data-tab="schedules">My Schedules</div>
+          <div id="tabs" class="flex gap-2 border-b-2 border-gray-200 mb-6 pb-0 overflow-x-auto">
+            <div class="tab-modern tab active px-5 py-3 text-sm font-semibold text-[#1565c0] bg-transparent border-none border-b-3 border-b-[#3498db] cursor-pointer transition-all duration-200 -mb-[2px] relative" data-tab="patient-data">Patient Data</div>
+            <div class="tab-modern tab px-5 py-3 text-sm font-semibold text-gray-600 bg-transparent border-none border-b-3 border-b-transparent cursor-pointer transition-all duration-200 -mb-[2px] relative hover:text-[#1565c0]" data-tab="family-planning">Family Planning</div>
+            <div class="tab-modern tab px-5 py-3 text-sm font-semibold text-gray-600 bg-transparent border-none border-b-3 border-b-transparent cursor-pointer transition-all duration-200 -mb-[2px] relative hover:text-[#1565c0]" data-tab="post-partum">Post Partum</div>
+            <div class="tab-modern tab px-5 py-3 text-sm font-semibold text-gray-600 bg-transparent border-none border-b-3 border-b-transparent cursor-pointer transition-all duration-200 -mb-[2px] relative hover:text-[#1565c0]" data-tab="child-immunization">Child Immunization</div>
+            <div class="tab-modern tab px-5 py-3 text-sm font-semibold text-gray-600 bg-transparent border-none border-b-3 border-b-transparent cursor-pointer transition-all duration-200 -mb-[2px] relative hover:text-[#1565c0]" data-tab="individual-treatment">Treatment Records</div>
+            <div class="tab-modern tab px-5 py-3 text-sm font-semibold text-gray-600 bg-transparent border-none border-b-3 border-b-transparent cursor-pointer transition-all duration-200 -mb-[2px] relative hover:text-[#1565c0]" data-tab="patient-data-record">My Profile</div>
+            <div class="tab-modern tab px-5 py-3 text-sm font-semibold text-gray-600 bg-transparent border-none border-b-3 border-b-transparent cursor-pointer transition-all duration-200 -mb-[2px] relative hover:text-[#1565c0]" data-tab="pregnancy-tracking">Pregnancy Tracking</div>
+            <div class="tab-modern tab px-5 py-3 text-sm font-semibold text-gray-600 bg-transparent border-none border-b-3 border-b-transparent cursor-pointer transition-all duration-200 -mb-[2px] relative hover:text-[#1565c0]" data-tab="pre-natal">Pre-Natal Visits</div>
+            <div class="tab-modern tab px-5 py-3 text-sm font-semibold text-gray-600 bg-transparent border-none border-b-3 border-b-transparent cursor-pointer transition-all duration-200 -mb-[2px] relative hover:text-[#1565c0]" data-tab="schedules">My Schedules</div>
           </div>
 
           <!-- Toolbar -->
-          <div class="search-modern">
-            <input id="fQ" placeholder="Search records…" style="flex:1;min-width:200px;">
-            <input id="fFrom" type="date">
-            <input id="fTo" type="date">
-            <select id="fStatus">
+          <div class="flex flex-wrap gap-3 items-center mb-5 p-4 bg-gray-50 rounded-xl">
+            <input id="fQ" placeholder="Search records…" class="flex-1 min-w-[200px] px-4 py-3 border-2 border-gray-200 rounded-xl text-sm transition-all focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 bg-white shadow-sm">
+            <input id="fFrom" type="date" class="px-4 py-3 border-2 border-gray-200 rounded-xl text-sm transition-all focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 bg-white shadow-sm">
+            <input id="fTo" type="date" class="px-4 py-3 border-2 border-gray-200 rounded-xl text-sm transition-all focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 bg-white shadow-sm">
+            <select id="fStatus" class="px-4 py-3 border-2 border-gray-200 rounded-xl text-sm transition-all focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 bg-white shadow-sm">
               <option value="">All Status</option>
               <option value="Active">Active</option>
               <option value="Scheduled">Scheduled</option>
               <option value="Completed">Completed</option>
               <option value="Pending">Pending</option>
             </select>
-            <button class="btn-modern btn-modern-ghost" id="btnFilter">Apply</button>
+            <button class="px-5 py-3 rounded-xl border-2 border-gray-300 bg-white text-gray-700 font-semibold hover:bg-gray-50 hover:border-gray-400 transition-all shadow-sm" id="btnFilter">Apply</button>
           </div>
 
           <!-- Table -->
-          <div class="table-modern">
-            <table class="table" id="tbl" style="width:100%;border-collapse:collapse;">
-              <thead id="tableHead"></thead>
-              <tbody id="tableBody"></tbody>
+          <div class="border-2 border-gray-100 rounded-xl overflow-hidden">
+            <table class="w-full" id="tbl">
+              <thead id="tableHead" class="bg-gradient-to-r from-gray-50 to-gray-100/50"></thead>
+              <tbody id="tableBody" class="divide-y divide-gray-100 [&_tr:hover]:bg-blue-50/50 transition-colors"></tbody>
             </table>
           </div>
 
           <!-- Pagination -->
-          <div class="pager" id="pager" style="margin-top:20px;"></div>
+          <div class="pager mt-5" id="pager"></div>
         </div>
       </div>
 
       <!-- Schedule preference card -->
-      <div class="card-modern">
-        <div class="card-modern-header">
-          <h3>Request a Health Schedule</h3>
+      <div class="bg-white border-2 border-gray-100 rounded-2xl overflow-hidden shadow-lg">
+        <div class="px-6 py-5 border-b border-gray-200 bg-[#e3f2fd]">
+          <h3 class="text-xl font-bold text-gray-900 m-0">Request a Health Schedule</h3>
         </div>
-        <div class="card-modern-content">
-          <p class="muted" style="font-size:0.875rem;margin-bottom:24px;color:var(--health-muted);line-height:1.6;">
+        <div class="p-6">
+          <p class="text-sm mb-6 text-[#6b7280] leading-relaxed m-0">
             You can submit preferred dates for pre-natal, infant, health, or general checkups. The health center will confirm your final schedule.
           </p>
-          <form id="frmSchedule" class="form-modern">
+          <form id="frmSchedule" class="grid grid-cols-2 gap-5">
             <div>
-              <label>Checkup Type *</label>
-              <select name="type" required>
+              <label class="block text-sm font-medium text-[#374151] mb-2">Checkup Type *</label>
+              <select name="type" required class="w-full px-3.5 py-2.5 border-1.5 border-[#e5e7eb] rounded-lg text-sm transition-all focus:outline-none focus:border-[#3498db] focus:ring-3 focus:ring-[#3498db]/10 bg-white">
                 <option value="">Select Type</option>
                 <option value="prenatal">Pre-natal Checkup</option>
                 <option value="infant">Infant Checkup</option>
@@ -585,18 +609,18 @@
               </select>
             </div>
             <div>
-              <label>Preferred Date *</label>
-              <input type="date" name="preferredDate" required>
+              <label class="block text-sm font-medium text-[#374151] mb-2">Preferred Date *</label>
+              <input type="date" name="preferredDate" required class="w-full px-3.5 py-2.5 border-1.5 border-[#e5e7eb] rounded-lg text-sm transition-all focus:outline-none focus:border-[#3498db] focus:ring-3 focus:ring-[#3498db]/10 bg-white">
             </div>
             <div>
-              <label>Preferred Time</label>
-              <input type="time" name="preferredTime">
+              <label class="block text-sm font-medium text-[#374151] mb-2">Preferred Time</label>
+              <input type="time" name="preferredTime" class="w-full px-3.5 py-2.5 border-1.5 border-[#e5e7eb] rounded-lg text-sm transition-all focus:outline-none focus:border-[#3498db] focus:ring-3 focus:ring-[#3498db]/10 bg-white">
             </div>
-            <div class="full">
-              <label>Notes</label>
-              <textarea name="notes" rows="3" placeholder="Optional: additional details (e.g., trimester, infant age, special concerns)…"></textarea>
+            <div class="col-span-2">
+              <label class="block text-sm font-medium text-[#374151] mb-2">Notes</label>
+              <textarea name="notes" rows="3" placeholder="Optional: additional details (e.g., trimester, infant age, special concerns)…" class="w-full px-3.5 py-2.5 border-1.5 border-[#e5e7eb] rounded-lg text-sm transition-all focus:outline-none focus:border-[#3498db] focus:ring-3 focus:ring-[#3498db]/10 bg-white resize-y"></textarea>
             </div>
-            <div class="full" style="display:flex;justify-content:flex-end;margin-top:8px;">
+            <div class="col-span-2 flex justify-end mt-2">
               <button type="button" id="btnSubmitSchedule" class="btn-modern btn-modern-primary">Submit Preference</button>
             </div>
           </form>
