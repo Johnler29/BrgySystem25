@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Community Development — Barangay Langkaan II</title>
+
+<script>
+/* set theme/font early from localStorage to avoid flash */
+(function () {
+  try {
+    var s = JSON.parse(localStorage.getItem('userSettings') || '{}');
+    var html = document.documentElement;
+
+    // theme
+    var t = s.theme || 'light';
+    if (t === 'dark') {
+      html.setAttribute('data-theme', 'dark');
+    } else if (t === 'auto') {
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (prefersDark) html.setAttribute('data-theme', 'dark'); else html.removeAttribute('data-theme');
+    } else {
+      html.removeAttribute('data-theme');
+    }
+
+    // font size
+    var fs = (s.fontSize || 'medium').toLowerCase();
+    var map = { small:'14px', medium:'16px', large:'18px', xlarge:'20px' };
+    html.setAttribute('data-font-size', fs);
+    html.style.setProperty('--fs-base', map[fs] || '16px');
+
+    // body-level toggles (not critical pre-paint, but fine)
+    document.addEventListener('DOMContentLoaded', function(){
+      document.body.classList.toggle('compact-mode', !!s.compactMode);
+      document.body.classList.toggle('high-contrast', !!s.highContrast);
+      document.body.classList.toggle('sidebar-collapsed', s.showSidebar === false);
+    });
+  } catch (e) {}
+})();
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/base.css">
+
+<style>
+  /* Page-specific styles for community */
+
+  .shell{flex:1;padding:26px}
+  .grid{display:grid;grid-template-columns: minmax(0,1.4fr) 420px; gap:18px; align-items:start; max-width:1300px; margin:0 auto}
+  @media (max-width:1100px){.grid{grid-template-columns:1fr}}
+  .card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+  .content{display:flex;flex-direction:column;gap:16px}
+  .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:14px}
+  .search{flex:1;background:#fff;border-radius:50px;padding:10px 16px;display:flex;gap:8px;align-items:center;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+  .search input{border:none;outline:none;flex:1}
+  .btn{border:none;border-radius:8px;padding:10px 14px;cursor:pointer}
+  .btn-primary{background:#1877f2;color:#fff}
+  .btn-light{background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+  .feed{display:flex;flex-direction:column;gap:16px}
+  .post{padding:14px}
+  .post-header{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+  .post-title{font-size:1.05rem;font-weight:700;color:#222}
+  .post-body{color:#444;margin:6px 0 10px}
+  .post-image{width:100%;max-height:450px;object-fit:cover;border-radius:10px}
+  .post-meta{font-size:.85rem;color:#888;margin-top:6px}
+  .pill{padding:6px 10px;border-radius:999px;font-size:.85rem;border:1px solid #eee;background:#fff}
+  .category{color:#1877f2;border-color:#dfe8ff;background:#f6f9ff}
+  .event{color:#1d9c72;border-color:#d4f1e6;background:#eefaf6}
+  .actions{display:flex;gap:6px;border-top:1px solid #eee;margin-top:10px;padding-top:8px}
+  .actions .btn{flex:1;background:#f7f8fa;border:1px solid #eee}
+  .comments{border-top:1px solid #eee;margin-top:8px;padding-top:8px}
+  .comment{display:flex;gap:8px;margin:8px 0}
+  .comment .bubble{background:#f0f2f5;border-radius:14px;padding:8px 12px}
+  .add-comment{display:flex;gap:8px;margin-top:8px}
+  .add-comment input{flex:1;border:1px solid #e5e5e5;border-radius:16px;padding:8px 12px}
+
+  /* right widgets */
+  .widget{padding:14px}
+  .widget h4{font-size:1rem;margin-bottom:10px;color:#2c3e50}
+  .mini-calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;font-size:12px}
+  .mini-calendar .day{padding:8px 0;text-align:center;border-radius:6px;cursor:pointer}
+  .mini-calendar .muted{color:#bbb}
+  .mini-calendar .today{background:#1877f2;color:#fff}
+  .mini-calendar .has{position:relative}
+  .mini-calendar .has::after{content:'';width:6px;height:6px;border-radius:50%;background:#27ae60;position:absolute;bottom:4px;left:50%;transform:translateX(-50%)}
+  .cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .list{display:flex;flex-direction:column;gap:10px}
+  .event-row{display:flex;gap:10px}
+  .datepill{min-width:46px;text-align:center;background:#f6f9ff;border:1px solid #dfe8ff;border-radius:8px;padding:6px 6px}
+  .datepill .d{font-weight:700;font-size:14px}
+  .datepill .m{font-size:11px;color:#5b77c2}
+  .catchips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{font-size:12px;border:1px solid #eee;background:#fff;border-radius:999px;padding:6px 10px;cursor:pointer}
+  .chip.active{background:#1877f2;color:#fff;border-color:#1877f2}
+
+  /* Modal */
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+  .modal .panel{background:#fff;border-radius:12px;max-width:640px;width:100%;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+  .panel-header{padding:14px 16px;border-bottom:1px solid #eee;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+  .panel-body{padding:16px;display:grid;gap:10px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .input,.select,textarea{width:100%;padding:10px 12px;border:1px solid #e1e1e1;border-radius:8px}
+  textarea{min-height:100px;resize:vertical}
+  .tabs{display:flex;gap:8px;margin:4px 0}
+  .tab{padding:6px 10px;border-radius:8px;border:1px solid #e1e1e1;background:#f7f8fa;cursor:pointer}
+  .tab.active{background:#1877f2;color:#fff;border-color:#1877f2}
+  .panel-actions{display:flex;gap:12px;justify-content:flex-end;padding:12px 16px;border-top:1px solid #eee}
+  .toast{position:fixed;right:16px;bottom:16px;background:#333;color:#fff;padding:10px 14px;border-radius:8px;opacity:0;transform:translateY(10px);transition:.2s}
+  .toast.show{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<script defer src="/base-header.js"></script>
+<script defer src="/base.js"></script>
+<body>
+<div class="dashboard-container">
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <img src="https://scontent.fmnl31-1.fna.fbcdn.net/v/t1.15752-9/566459805_2304695176635817_7965723576219961744_n.png?_nc_cat=100&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeFvsvFPtYKGEdwHZwyXJu6hLWJQAEjhjVotYlAASOGNWmCLSn6KIuOYN8ElKlNNHQrO159FSCuwFcll7OgdlzCP&_nc_ohc=yiA3bhEGnNAQ7kNvwGUy1mZ&_nc_oc=AdkuAJIw6rTtWuKWDNP7QJAFplSOwMhvUK5rJ7b_uZdCToSR1sT73c7CFJ5zrYhIU-I&_nc_zt=23&_nc_ht=scontent.fmnl31-1.fna&oh=03_Q7cD3gGocOn0qEMEx3iINh9aOx48m0LIlXIab9IT08mckx_JZw&oe=692126F5" alt="Logo">
+      <h3 class="sidebar-title">Barangay Langkaan II<br><small style="font-size:0.85em;opacity:0.8;">Admin Portal</small></h3>
+    </div>
+
+    <ul class="sidebar-menu" id="navList">
+      <li><a href="/admin/dashboard" data-tooltip="Admin Dashboard"><span class="icon">🏠︎</span><span class="label">Dashboard</span></a></li>
+      <li><a href="/admin/residents" data-tooltip="Resident Management"><span class="icon">👪</span><span class="label">Resident Management</span></a></li>
+      <li><a href="/admin/document-permits" data-tooltip="Document & Permit Management"><span class="icon">📄</span><span class="label">Document & Permit Management</span></a></li>
+      <li><a href="/admin/community" class="active" data-tooltip="Community Development"><span class="icon">🤝</span><span class="label">Community Development</span></a></li>
+      <li><a href="/admin/cases" data-tooltip="Cases & Incidents"><span class="icon">⚖️</span><span class="label">Case & Incident Management</span></a></li>
+      <li><a href="/admin/health" data-tooltip="Health & Social"><span class="icon">🏥</span><span class="label">Health & Social Services</span></a></li>
+      <li><a href="/admin/disaster" data-tooltip="Disaster Response"><span class="icon">🚨</span><span class="label">Disaster & Emergency Response</span></a></li>
+      <li><a href="/admin/financial" data-tooltip="Finance & Budget"><span class="icon">💰</span><span class="label">Financial & Budget</span></a></li>
+      <li><a href="/admin/logs-reports" data-tooltip="Logs & Reports"><span class="icon">📊</span><span class="label">Logs & Reports</span></a></li>
+      <li><a href="/admin/settings" data-tooltip="System Settings"><span class="icon">⚙️</span><span class="label">System Settings</span></a></li>
+
+      <li style="margin-top:50px;"><a href="#" onclick="logout()" data-tooltip="Log out"><span class="icon">🚪</span><span class="label">Log out</span></a></li>
+    </ul>
+  </nav>
+
+  <main class="main-content">
+    <header class="header">
+      <div class="header-left">
+        <button class="hamburger" id="hamburgerBtn" aria-label="Toggle sidebar"><span></span></button>
+        <h1 id="greeting">Community Development</h1>
+      </div>
+      <div class="user-info" id="userChip">
+        <button class="btn btn-outline" id="notifBtn" title="Notifications">🔔</button>
+        <div class="user-avatar" id="avatar">A</div>
+        <span id="username" class="user-name">Admin</span>
+
+        <div class="notif-panel" id="notifPanel">
+          <div class="notif-head">Notifications</div>
+          <div class="notif-item">No new notifications.</div>
+        </div>
+
+        <div class="dropdown" id="userMenu">
+          <div class="item" id="goProfile">👤 Profile</div>
+          <div class="item" id="goSettings">⚙️ Settings</div>
+          <div class="item" id="doLogout">🚪 Log out</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="shell">
+      <div class="toolbar">
+        <div class="search">🔎 <input id="search" placeholder="Search posts or events"></div>
+        <select id="filterCategory" class="btn btn-light">
+          <option value="">All Categories</option>
+          <option>Announcement</option>
+          <option>Health</option>
+          <option>Environment</option>
+          <option>Safety</option>
+          <option>Sports</option>
+        </select>
+        <button id="btnCreate" class="btn btn-primary" style="display:none;">Create Post</button>
+      </div>
+
+      <div class="grid">
+        <!-- LEFT FEED -->
+        <div class="content">
+          <div class="card" id="composer" style="display:none;">
+            <div style="display:flex;gap:10px;align-items:center;padding:14px">
+              <div class="avatar" id="avatar2">A</div>
+              <div id="openModal" style="flex:1;background:#f0f2f5;border-radius:50px;padding:10px 14px;color:#666;cursor:pointer">What do you want to share?</div>
+            </div>
+          </div>
+
+          <div id="feed" class="feed"></div>
+          <div style="text-align:center;margin:12px 0;">
+            <button id="loadMore" class="btn btn-light">Load more</button>
+          </div>
+        </div>
+
+        <!-- RIGHT WIDGETS -->
+        <div class="widgets">
+          <div class="card widget">
+            <div class="cal-head">
+              <h4 id="calLabel">April 2025</h4>
+              <div style="display:flex;gap:6px">
+                <button id="prevMonth" class="btn btn-light">←</button>
+                <button id="nextMonth" class="btn btn-light">→</button>
+              </div>
+            </div>
+            <div id="calendar" class="mini-calendar"></div>
+            <div style="display:flex;gap:8px;margin-top:10px">
+              <button id="clearDate" class="btn btn-light" style="flex:1">Clear date</button>
+              <button id="addEventShortcut" class="btn btn-primary" style="flex:1;display:none">+ Event</button>
+            </div>
+          </div>
+
+          <div class="card widget">
+            <h4>Upcoming Events</h4>
+            <div id="eventList" class="list"></div>
+          </div>
+
+          <div class="card widget">
+            <h4>Categories</h4>
+            <div class="catchips">
+              <span class="chip" data-cat="">All</span>
+              <span class="chip" data-cat="Announcement">Announcement</span>
+              <span class="chip" data-cat="Health">Health</span>
+              <span class="chip" data-cat="Environment">Environment</span>
+              <span class="chip" data-cat="Safety">Safety</span>
+              <span class="chip" data-cat="Sports">Sports</span>
+            </div>
+          </div>
+
+          <div class="card widget" id="adminBox" style="display:none">
+            <h4>Quick Admin</h4>
+            <div class="list">
+              <button id="quickPost" class="btn btn-primary">+ New Post</button>
+              <button id="quickEvent" class="btn btn-light">+ New Event</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal -->
+<div class="modal" id="modal">
+  <div class="panel">
+    <div class="panel-header">
+      <span>Create Post / Event</span>
+      <button class="btn btn-light" id="closeModal">✕</button>
+    </div>
+    <div class="panel-body">
+      <div class="row">
+        <select id="type" class="select">
+          <option value="post">Post</option>
+          <option value="event">Event</option>
+        </select>
+        <select id="category" class="select">
+          <option>Announcement</option>
+          <option>Health</option>
+          <option>Environment</option>
+          <option>Safety</option>
+          <option>Sports</option>
+        </select>
+      </div>
+      <input id="title" class="input" placeholder="Title">
+      <textarea id="body" placeholder="Write something…"></textarea>
+
+      <div class="tabs">
+        <button class="tab active" id="tabUpload">Upload</button>
+        <button class="tab" id="tabUrl">Image URL</button>
+      </div>
+      <div id="uploadBox"><input id="file" type="file" accept="image/*"/></div>
+      <div id="urlBox" style="display:none;"><input id="imageUrl" class="input" placeholder="https://…"></div>
+
+      <div id="eventFields" style="display:none;">
+        <div class="row">
+          <input id="startDate" class="input" type="date">
+          <input id="endDate" class="input" type="date">
+        </div>
+        <input id="location" class="input" placeholder="Location (e.g., Barangay Hall)">
+      </div>
+    </div>
+    <div class="panel-actions">
+      <button class="btn btn-light" id="cancel">Cancel</button>
+      <button class="btn btn-primary" id="publish">Post</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Saved</div>
+
+<script src="/admin/admin-community.js" defer></script>
+<script>
+(async function(){
+  try{
+    const r = await fetch('/api/settings/system');
+    if(!r.ok) return;
+    const { settings } = await r.json();
+    if(settings?.maintenanceMode){
+      const b = document.createElement('div');
+      b.textContent = 'Maintenance Mode is ON — users are seeing the maintenance page';
+      b.style.cssText = 'position:fixed;inset-inline:0;top:0;z-index:9999;padding:8px 12px;background:#f59e0b;color:#111827;text-align:center;font:14px/1.3 Inter,system-ui';
+      document.body.appendChild(b);
+      document.body.style.paddingTop = '36px';
+    }
+  }catch(e){}
+})();
+</script>
+
+<script src="/app-preferences.js"></script>
+<script src="/admin/admin-community.js"></script>
+</body>
+</html>

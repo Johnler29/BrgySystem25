@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Document & Permit Issuance — Barangay Langkaan II</title>
+
+  <script>
+  /* set theme/font early from localStorage to avoid flash */
+  (function () {
+    try {
+      var s = JSON.parse(localStorage.getItem('userSettings') || '{}');
+      var html = document.documentElement;
+
+      // theme
+      var t = s.theme || 'light';
+      if (t === 'dark') {
+        html.setAttribute('data-theme', 'dark');
+      } else if (t === 'auto') {
+        var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (prefersDark) html.setAttribute('data-theme', 'dark'); else html.removeAttribute('data-theme');
+      } else {
+        html.removeAttribute('data-theme');
+      }
+
+      // font size
+      var fs = (s.fontSize || 'medium').toLowerCase();
+      var map = { small:'14px', medium:'16px', large:'18px', xlarge:'20px' };
+      html.setAttribute('data-font-size', fs);
+      html.style.setProperty('--fs-base', map[fs] || '16px');
+
+      // body-level toggles (not critical pre-paint, but fine)
+      document.addEventListener('DOMContentLoaded', function(){
+        document.body.classList.toggle('compact-mode', !!s.compactMode);
+        document.body.classList.toggle('high-contrast', !!s.highContrast);
+        document.body.classList.toggle('sidebar-collapsed', s.showSidebar === false);
+      });
+    } catch (e) {}
+  })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/base.css">
+</head>
+
+<!-- Same base header/behavior as other pages -->
+<script defer src="/base-header.js"></script>
+<script defer src="/base.js"></script>
+
+<body>
+<div class="dashboard-container">
+  <!-- Sidebar (unchanged) -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <img src="https://scontent.fmnl31-1.fna.fbcdn.net/v/t1.15752-9/566459805_2304695176635817_7965723576219961744_n.png?_nc_cat=100&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeFvsvFPtYKGEdwHZwyXJu6hLWJQAEjhjVotYlAASOGNWmCLSn6KIuOYN8ElKlNNHQrO159FSCuwFcll7OgdlzCP&_nc_ohc=yiA3bhEGnNAQ7kNvwGUy1mZ&_nc_oc=AdkuAJIw6rTtWuKWDNP7QJAFplSOwMhvUK5rJ7b_uZdCToSR1sT73c7CFJ5zrYhIU-I&_nc_zt=23&_nc_ht=scontent.fmnl31-1.fna&oh=03_Q7cD3gGocOn0qEMEx3iINh9aOx48m0LIlXIab9IT08mckx_JZw&oe=692126F5" alt="Logo">
+      <h3 class="sidebar-title">Barangay Langkaan II<br><small style="font-size:0.85em;opacity:0.8;">Admin Portal</small></h3>
+    </div>
+
+    <ul class="sidebar-menu" id="navList">
+      <li><a href="/admin/dashboard" data-tooltip="Admin Dashboard"><span class="icon">🏠︎</span><span class="label">Dashboard</span></a></li>
+      <li><a href="/admin/residents" data-tooltip="Resident Management"><span class="icon">👪</span><span class="label">Resident Management</span></a></li>
+      <li><a href="/admin/document-permits" class="active" data-tooltip="Document & Permit Management"><span class="icon">📄</span><span class="label">Document & Permit Management</span></a></li>
+      <li><a href="/admin/community" data-tooltip="Community Development"><span class="icon">🤝</span><span class="label">Community Development</span></a></li>
+      <li><a href="/admin/cases" data-tooltip="Cases & Incidents"><span class="icon">⚖️</span><span class="label">Case & Incident Management</span></a></li>
+      <li><a href="/admin/health" data-tooltip="Health & Social"><span class="icon">🏥</span><span class="label">Health & Social Services</span></a></li>
+      <li><a href="/admin/disaster" data-tooltip="Disaster Response"><span class="icon">🚨</span><span class="label">Disaster & Emergency Response</span></a></li>
+      <li><a href="/admin/financial" data-tooltip="Finance & Budget"><span class="icon">💰</span><span class="label">Financial & Budget</span></a></li>
+      <li><a href="/admin/logs-reports" data-tooltip="Logs & Reports"><span class="icon">📊</span><span class="label">Logs & Reports</span></a></li>
+      <li><a href="/admin/settings" data-tooltip="System Settings"><span class="icon">⚙️</span><span class="label">System Settings</span></a></li>
+
+      <li style="margin-top:50px;"><a href="#" onclick="logout()" data-tooltip="Log out"><span class="icon">🚪</span><span class="label">Log out</span></a></li>
+    </ul>
+  </nav>
+
+  <!-- Main -->
+  <main class="main-content">
+    <!-- Header (exact same structure you used on dashboard) -->
+    <header class="header">
+      <div class="header-left">
+        <button class="hamburger" id="hamburgerBtn" aria-label="Toggle sidebar"><span></span></button>
+        <h1 id="greeting">Document & Permit Issuance</h1>
+      </div>
+      <div class="user-info" id="userChip">
+        <button class="btn btn-outline" id="notifBtn" title="Notifications">🔔</button>
+        <div class="user-avatar" id="avatar">U</div>
+        <span id="username" class="user-name">Admin</span>
+
+        <div class="notif-panel" id="notifPanel">
+          <div class="notif-head">Notifications</div>
+          <div class="notif-item">No new notifications.</div>
+        </div>
+
+        <div class="dropdown" id="userMenu">
+          <div class="item" id="goProfile">👤 Profile</div>
+          <div class="item" id="goSettings">⚙️ Settings</div>
+          <div class="item" id="doLogout">🚪 Log out</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="content-area">
+      <!-- Toolbar (kept minimal & aligned to your style) -->
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <button class="btn btn-primary" id="addNewBtn">+ Add New</button>
+          <button class="btn btn-outline" id="filterBtn">Filter</button>
+        </div>
+        <div class="toolbar-right">
+          <button class="btn btn-outline" id="bulkReleasedBtn">Set Released</button>
+          <button class="btn btn-outline" id="exportBtn">Export</button>
+          <div class="search">
+            <input id="searchInput" type="text" placeholder="Search by name, type, purpose"/>
+            <span class="icon">🔍</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="table-wrap">
+        <table class="table" id="docsTable">
+          <thead>
+            <tr>
+              <th style="width:34px"><input type="checkbox" id="checkAll"/></th>
+              <th>Name of Requester</th>
+              <th>Number of Copies</th>
+              <th>Type of Document</th>
+              <th>Date Requested</th>
+              <th>Date Released</th>
+              <th>Status</th>
+              <th style="width:48px"></th>
+            </tr>
+          </thead>
+          <tbody id="reqTbody">
+            <!-- rows injected by document-permits.js -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pager" id="pager" style="display:none"></div>
+    </div>
+  </main>
+</div>
+
+<!-- ===== Modals (use existing base.css modal styles) ===== -->
+
+<!-- Add/Edit -->
+<div class="modal" id="formModal" aria-hidden="true">
+  <div class="sheet">
+    <div class="sheet-head">
+      <h3 id="formTitle">Document & Permit Issuance</h3>
+      <button class="btn btn-outline" id="closeFormX">✕</button>
+    </div>
+    <div class="sheet-body">
+      <form id="docForm" class="grid-2">
+        <div class="field">
+          <label>Type of Document</label>
+          <select id="typeOfDocument" required>
+            <option>Barangay Clearance</option>
+            <option>Certificate of Indigency</option>
+            <option>Certificate of Residency</option>
+            <option>Barangay ID</option>
+            <option>Construction Permit</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Number of Copies</label>
+          <input id="numberOfCopies" type="number" min="1" value="1" required/>
+        </div>
+        <div class="field" style="grid-column:1/-1">
+          <label>Requester’s Name</label>
+          <input id="requesterName" type="text" required/>
+        </div>
+        <div class="field" style="grid-column:1/-1">
+          <label>Requester’s Address</label>
+          <input id="address" type="text" required/>
+        </div>
+        <div class="field" style="grid-column:1/-1">
+          <label>Purpose</label>
+          <input id="purpose" type="text" placeholder="e.g. Employment, Scholarship" required/>
+        </div>
+        <div class="field">
+          <label>Payment Method</label>
+          <select id="paymentMethod">
+            <option value="">Select Payment Method</option>
+            <option>GCash</option>
+            <option>GoTyme</option>
+            <option>Local Bank</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Payment Status</label>
+          <select id="paymentStatus">
+            <option value="">No payment found</option>
+            <option>Successfully Paid</option>
+            <option>Pending</option>
+            <option>Failed</option>
+          </select>
+        </div>
+        <input type="hidden" id="docId"/>
+      </form>
+    </div>
+    <div class="sheet-foot">
+      <button class="btn btn-outline" id="cancelForm">Cancel</button>
+      <button class="btn btn-primary" id="saveForm">Generate Document</button>
+    </div>
+  </div>
+</div>
+
+<!-- Status -->
+<div class="modal" id="statusModal" aria-hidden="true">
+  <div class="sheet">
+    <div class="sheet-head">
+      <h3>Change Status</h3>
+      <button class="btn btn-outline" id="closeStatusX">✕</button>
+    </div>
+    <div class="sheet-body">
+      <form id="statusForm" class="grid-2">
+        <div class="field">
+          <label>Status</label>
+          <select id="statusValue">
+            <option>Pending</option>
+            <option>Pick-up Ready</option>
+            <option>Released</option>
+            <option>Declined</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Date Released</label>
+          <input id="dateReleased" type="date"/>
+        </div>
+        <input type="hidden" id="statusDocId"/>
+      </form>
+    </div>
+    <div class="sheet-foot">
+      <button class="btn btn-outline" id="cancelStatus">Cancel</button>
+      <button class="btn btn-primary" id="saveStatus">Set Status</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete confirm -->
+<div class="modal" id="confirmModal" aria-hidden="true">
+  <div class="sheet">
+    <div class="sheet-head"><h3>Confirm Delete?</h3></div>
+    <div class="sheet-body">
+      <p>Are you sure you want to delete this request?</p>
+      <input type="hidden" id="deleteDocId"/>
+    </div>
+    <div class="sheet-foot">
+      <button class="btn btn-outline" id="cancelDelete">Exit</button>
+      <button class="btn btn-danger" id="doDelete">Delete this Request</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(async function(){
+  try{
+    const r = await fetch('/api/settings/system');
+    if(!r.ok) return;
+    const { settings } = await r.json();
+    if(settings?.maintenanceMode){
+      const b = document.createElement('div');
+      b.textContent = 'Maintenance Mode is ON — users are seeing the maintenance page';
+      b.style.cssText = 'position:fixed;inset-inline:0;top:0;z-index:9999;padding:8px 12px;background:#f59e0b;color:#111827;text-align:center;font:14px/1.3 Inter,system-ui';
+      document.body.appendChild(b);
+      document.body.style.paddingTop = '36px';
+    }
+  }catch(e){}
+})();
+</script>
+
+<script src="/app-preferences.js"></script>
+<script defer src="/admin/admin-document-permits.js"></script>
+</body>
+</html>

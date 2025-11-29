@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Health Services — Barangay Langkaan II</title>
+
+<script>
+/* set theme/font early from localStorage to avoid flash */
+(function () {
+  try {
+    var s = JSON.parse(localStorage.getItem('userSettings') || '{}');
+    var html = document.documentElement;
+
+    // theme
+    var t = s.theme || 'light';
+    if (t === 'dark') {
+      html.setAttribute('data-theme', 'dark');
+    } else if (t === 'auto') {
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (prefersDark) html.setAttribute('data-theme', 'dark'); else html.removeAttribute('data-theme');
+    } else {
+      html.removeAttribute('data-theme');
+    }
+
+    // font size
+    var fs = (s.fontSize || 'medium').toLowerCase();
+    var map = { small:'14px', medium:'16px', large:'18px', xlarge:'20px' };
+    html.setAttribute('data-font-size', fs);
+    html.style.setProperty('--fs-base', map[fs] || '16px');
+  } catch (e) {}
+})();
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/base.css">
+
+<style>
+  /* Modern minimalist design - Blue & Dark Blue Theme */
+  :root {
+    --health-primary: #3498db;
+    --health-primary-light: #e3f2fd;
+    --health-accent: #2980b9;
+    --health-accent-light: #bbdefb;
+    --health-warning: #1e3a8a;
+    --health-warning-light: #c5d5f5;
+    --health-success: #2563eb;
+    --health-success-light: #dbeafe;
+    --health-muted: #6b7280;
+    --health-border: #e5e7eb;
+    --health-bg: #fafafa;
+  }
+
+  body {
+    background: var(--health-bg);
+  }
+
+  .bg-primary-btn { background-color: var(--health-primary); }
+  .bg-success-btn { background-color: var(--health-accent); }
+  .bg-ghost-btn { background-color: #f3f4f6; }
+  .text-primary-btn { color: #1f2937; }
+  .border-input { border-color: var(--health-border); }
+
+  .bg-active { background-color: var(--health-success-light); color: var(--health-success); }
+  .bg-completed { background-color: var(--health-accent-light); color: #1565c0; }
+  .bg-scheduled { background-color: var(--health-accent-light); color: #2563eb; }
+  .bg-pending { background-color: var(--health-warning-light); color: #1e40af; }
+  .bg-ongoing { background-color: var(--health-accent-light); color: #2563eb; }
+  .bg-resolved { background-color: var(--health-success-light); color: var(--health-success); }
+
+  /* Modern info banner */
+  .info-banner {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border: 1px solid #bfdbfe;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    color: #1e40af;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  /* Minimalist stat cards */
+  .stat-modern {
+    background: white;
+    border: 1px solid var(--health-border);
+    border-radius: 16px;
+    padding: 24px;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-modern::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--health-primary), var(--health-accent));
+  }
+
+  .stat-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  .stat-modern h4 {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--health-muted);
+    margin: 0 0 8px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .stat-modern h3 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+    line-height: 1;
+  }
+
+  .stat-modern.blue::before {
+    background: linear-gradient(90deg, var(--health-primary), var(--health-accent));
+  }
+
+  /* Modern tabs */
+  .tabs-modern {
+    display: flex;
+    gap: 8px;
+    border-bottom: 2px solid var(--health-border);
+    margin-bottom: 24px;
+    padding-bottom: 0;
+  }
+
+  .tab-modern {
+    padding: 12px 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--health-muted);
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: -2px;
+    position: relative;
+  }
+
+  .tab-modern:hover {
+    color: var(--health-primary);
+  }
+
+  .tab-modern.active,
+  .tab.active {
+    color: var(--health-primary) !important;
+    border-bottom-color: var(--health-primary) !important;
+    font-weight: 600;
+  }
+
+  .tab-modern:not(.active),
+  .tab:not(.active) {
+    color: var(--health-muted);
+    border-bottom-color: transparent;
+  }
+
+  /* Modern form */
+  .form-modern {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  .form-modern .full {
+    grid-column: 1 / -1;
+  }
+
+  .form-modern label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 8px;
+  }
+
+  .form-modern input,
+  .form-modern select,
+  .form-modern textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid var(--health-border);
+    border-radius: 10px;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    background: white;
+  }
+
+  .form-modern input:focus,
+  .form-modern select:focus,
+  .form-modern textarea:focus {
+    outline: none;
+    border-color: var(--health-primary);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+  }
+
+  /* Modern table */
+  .table-modern {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--health-border);
+  }
+
+  .table-modern thead {
+    background: #f9fafb;
+  }
+
+  .table-modern th {
+    padding: 14px 16px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--health-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--health-border);
+  }
+
+  .table-modern td {
+    padding: 16px;
+    font-size: 0.875rem;
+    color: #374151;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  .table-modern tbody tr:hover {
+    background: #f9fafb;
+  }
+
+  .table-modern tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  /* Ensure table cells from JS render properly */
+  .table td {
+    padding: 16px;
+    font-size: 0.875rem;
+    color: #374151;
+  }
+
+  .table th {
+    padding: 14px 16px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--health-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* Modern button */
+  .btn-modern {
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-modern-primary {
+    background: var(--health-primary);
+    color: white;
+  }
+
+  .btn-modern-primary:hover {
+    background: var(--health-success);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  }
+
+  .btn-modern-ghost {
+    background: #f3f4f6;
+    color: #374151;
+  }
+
+  .btn-modern-ghost:hover {
+    background: #e5e7eb;
+  }
+
+  /* Table action buttons */
+  .table button {
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .table .bg-ghost-btn {
+    background: #f3f4f6;
+    color: #374151;
+  }
+
+  .table .bg-ghost-btn:hover {
+    background: #e5e7eb;
+    transform: translateY(-1px);
+  }
+
+  /* Modern card */
+  .card-modern {
+    background: white;
+    border: 1px solid var(--health-border);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+
+  .card-modern-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--health-border);
+    background: #fafafa;
+  }
+
+  .card-modern-header h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+  }
+
+  .card-modern-content {
+    padding: 24px;
+  }
+
+  /* Search bar modern */
+  .search-modern {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .search-modern input,
+  .search-modern select {
+    padding: 10px 14px;
+    border: 1.5px solid var(--health-border);
+    border-radius: 10px;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    background: white;
+  }
+
+  .search-modern input:focus,
+  .search-modern select:focus {
+    outline: none;
+    border-color: var(--health-primary);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--health-muted);
+  }
+
+  .empty-state p {
+    margin: 0;
+    font-size: 0.875rem;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .form-modern {
+      grid-template-columns: 1fr;
+    }
+
+    .search-modern {
+      flex-direction: column;
+    }
+
+    .search-modern input,
+    .search-modern select {
+      width: 100%;
+    }
+
+    .tabs-modern {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .tab-modern {
+      white-space: nowrap;
+      padding: 12px 16px;
+    }
+
+    .stat-modern {
+      padding: 20px;
+    }
+
+    .stat-modern h3 {
+      font-size: 1.75rem;
+    }
+  }
+
+  /* Dark mode support */
+  [data-theme="dark"] {
+    --health-bg: #111827;
+    --health-border: #374151;
+    --health-muted: #9ca3af;
+  }
+
+  [data-theme="dark"] .stat-modern,
+  [data-theme="dark"] .card-modern {
+    background: #1f2937;
+    border-color: #374151;
+  }
+
+  [data-theme="dark"] .stat-modern h3,
+  [data-theme="dark"] .card-modern-header h3 {
+    color: #f9fafb;
+  }
+
+  [data-theme="dark"] .table-modern thead {
+    background: #1f2937;
+  }
+
+  [data-theme="dark"] .table-modern tbody tr:hover {
+    background: #1f2937;
+  }
+
+  [data-theme="dark"] .info-banner {
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+    border-color: #3b82f6;
+    color: #dbeafe;
+  }
+</style>
+</head>
+
+<script defer src="/base-header.js"></script>
+<script defer src="/base.js"></script>
+
+<body>
+<div class="dashboard-container">
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <img src="https://scontent.fmnl31-1.fna.fbcdn.net/v/t1.15752-9/566459805_2304695176635817_7965723576219961744_n.png?_nc_cat=100&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeFvsvFPtYKGEdwHZwyXJu6hLWJQAEjhjVotYlAASOGNWmCLSn6KIuOYN8ElKlNNHQrO159FSCuwFcll7OgdlzCP&_nc_ohc=yiA3bhEGnNAQ7kNvwGUy1mZ&_nc_oc=AdkuAJIw6rTtWuKWDNP7QJAFplSOwMhvUK5rJ7b_uZdCToSR1sT73c7CFJ5zrYhIU-I&_nc_zt=23&_nc_ht=scontent.fmnl31-1.fna&oh=03_Q7cD3gGocOn0qEMEx3iINh9aOx48m0LIlXIab9IT08mckx_JZw&oe=692126F5" alt="Logo">
+      <h3 class="sidebar-title">Barangay Langkaan II<br><small style="font-size:0.85em;opacity:0.8;">Resident Portal</small></h3>
+    </div>
+
+    <ul class="sidebar-menu" id="navList">
+      <li><a href="/user/dashboard" data-tooltip="Dashboard"><span class="icon">🏠︎</span><span class="label">Dashboard</span></a></li>
+      <li><a href="/user/document-permits" data-tooltip="Request Documents"><span class="icon">📄</span><span class="label">Request Documents</span></a></li>
+      <li><a href="/user/community" data-tooltip="Community"><span class="icon">🤝</span><span class="label">Community</span></a></li>
+      <li><a href="/user/cases" data-tooltip="Report Cases"><span class="icon">⚖️</span><span class="label">Report Cases</span></a></li>
+      <li><a href="/user/health" class="active" data-tooltip="Health Services"><span class="icon">🏥</span><span class="label">Health Services</span></a></li>
+      <li><a href="/user/disaster" data-tooltip="Disaster Info"><span class="icon">🚨</span><span class="label">Disaster Info</span></a></li>
+      <li style="margin-top:50px;"><a href="/user/settings" data-tooltip="Settings"><span class="icon">⚙️</span><span class="label">Settings</span></a></li>
+      <li><a href="#" onclick="logout()" data-tooltip="Log out"><span class="icon">🚪</span><span class="label">Log out</span></a></li>
+    </ul>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <header class="header">
+      <div class="header-left">
+        <button class="hamburger" id="hamburgerBtn" aria-label="Toggle sidebar"><span></span></button>
+        <h1 id="greeting">Health Services</h1>
+      </div>
+      <div class="user-info" id="userChip">
+        <button class="btn btn-outline" id="notifBtn" title="Notifications">🔔</button>
+        <div class="user-avatar" id="avatar">U</div>
+        <span id="username" class="user-name">User</span>
+
+        <div class="notif-panel" id="notifPanel">
+          <div class="notif-head">Notifications</div>
+          <div class="notif-item">No new notifications.</div>
+        </div>
+
+        <div class="dropdown" id="userMenu">
+          <div class="item" id="goProfile">👤 Profile</div>
+          <div class="item" id="goSettings">⚙️ Settings</div>
+          <div class="item" id="doLogout">🚪 Log out</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="content-area">
+      <div class="info-banner">
+        <strong>Resident Portal</strong> — View your personal health records and program participation here.
+      </div>
+
+      <!-- Statistics -->
+      <div class="stats-grid" style="margin-bottom:32px;">
+        <div class="stat-modern">
+          <h4>My Records</h4>
+          <h3 id="sTotal">0</h3>
+        </div>
+        <div class="stat-modern blue">
+          <h4>Active Programs</h4>
+          <h3 id="sActive">0</h3>
+        </div>
+        <div class="stat-modern">
+          <h4>Scheduled</h4>
+          <h3 id="sScheduled">0</h3>
+        </div>
+        <div class="stat-modern">
+          <h4>Completed</h4>
+          <h3 id="sCompleted">0</h3>
+        </div>
+      </div>
+
+      <!-- Main Card -->
+      <div class="card-modern">
+        <div class="card-modern-header">
+          <h3>My Health Records</h3>
+        </div>
+        <div class="card-modern-content">
+          <!-- Tabs -->
+          <div id="tabs" class="tabs-modern">
+            <div class="tab-modern tab active" data-tab="patient-data">Patient Data</div>
+            <div class="tab-modern tab" data-tab="family-planning">Family Planning</div>
+            <div class="tab-modern tab" data-tab="post-partum">Post Partum</div>
+            <div class="tab-modern tab" data-tab="child-immunization">Child Immunization</div>
+            <div class="tab-modern tab" data-tab="individual-treatment">Treatment Records</div>
+            <div class="tab-modern tab" data-tab="patient-data-record">My Profile</div>
+            <div class="tab-modern tab" data-tab="pregnancy-tracking">Pregnancy Tracking</div>
+            <div class="tab-modern tab" data-tab="pre-natal">Pre-Natal Visits</div>
+            <div class="tab-modern tab" data-tab="schedules">My Schedules</div>
+          </div>
+
+          <!-- Toolbar -->
+          <div class="search-modern">
+            <input id="fQ" placeholder="Search records…" style="flex:1;min-width:200px;">
+            <input id="fFrom" type="date">
+            <input id="fTo" type="date">
+            <select id="fStatus">
+              <option value="">All Status</option>
+              <option value="Active">Active</option>
+              <option value="Scheduled">Scheduled</option>
+              <option value="Completed">Completed</option>
+              <option value="Pending">Pending</option>
+            </select>
+            <button class="btn-modern btn-modern-ghost" id="btnFilter">Apply</button>
+          </div>
+
+          <!-- Table -->
+          <div class="table-modern">
+            <table class="table" id="tbl" style="width:100%;border-collapse:collapse;">
+              <thead id="tableHead"></thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div class="pager" id="pager" style="margin-top:20px;"></div>
+        </div>
+      </div>
+
+      <!-- Schedule preference card -->
+      <div class="card-modern">
+        <div class="card-modern-header">
+          <h3>Request a Health Schedule</h3>
+        </div>
+        <div class="card-modern-content">
+          <p class="muted" style="font-size:0.875rem;margin-bottom:24px;color:var(--health-muted);line-height:1.6;">
+            You can submit preferred dates for pre-natal, infant, health, or general checkups. The health center will confirm your final schedule.
+          </p>
+          <form id="frmSchedule" class="form-modern">
+            <div>
+              <label>Checkup Type *</label>
+              <select name="type" required>
+                <option value="">Select Type</option>
+                <option value="prenatal">Pre-natal Checkup</option>
+                <option value="infant">Infant Checkup</option>
+                <option value="health">Health Checkup</option>
+                <option value="general">General Checkup</option>
+              </select>
+            </div>
+            <div>
+              <label>Preferred Date *</label>
+              <input type="date" name="preferredDate" required>
+            </div>
+            <div>
+              <label>Preferred Time</label>
+              <input type="time" name="preferredTime">
+            </div>
+            <div class="full">
+              <label>Notes</label>
+              <textarea name="notes" rows="3" placeholder="Optional: additional details (e.g., trimester, infant age, special concerns)…"></textarea>
+            </div>
+            <div class="full" style="display:flex;justify-content:flex-end;margin-top:8px;">
+              <button type="button" id="btnSubmitSchedule" class="btn-modern btn-modern-primary">Submit Preference</button>
+            </div>
+          </form>
+          <div id="scheduleMsg" class="muted" style="margin-top:12px;font-size:0.875rem;min-height:20px;"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Details Drawer -->
+<div class="fixed inset-0 hidden z-[1000]" id="drawer">
+  <div class="overlay absolute inset-0 bg-black/25" style="backdrop-filter:blur(2px);"></div>
+  <div class="absolute right-0 top-0 h-full w-full md:w-[520px] bg-white shadow-[-10px_0_30px_rgba(0,0,0,0.15)] flex flex-col" style="border-radius:16px 0 0 16px;">
+    <header class="px-6 py-5 border-b border-[#e5e7eb] bg-white flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <strong id="dRecordId" style="font-size:1rem;font-weight:600;color:#111827;">Record</strong>
+        <span id="dStatus" class="px-2.5 py-1 rounded-full text-xs font-semibold bg-active">Active</span>
+      </div>
+      <button class="btn-modern btn-modern-ghost" id="dClose" style="padding:8px 16px;">Close</button>
+    </header>
+    <div class="p-6 overflow-auto flex-1" id="dBody" style="background:#fafafa;"></div>
+  </div>
+</div>
+
+<script src="/app-preferences.js"></script>
+<script src="/user/user-health.js"></script>
+</body>
+</html>
+

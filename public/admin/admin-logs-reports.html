@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Logs & Reports — Barangay Langkaan II</title>
+
+<!-- pre-paint settings (unchanged) -->
+<script>
+(function () {
+  try {
+    var s = JSON.parse(localStorage.getItem('userSettings') || '{}');
+    var html = document.documentElement;
+
+    var t = s.theme || 'light';
+    if (t === 'dark') html.setAttribute('data-theme', 'dark');
+    else if (t === 'auto') {
+      var prefersDark = matchMedia('(prefers-color-scheme: dark)').matches;
+      if (prefersDark) html.setAttribute('data-theme', 'dark'); else html.removeAttribute('data-theme');
+    } else html.removeAttribute('data-theme');
+
+    var fs = (s.fontSize || 'medium').toLowerCase();
+    var map = { small:'14px', medium:'16px', large:'18px', xlarge:'20px' };
+    html.setAttribute('data-font-size', fs);
+    html.style.setProperty('--fs-base', map[fs] || '16px');
+
+    document.addEventListener('DOMContentLoaded', function(){
+      document.body.classList.toggle('compact-mode', !!s.compactMode);
+      document.body.classList.toggle('high-contrast', !!s.highContrast);
+      document.body.classList.toggle('sidebar-collapsed', s.showSidebar === false);
+    });
+  } catch (e) {}
+})();
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/base.css"/>
+
+<!-- ✅ Scoped styles only for this page (bring back tabs/toolbars/alerts) -->
+<style>
+  .logs-page .alert-banner{
+    padding:12px 14px; border-radius:10px; border:1px solid var(--border-color);
+    background:#fff; color:var(--text-primary); display:flex; gap:8px; align-items:flex-start;
+    box-shadow:var(--shadow-sm); margin-bottom:12px;
+  }
+  .logs-page .alert-banner.hidden{display:none!important}
+  .logs-page .alert-banner.info{background:#eaf5ff;border-left:4px solid var(--accent-color)}
+  .logs-page .alert-banner strong{font-weight:700}
+
+  .logs-page .stats-grid{margin-bottom:14px}
+
+  .logs-page .tabs{
+    display:flex; gap:6px; border-bottom:1px solid var(--border-color);
+    margin:8px 0 14px; flex-wrap:wrap;
+  }
+  .logs-page .tab{
+    padding:10px 12px; cursor:pointer; border-bottom:2px solid transparent;
+    color:var(--text-secondary); user-select:none; border-radius:8px 8px 0 0;
+  }
+  .logs-page .tab:hover{background:var(--bg-tertiary)}
+  .logs-page .tab.active{color:var(--accent-color); border-bottom-color:var(--accent-color); font-weight:700}
+
+  .logs-page .tab-content{display:block}
+  .logs-page .tab-content.hidden{display:none!important}
+
+  .logs-page .toolbar{
+    display:flex; justify-content:space-between; align-items:center;
+    gap:10px; flex-wrap:wrap; margin:10px 0;
+  }
+  .logs-page .toolbar .input,
+  .logs-page .toolbar .select{min-width:170px}
+
+  .logs-page .table-wrap{margin-top:6px}
+
+  /* keep page comfortably centered on large screens */
+  .logs-page .content-inner{max-width:1200px;margin-inline:auto}
+</style>
+</head>
+
+<script defer src="/base-header.js"></script>
+<script defer src="/base.js"></script>
+
+<body>
+<div class="dashboard-container">
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <img src="https://scontent.fmnl31-1.fna.fbcdn.net/v/t1.15752-9/566459805_2304695176635817_7965723576219961744_n.png?_nc_cat=100&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeFvsvFPtYKGEdwHZwyXJu6hLWJQAEjhjVotYlAASOGNWmCLSn6KIuOYN8ElKlNNHQrO159FSCuwFcll7OgdlzCP&_nc_ohc=yiA3bhEGnNAQ7kNvwGUy1mZ&_nc_oc=AdkuAJIw6rTtWuKWDNP7QJAFplSOwMhvUK5rJ7b_uZdCToSR1sT73c7CFJ5zrYhIU-I&_nc_zt=23&_nc_ht=scontent.fmnl31-1.fna&oh=03_Q7cD3gGocOn0qEMEx3iINh9aOx48m0LIlXIab9IT08mckx_JZw&oe=692126F5" alt="Logo">
+      <h3 class="sidebar-title">Barangay Langkaan II<br><small style="font-size:0.85em;opacity:0.8;">Admin Portal</small></h3>
+    </div>
+
+    <ul class="sidebar-menu" id="navList">
+      <li><a href="/admin/dashboard" data-tooltip="Admin Dashboard"><span class="icon">🏠</span><span class="label">Dashboard</span></a></li>
+      <li><a href="/admin/residents" data-tooltip="Resident Management"><span class="icon">👪</span><span class="label">Resident Management</span></a></li>
+      <li><a href="/admin/document-permits" data-tooltip="Document & Permit Management"><span class="icon">📄</span><span class="label">Document & Permit Management</span></a></li>
+      <li><a href="/admin/community" data-tooltip="Community Development"><span class="icon">🤝</span><span class="label">Community Development</span></a></li>
+      <li><a href="/admin/cases" data-tooltip="Cases & Incidents"><span class="icon">⚖️</span><span class="label">Case & Incident Management</span></a></li>
+      <li><a href="/admin/health" data-tooltip="Health & Social"><span class="icon">🏥</span><span class="label">Health & Social Services</span></a></li>
+      <li><a href="/admin/disaster" data-tooltip="Disaster Response"><span class="icon">🚨</span><span class="label">Disaster & Emergency Response</span></a></li>
+      <li><a href="/admin/financial" data-tooltip="Finance & Budget"><span class="icon">💰</span><span class="label">Financial & Budget</span></a></li>
+      <li><a href="/admin/logs-reports" class="active" data-tooltip="Logs & Reports"><span class="icon">📊</span><span class="label">Logs & Reports</span></a></li>
+      <li><a href="/admin/settings" data-tooltip="System Settings"><span class="icon">⚙️</span><span class="label">System Settings</span></a></li>
+      <li style="margin-top:50px;"><a href="#" onclick="logout()" data-tooltip="Log out"><span class="icon">🚪</span><span class="label">Log out</span></a></li>
+    </ul>
+  </nav>
+
+  <main class="main-content">
+    <header class="header">
+      <div class="header-left">
+        <button class="hamburger" id="hamburgerBtn" aria-label="Toggle sidebar"><span></span></button>
+        <h1>Logs & Reports</h1>
+      </div>
+      <div class="user-info" id="userChip">
+        <button class="btn btn-outline" id="notifBtn" title="Notifications">🔔</button>
+        <div class="user-avatar" id="avatar">U</div>
+        <span id="username" class="user-name">User</span>
+
+        <div class="notif-panel" id="notifPanel">
+          <div class="notif-head">Notifications</div>
+          <div class="notif-item">No new notifications.</div>
+        </div>
+
+        <div class="dropdown" id="userMenu">
+          <div class="item" id="goProfile">👤 Profile</div>
+          <div class="item" id="goSettings">⚙️ Settings</div>
+          <div class="item" id="doLogout">🚪 Log out</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="content-area">
+      <div class="logs-page">
+        <div class="content-inner">
+
+          <!-- Alerts -->
+          <div id="adminAlert" class="alert-banner hidden">
+            <span>⚠️</span>
+            <div><strong>Admin Mode:</strong> You have full access to all system logs and reports. Use this responsibly.</div>
+          </div>
+
+          <div id="userAlert" class="alert-banner info hidden">
+            <span>ℹ️</span>
+            <div><strong>Limited Access:</strong> You can view reports related to modules you have access to and your account activity logs.</div>
+          </div>
+
+          <!-- Stats -->
+          <div class="stats-grid" id="statsGrid">
+            <div class="stat-card"><h3 id="statTotal">162</h3><p>Total Reports Generated</p></div>
+            <div class="stat-card green"><h3 id="statModules">7</h3><p>Module Reports</p></div>
+            <div class="stat-card amber"><h3 id="statLogs">1282</h3><p>Activity Logs</p></div>
+            <div class="stat-card red"><h3 id="statActiveUsers">25</h3><p>Active Users</p></div>
+          </div>
+
+          <!-- Tabs -->
+          <div class="tabs">
+            <div class="tab active" data-tab="reports">📊 Module Reports</div>
+            <div class="tab" data-tab="activity-logs">📋 Activity Logs</div>
+            <div class="tab" data-tab="user-logs">👥 User Logs</div>
+            <div class="tab" data-tab="system-logs">⚙️ System Logs</div>
+          </div>
+
+          <!-- Module Reports -->
+          <div id="reports-tab" class="tab-content">
+            <div class="toolbar">
+              <div class="toolbar-left">
+                <select id="moduleFilter" class="select">
+                  <option value="">All Modules</option>
+                  <option value="resident">Resident Information</option>
+                  <option value="documents">Documents & Permits</option>
+                  <option value="cases">Case & Incident</option>
+                  <option value="community">Community Development</option>
+                  <option value="health">Health & Social Services</option>
+                  <option value="disaster">Disaster & Emergency</option>
+                  <option value="financial">Financial & Budget</option>
+                </select>
+                <input type="date" id="reportFromDate" class="input" placeholder="From Date">
+                <input type="date" id="reportToDate" class="input" placeholder="To Date">
+                <select id="reportStatus" class="select">
+                  <option value="">All Status</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Pending">Pending</option>
+                  <option value="In Progress">In Progress</option>
+                </select>
+              </div>
+              <div class="toolbar-right">
+                <button class="btn btn-primary" id="btnFilterReports">Apply Filter</button>
+                <button class="btn btn-outline" id="btnExportReport">Export</button>
+                <button class="btn btn-outline" id="btnRefreshReports">Refresh</button>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Report ID</th>
+                    <th>Module</th>
+                    <th>Title</th>
+                    <th>Generated By</th>
+                    <th>Date Generated</th>
+                    <th>Status</th>
+                    <th>Records</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="reportsTableBody">
+                  <tr>
+                    <td>RPT-2025-001</td><td>documents</td><td>Barangay Clearance Issuance — Q1</td>
+                    <td>J. Dela Cruz</td><td>2025-01-31 16:20</td>
+                    <td><span class="badge b-info">Completed</span></td><td>128</td>
+                    <td><button class="btn btn-outline" data-open="RPT-2025-001">View</button></td>
+                  </tr>
+                  <tr>
+                    <td>RPT-2025-002</td><td>resident</td><td>New Household Registrations — Jan</td>
+                    <td>M. Santos</td><td>2025-02-02 10:05</td>
+                    <td><span class="badge b-info">Completed</span></td><td>64</td>
+                    <td><button class="btn btn-outline" data-open="RPT-2025-002">View</button></td>
+                  </tr>
+                  <tr>
+                    <td>RPT-2025-003</td><td>cases</td><td>Incident Summary — Feb Week 1</td>
+                    <td>L. Reyes</td><td>2025-02-08 18:42</td>
+                    <td><span class="badge b-yes">In Progress</span></td><td>14</td>
+                    <td><button class="btn btn-outline" data-open="RPT-2025-003">View</button></td>
+                  </tr>
+                  <tr>
+                    <td>RPT-2025-004</td><td>financial</td><td>Budget Utilization — Q1 Draft</td>
+                    <td>K. Garcia</td><td>2025-03-15 09:18</td>
+                    <td><span class="badge b-no">Pending</span></td><td>9</td>
+                    <td><button class="btn btn-outline" data-open="RPT-2025-004">View</button></td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="pager" id="reportsPagination"></div>
+            </div>
+          </div>
+
+          <!-- Activity Logs -->
+          <div id="activity-logs-tab" class="tab-content hidden">
+            <div class="toolbar">
+              <div class="toolbar-left">
+                <input type="date" id="activityFromDate" class="input" placeholder="From Date">
+                <input type="date" id="activityToDate" class="input" placeholder="To Date">
+                <div class="search"><input id="activitySearch" class="input" placeholder="Search activity..."></div>
+                <select id="activityType" class="select">
+                  <option value="">All Activities</option>
+                  <option value="Create">Create</option>
+                  <option value="Update">Update</option>
+                  <option value="Delete">Delete</option>
+                  <option value="View">View</option>
+                  <option value="Export">Export</option>
+                </select>
+              </div>
+              <div class="toolbar-right">
+                <button class="btn btn-primary" id="btnFilterActivity">Apply Filter</button>
+                <button class="btn btn-outline" id="btnRefreshActivity">Refresh</button>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Timestamp</th>
+                    <th>User</th>
+                    <th>Activity Type</th>
+                    <th>Module</th>
+                    <th>Description</th>
+                    <th>IP Address</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="activityTableBody">
+                  <tr><td>2025-03-20 08:14</td><td>admin</td><td>Create</td><td>documents</td><td>Issued clearance #BC-10234</td><td>192.168.1.12</td><td>OK</td></tr>
+                  <tr><td>2025-03-20 09:02</td><td>m.santos</td><td>Update</td><td>resident</td><td>Edited household #H-558</td><td>192.168.1.23</td><td>OK</td></tr>
+                  <tr><td>2025-03-20 09:45</td><td>k.garcia</td><td>Export</td><td>financial</td><td>Exported Q1 ledger CSV</td><td>192.168.1.44</td><td>OK</td></tr>
+                  <tr><td>2025-03-20 10:10</td><td>guest</td><td>View</td><td>community</td><td>Viewed event calendar</td><td>192.168.1.50</td><td>OK</td></tr>
+                </tbody>
+              </table>
+              <div class="pager" id="activityPagination"></div>
+            </div>
+          </div>
+
+          <!-- User Logs -->
+          <div id="user-logs-tab" class="tab-content hidden">
+            <div class="toolbar">
+              <div class="toolbar-left">
+                <div class="search"><input id="userSearch" class="input" placeholder="Search user..."></div>
+                <select id="userStatus" class="select">
+                  <option value="">All Status</option>
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+                <select id="userRole" class="select">
+                  <option value="">All Roles</option>
+                  <option value="Admin">Admin</option>
+                  <option value="User">User</option>
+                  <option value="Health Worker">Health Worker</option>
+                  <option value="Barangay Official">Barangay Official</option>
+                </select>
+              </div>
+              <div class="toolbar-right">
+                <button class="btn btn-primary" id="btnFilterUsers">Apply Filter</button>
+                <button class="btn btn-outline" id="btnRefreshUsers">Refresh</button>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>User ID</th>
+                    <th>Username</th>
+                    <th>Full Name</th>
+                    <th>Role</th>
+                    <th>Last Login</th>
+                    <th>Login Count</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                  <tr><td>U-1001</td><td>admin</td><td>System Administrator</td><td>Admin</td><td>2025-03-20 07:59</td><td>156</td><td><span class="badge b-yes">Active</span></td><td><button class="btn btn-outline">Details</button></td></tr>
+                  <tr><td>U-1012</td><td>m.santos</td><td>Maria Santos</td><td>Health Worker</td><td>2025-03-19 17:22</td><td>43</td><td><span class="badge b-yes">Active</span></td><td><button class="btn btn-outline">Details</button></td></tr>
+                  <tr><td>U-1015</td><td>k.garcia</td><td>Karen Garcia</td><td>Barangay Official</td><td>2025-03-18 11:05</td><td>28</td><td><span class="badge b-no">Inactive</span></td><td><button class="btn btn-outline">Details</button></td></tr>
+                </tbody>
+              </table>
+              <div class="pager" id="usersPagination"></div>
+            </div>
+          </div>
+
+          <!-- System Logs -->
+          <div id="system-logs-tab" class="tab-content hidden">
+            <div class="toolbar">
+              <div class="toolbar-left">
+                <input type="date" id="sysFromDate" class="input" placeholder="From Date">
+                <input type="date" id="sysToDate" class="input" placeholder="To Date">
+                <select id="sysLogLevel" class="select">
+                  <option value="">All Levels</option>
+                  <option value="Error">Error</option>
+                  <option value="Warning">Warning</option>
+                  <option value="Info">Info</option>
+                  <option value="Debug">Debug</option>
+                </select>
+              </div>
+              <div class="toolbar-right">
+                <button class="btn btn-primary" id="btnFilterSystem">Apply Filter</button>
+                <button class="btn btn-danger" id="btnClearSystemLogs">Clear Logs</button>
+                <button class="btn btn-outline" id="btnRefreshSystem">Refresh</button>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Timestamp</th>
+                    <th>Log Level</th>
+                    <th>Event</th>
+                    <th>Component</th>
+                    <th>Message</th>
+                    <th>Details</th>
+                  </tr>
+                </thead>
+                <tbody id="systemTableBody">
+                  <tr><td>2025-03-20 07:51:12</td><td>Info</td><td>ServerStart</td><td>Core</td><td>HTTP server listening</td><td>port=8080 env=prod</td></tr>
+                  <tr><td>2025-03-20 08:03:44</td><td>Warning</td><td>SlowQuery</td><td>Database</td><td>Residents query slow</td><td>duration=1240ms sql=SELECT ...</td></tr>
+                  <tr><td>2025-03-20 09:15:02</td><td>Error</td><td>PDFExport</td><td>Reports</td><td>Export failed</td><td>EPIPE writing to stream</td></tr>
+                  <tr><td>2025-03-20 10:21:18</td><td>Info</td><td>Job</td><td>Cron</td><td>Daily backup ok</td><td>size=1.2GB</td></tr>
+                </tbody>
+              </table>
+              <div class="pager" id="systemPagination"></div>
+            </div>
+          </div>
+
+        </div><!-- /.content-inner -->
+      </div><!-- /.logs-page -->
+    </div><!-- /.content-area -->
+  </main>
+</div>
+
+<!-- Drawer -->
+<div class="drawer" id="drawer">
+  <div class="overlay"></div>
+  <div class="panel">
+    <header>
+      <h3 id="drawerTitle">Record Details</h3>
+      <button class="btn btn-outline" id="dClose">Close</button>
+    </header>
+    <div class="body" id="drawerBody"></div>
+  </div>
+</div>
+
+<!-- libs -->
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.1/dist/jspdf.plugin.autotable.min.js"></script>
+
+<!-- maintenance ribbon -->
+<script>
+(async function(){
+  try{
+    const r = await fetch('/api/settings/system');
+    if(!r.ok) return;
+    const { settings } = await r.json();
+    if(settings?.maintenanceMode){
+      const b = document.createElement('div');
+      b.textContent = 'Maintenance Mode is ON — users are seeing the maintenance page';
+      b.style.cssText = 'position:fixed;inset-inline:0;top:0;z-index:9999;padding:8px 12px;background:#f59e0b;color:#111827;text-align:center;font:14px/1.3 Inter,system-ui';
+      document.body.appendChild(b);
+      document.body.style.paddingTop = '36px';
+    }
+  }catch(e){}
+})();
+</script>
+
+<script src="/app-preferences.js"></script>
+<script src="/admin/admin-logs-reports.js"></script>
+</body>
+</html>

@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Settings — Barangay Langkaan II</title>
+
+<!-- Keep theme & font in sync with the dashboard before paint -->
+<script>
+(function () {
+  try {
+    var s = JSON.parse(localStorage.getItem('userSettings') || '{}');
+    var html = document.documentElement;
+
+    // theme
+    var t = s.theme || 'light';
+    if (t === 'dark') {
+      html.setAttribute('data-theme', 'dark');
+    } else if (t === 'auto') {
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (prefersDark) html.setAttribute('data-theme', 'dark'); else html.removeAttribute('data-theme');
+    } else {
+      html.removeAttribute('data-theme');
+    }
+
+    // font size
+    var fs = (s.fontSize || 'medium').toLowerCase();
+    var map = { small:'14px', medium:'16px', large:'18px', xlarge:'20px' };
+    html.setAttribute('data-font-size', fs);
+    html.style.setProperty('--fs-base', map[fs] || '16px');
+
+    // body toggles
+    document.addEventListener('DOMContentLoaded', function(){
+      document.body.classList.toggle('compact-mode', !!s.compactMode);
+      document.body.classList.toggle('high-contrast', !!s.highContrast);
+      document.body.classList.toggle('sidebar-collapsed', s.showSidebar === false);
+    });
+  } catch (e) {}
+})();
+</script>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          'inter': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        }
+      }
+    }
+  }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/base.css">
+</head>
+
+<!-- Use same header/behaviour scripts as dashboard -->
+<script defer src="/base-header.js"></script>
+<script defer src="/base.js"></script>
+
+<body>
+<div class="dashboard-container">
+  <!-- Sidebar identical to dashboard, Settings active -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <img src="https://scontent.fmnl31-1.fna.fbcdn.net/v/t1.15752-9/566459805_2304695176635817_7965723576219961744_n.png?_nc_cat=100&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeFvsvFPtYKGEdwHZwyXJu6hLWJQAEjhjVotYlAASOGNWmCLSn6KIuOYN8ElKlNNHQrO159FSCuwFcll7OgdlzCP&_nc_ohc=yiA3bhEGnNAQ7kNvwGUy1mZ&_nc_oc=AdkuAJIw6rTtWuKWDNP7QJAFplSOwMhvUK5rJ7b_uZdCToSR1sT73c7CFJ5zrYhIU-I&_nc_zt=23&_nc_ht=scontent.fmnl31-1.fna&oh=03_Q7cD3gGocOn0qEMEx3iINh9aOx48m0LIlXIab9IT08mckx_JZw&oe=692126F5" alt="Logo">
+      <h3 class="sidebar-title">Barangay Langkaan II<br><small style="font-size:0.85em;opacity:0.8;">Admin Portal</small></h3>
+    </div>
+
+    <ul class="sidebar-menu" id="navList">
+      <li><a href="/admin/dashboard" data-tooltip="Admin Dashboard"><span class="icon">🏠</span><span class="label">Dashboard</span></a></li>
+      <li><a href="/admin/residents" data-tooltip="Resident Management"><span class="icon">👪</span><span class="label">Resident Management</span></a></li>
+      <li><a href="/admin/document-permits" data-tooltip="Document & Permit Management"><span class="icon">📄</span><span class="label">Document & Permit Management</span></a></li>
+      <li><a href="/admin/community" data-tooltip="Community Development"><span class="icon">🤝</span><span class="label">Community Development</span></a></li>
+      <li><a href="/admin/cases" data-tooltip="Cases & Incidents"><span class="icon">⚖️</span><span class="label">Case & Incident Management</span></a></li>
+      <li><a href="/admin/health" data-tooltip="Health & Social"><span class="icon">🏥</span><span class="label">Health & Social Services</span></a></li>
+      <li><a href="/admin/disaster" data-tooltip="Disaster Response"><span class="icon">🚨</span><span class="label">Disaster & Emergency Response</span></a></li>
+      <li><a href="/admin/financial" data-tooltip="Finance & Budget"><span class="icon">💰</span><span class="label">Financial & Budget</span></a></li>
+      <li><a href="/admin/logs-reports" data-tooltip="Logs & Reports"><span class="icon">📊</span><span class="label">Logs & Reports</span></a></li>
+      <li><a href="/admin/settings" class="active" data-tooltip="System Settings"><span class="icon">⚙️</span><span class="label">System Settings</span></a></li>
+      <li><a href="#" onclick="logout()" data-tooltip="Log out"><span class="icon">🚪</span><span class="label">Log out</span></a></li>
+    </ul>
+  </nav>
+
+  <!-- Main -->
+  <main class="main-content">
+    <header class="header">
+      <div class="header-left">
+        <button class="hamburger" id="hamburgerBtn" aria-label="Toggle sidebar"><span></span></button>
+        <h1>System Settings</h1>
+      </div>
+      <div class="user-info" id="userChip">
+        <button class="btn btn-outline" id="notifBtn" title="Notifications">🔔</button>
+        <div class="user-avatar" id="avatar">U</div>
+        <span id="username" class="user-name">Admin</span>
+
+        <div class="notif-panel" id="notifPanel">
+          <div class="notif-head">Notifications</div>
+          <div class="notif-item">No new notifications.</div>
+        </div>
+
+        <div class="dropdown" id="userMenu">
+          <div class="item" id="goProfile">👤 Profile</div>
+          <div class="item" id="goSettings">⚙️ Settings</div>
+          <div class="item" id="doLogout">🚪 Log out</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="content-area">
+      <p class="muted mb-3.5">Adjust preferences for appearance, account, privacy, notifications, data, and more.</p>
+
+      <div class="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-5 max-w-[1400px]">
+        <!-- Left: nav -->
+        <aside class="bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius)] shadow-[var(--shadow-sm)] p-4 sticky top-5 h-fit">
+          <h3 class="font-semibold text-[0.9rem] leading-tight text-[var(--muted)] uppercase tracking-wider mb-2.5">Settings</h3>
+          <div class="settings-nav-item active flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold bg-[color-mix(in_oklab,var(--brand)_12%,var(--surface))] border border-[var(--brand)]" data-section="general">⚙️ General</div>
+          <div class="settings-nav-item flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold hover:bg-[color-mix(in_oklab,var(--surface)_90%,#000_0%)] transition-colors" data-section="appearance">🎨 Appearance</div>
+          <div class="settings-nav-item flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold hover:bg-[color-mix(in_oklab,var(--surface)_90%,#000_0%)] transition-colors" data-section="account">👤 Account</div>
+          <div class="settings-nav-item flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold hover:bg-[color-mix(in_oklab,var(--surface)_90%,#000_0%)] transition-colors" data-section="security">🔒 Security & Privacy</div>
+          <div class="settings-nav-item flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold hover:bg-[color-mix(in_oklab,var(--surface)_90%,#000_0%)] transition-colors" data-section="notifications">🔔 Notifications</div>
+          <div class="settings-nav-item flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold hover:bg-[color-mix(in_oklab,var(--surface)_90%,#000_0%)] transition-colors" data-section="data">💾 Data Management</div>
+          <div class="settings-nav-item flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold hover:bg-[color-mix(in_oklab,var(--surface)_90%,#000_0%)] transition-colors" data-section="system" id="systemNav">🖥️ System</div>
+          <div class="settings-nav-item flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold hover:bg-[color-mix(in_oklab,var(--surface)_90%,#000_0%)] transition-colors" data-section="backup">📦 Backup & Restore</div>
+          <div class="settings-nav-item flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold hover:bg-[color-mix(in_oklab,var(--surface)_90%,#000_0%)] transition-colors" data-section="about">ℹ️ About</div>
+        </aside>
+
+        <!-- Right: sections -->
+        <div class="bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius)] shadow-[var(--shadow-sm)] p-6">
+          <!-- GENERAL -->
+          <section class="settings-section active" id="general">
+            <div class="mb-4.5 pb-3 border-b border-[var(--border)]">
+              <h2 class="m-0 mb-1.5 text-2xl font-semibold">General Settings</h2>
+              <p class="m-0 text-[var(--muted)]">Manage general system preferences.</p>
+            </div>
+
+            <div class="mb-5.5">
+              <h3 class="m-0 mb-2.5 text-base font-semibold text-[var(--text)]">Language & Region</h3>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5">
+                <div>
+                  <h4 class="m-0 mb-1 text-base font-semibold">Language</h4><p class="m-0 text-[var(--muted)] text-sm">Choose your preferred language</p>
+                </div>
+                <div class="flex items-center gap-2.5">
+                  <select class="px-3 py-2.5 border border-[var(--border)] rounded-xl bg-[var(--surface)] text-[var(--text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30" id="language">
+                    <option value="en">English</option>
+                    <option value="tl">Tagalog</option>
+                    <option value="ceb">Cebuano</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5">
+                <div>
+                  <h4 class="m-0 mb-1 text-base font-semibold">Time Zone</h4><p class="m-0 text-[var(--muted)] text-sm">Set your local time zone</p>
+                </div>
+                <div class="flex items-center gap-2.5">
+                  <select class="px-3 py-2.5 border border-[var(--border)] rounded-xl bg-[var(--surface)] text-[var(--text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30" id="timezone">
+                    <option value="Asia/Manila">Asia/Manila (GMT+8)</option>
+                    <option value="Asia/Tokyo">Asia/Tokyo (GMT+9)</option>
+                    <option value="UTC">UTC</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5">
+                <div>
+                  <h4 class="m-0 mb-1 text-base font-semibold">Date Format</h4><p class="m-0 text-[var(--muted)] text-sm">Choose how dates are displayed</p>
+                </div>
+                <div class="flex items-center gap-2.5">
+                  <select class="px-3 py-2.5 border border-[var(--border)] rounded-xl bg-[var(--surface)] text-[var(--text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30" id="dateFormat">
+                    <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                    <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                    <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-5.5">
+              <h3 class="m-0 mb-2.5 text-base font-semibold text-[var(--text)]">System Preferences</h3>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5">
+                <div>
+                  <h4 class="m-0 mb-1 text-base font-semibold">Auto-Save</h4><p class="m-0 text-[var(--muted)] text-sm">Automatically save your work</p>
+                </div>
+                <div class="flex items-center gap-2.5">
+                  <label class="relative w-[50px] h-[26px]">
+                    <input type="checkbox" id="autoSave" checked class="opacity-0 w-0 h-0">
+                    <span class="absolute inset-0 rounded-[26px] bg-[#c7c7c7] transition-[0.25s] before:content-[''] before:absolute before:w-5 before:h-5 before:left-[3px] before:top-[3px] before:rounded-full before:bg-white before:transition-[0.25s] peer-checked:bg-[var(--brand)] peer-checked:before:translate-x-6"></span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5">
+                <div>
+                  <h4 class="m-0 mb-1 text-base font-semibold">Compact Mode</h4><p class="m-0 text-[var(--muted)] text-sm">Use less spacing in the interface</p>
+                </div>
+                <div class="flex items-center gap-2.5">
+                  <label class="relative w-[50px] h-[26px]">
+                    <input type="checkbox" id="compactMode" class="opacity-0 w-0 h-0">
+                    <span class="absolute inset-0 rounded-[26px] bg-[#c7c7c7] transition-[0.25s] before:content-[''] before:absolute before:w-5 before:h-5 before:left-[3px] before:top-[3px] before:rounded-full before:bg-white before:transition-[0.25s] peer-checked:bg-[var(--brand)] peer-checked:before:translate-x-6"></span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5">
+                <div>
+                  <h4 class="m-0 mb-1 text-base font-semibold">Show Sidebar</h4><p class="m-0 text-[var(--muted)] text-sm">Display the sidebar by default</p>
+                </div>
+                <div class="flex items-center gap-2.5">
+                  <label class="relative w-[50px] h-[26px]">
+                    <input type="checkbox" id="showSidebar" checked class="opacity-0 w-0 h-0">
+                    <span class="absolute inset-0 rounded-[26px] bg-[#c7c7c7] transition-[0.25s] before:content-[''] before:absolute before:w-5 before:h-5 before:left-[3px] before:top-[3px] before:rounded-full before:bg-white before:transition-[0.25s] peer-checked:bg-[var(--brand)] peer-checked:before:translate-x-6"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <button class="px-4 py-2.5 rounded-xl font-bold bg-[var(--brand)] text-white hover:opacity-90 transition-opacity shadow-sm" id="btnSaveGeneral">Save Changes</button>
+          </section>
+
+          <!-- APPEARANCE -->
+          <section class="settings-section hidden" id="appearance">
+            <div class="mb-4.5 pb-3 border-b border-[var(--border)]">
+              <h2 class="m-0 mb-1.5 text-2xl font-semibold">Appearance</h2><p class="m-0 text-[var(--muted)]">Customize how the system looks.</p>
+            </div>
+
+            <div class="mb-5.5">
+              <h3 class="m-0 mb-2.5 text-base font-semibold text-[var(--text)]">Theme</h3>
+              <div class="grid gap-3 grid-cols-[repeat(auto-fit,minmax(150px,1fr))]">
+                <div class="theme-card border border-[var(--border)] rounded-2xl p-3.5 text-center cursor-pointer hover:border-[var(--brand)] transition-colors" data-theme="light">
+                  <div class="h-[60px] rounded-xl mb-2.5 flex gap-1.5 p-2 bg-[color-mix(in_oklab,var(--surface)_92%,#000_0%)]"><div class="flex-1 rounded-lg bg-white"></div><div class="flex-1 rounded-lg bg-[#ecf0f1]"></div><div class="flex-1 rounded-lg bg-[#3498db]"></div></div>
+                  <strong>Light</strong>
+                </div>
+                <div class="theme-card border border-[var(--border)] rounded-2xl p-3.5 text-center cursor-pointer hover:border-[var(--brand)] transition-colors" data-theme="dark">
+                  <div class="h-[60px] rounded-xl mb-2.5 flex gap-1.5 p-2 bg-[#1a1a1a]"><div class="flex-1 rounded-lg bg-[#2d2d2d]"></div><div class="flex-1 rounded-lg bg-[#3b82f6]"></div><div class="flex-1 rounded-lg bg-[#111]"></div></div>
+                  <strong>Dark</strong>
+                </div>
+                <div class="theme-card border border-[var(--border)] rounded-2xl p-3.5 text-center cursor-pointer hover:border-[var(--brand)] transition-colors" data-theme="auto">
+                  <div class="h-[60px] rounded-xl mb-2.5 flex gap-1.5 p-2 bg-gradient-to-r from-[#f8f9fa] via-[#f8f9fa] to-[#1a1a1a]"><div class="flex-1 rounded-lg bg-[#3498db]"></div></div>
+                  <strong>Auto</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-5.5">
+              <h3 class="m-0 mb-2.5 text-base font-semibold text-[var(--text)]">Display</h3>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5">
+                <div><h4 class="m-0 mb-1 text-base font-semibold">Font Size</h4><p class="m-0 text-[var(--muted)] text-sm">Adjust text size</p></div>
+                <div class="flex items-center gap-2.5">
+                  <select class="px-3 py-2.5 border border-[var(--border)] rounded-xl bg-[var(--surface)] text-[var(--text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30" id="fontSize">
+                    <option value="small">Small</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="large">Large</option>
+                    <option value="xlarge">Extra Large</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5">
+                <div><h4 class="m-0 mb-1 text-base font-semibold">Animations</h4><p class="m-0 text-[var(--muted)] text-sm">Enable interface animations</p></div>
+                <div class="flex items-center gap-2.5">
+                  <label class="relative w-[50px] h-[26px]">
+                    <input type="checkbox" id="animations" checked class="opacity-0 w-0 h-0">
+                    <span class="absolute inset-0 rounded-[26px] bg-[#c7c7c7] transition-[0.25s] before:content-[''] before:absolute before:w-5 before:h-5 before:left-[3px] before:top-[3px] before:rounded-full before:bg-white before:transition-[0.25s] peer-checked:bg-[var(--brand)] peer-checked:before:translate-x-6"></span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5">
+                <div><h4 class="m-0 mb-1 text-base font-semibold">High Contrast</h4><p class="m-0 text-[var(--muted)] text-sm">Increase color contrast</p></div>
+                <div class="flex items-center gap-2.5">
+                  <label class="relative w-[50px] h-[26px]">
+                    <input type="checkbox" id="highContrast" class="opacity-0 w-0 h-0">
+                    <span class="absolute inset-0 rounded-[26px] bg-[#c7c7c7] transition-[0.25s] before:content-[''] before:absolute before:w-5 before:h-5 before:left-[3px] before:top-[3px] before:rounded-full before:bg-white before:transition-[0.25s] peer-checked:bg-[var(--brand)] peer-checked:before:translate-x-6"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <button class="px-4 py-2.5 rounded-xl font-bold bg-[var(--brand)] text-white hover:opacity-90 transition-opacity shadow-sm" id="btnApplyTheme">Apply Theme</button>
+          </section>
+
+          <!-- ACCOUNT -->
+          <section class="settings-section hidden" id="account">
+            <div class="mb-4.5 pb-3 border-b border-[var(--border)]"><h2 class="m-0 mb-1.5 text-2xl font-semibold">Account Settings</h2><p class="m-0 text-[var(--muted)]">Manage your account information.</p></div>
+
+            <div class="mb-5.5">
+              <h3 class="m-0 mb-2.5 text-base font-semibold text-[var(--text)]">Profile Information</h3>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">Full Name</h4><p class="m-0 text-[var(--muted)] text-sm">Your display name</p></div><div class="flex items-center gap-2.5"><input type="text" class="px-3 py-2.5 border border-[var(--border)] rounded-xl bg-[var(--surface)] text-[var(--text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30" id="fullName" placeholder="Enter your name"></div></div>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">Email Address</h4><p class="m-0 text-[var(--muted)] text-sm">Your contact email</p></div><div class="flex items-center gap-2.5"><input type="email" class="px-3 py-2.5 border border-[var(--border)] rounded-xl bg-[var(--surface)] text-[var(--text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30" id="email" placeholder="email@example.com"></div></div>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">Phone Number</h4><p class="m-0 text-[var(--muted)] text-sm">Contact number</p></div><div class="flex items-center gap-2.5"><input type="tel" class="px-3 py-2.5 border border-[var(--border)] rounded-xl bg-[var(--surface)] text-[var(--text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30" id="phone" placeholder="09XXXXXXXXX"></div></div>
+            </div>
+
+            <div class="mb-5.5">
+              <h3 class="m-0 mb-2.5 text-base font-semibold text-[var(--text)]">Change Password</h3>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">Current Password</h4><p class="m-0 text-[var(--muted)] text-sm">Enter your current password</p></div><div class="flex items-center gap-2.5"><input type="password" class="px-3 py-2.5 border border-[var(--border)] rounded-xl bg-[var(--surface)] text-[var(--text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30" id="currentPassword"></div></div>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">New Password</h4><p class="m-0 text-[var(--muted)] text-sm">Choose a strong password</p></div><div class="flex items-center gap-2.5"><input type="password" class="px-3 py-2.5 border border-[var(--border)] rounded-xl bg-[var(--surface)] text-[var(--text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30" id="newPassword"></div></div>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">Confirm Password</h4><p class="m-0 text-[var(--muted)] text-sm">Re-enter new password</p></div><div class="flex items-center gap-2.5"><input type="password" class="px-3 py-2.5 border border-[var(--border)] rounded-xl bg-[var(--surface)] text-[var(--text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30" id="confirmPassword"></div></div>
+            </div>
+
+            <div class="flex gap-2.5 flex-wrap">
+              <button class="px-4 py-2.5 rounded-xl font-bold bg-[var(--brand)] text-white hover:opacity-90 transition-opacity shadow-sm" id="btnSaveAccount">Update Profile</button>
+              <button class="px-4 py-2.5 rounded-xl font-bold bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] hover:opacity-90 transition-opacity">Change Password</button>
+            </div>
+          </section>
+
+          <!-- SECURITY -->
+          <section class="settings-section hidden" id="security">
+            <div class="mb-4.5 pb-3 border-b border-[var(--border)]"><h2 class="m-0 mb-1.5 text-2xl font-semibold">Security & Privacy</h2><p class="m-0 text-[var(--muted)]">Protect your account and data.</p></div>
+
+            <div class="p-4 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-3">
+              <h4 class="m-0 mb-2 text-base font-semibold">Security Score</h4>
+              <div class="flex justify-between mb-1.5"><span>Status</span><span class="font-bold text-[#239b56]">Strong</span></div>
+              <div class="w-full h-2 bg-[var(--border)] rounded-lg overflow-hidden"><div class="h-full bg-[var(--brand)]" style="width:85%"></div></div>
+            </div>
+
+            <div class="mb-5.5">
+              <h3 class="m-0 mb-2.5 text-base font-semibold text-[var(--text)]">Authentication</h3>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">Two-Factor Authentication</h4><p class="m-0 text-[var(--muted)] text-sm">Add an extra layer of security</p></div><div class="flex items-center gap-2.5"><label class="relative w-[50px] h-[26px]"><input type="checkbox" id="twoFactor" class="opacity-0 w-0 h-0"><span class="absolute inset-0 rounded-[26px] bg-[#c7c7c7] transition-[0.25s] before:content-[''] before:absolute before:w-5 before:h-5 before:left-[3px] before:top-[3px] before:rounded-full before:bg-white before:transition-[0.25s] peer-checked:bg-[var(--brand)] peer-checked:before:translate-x-6"></span></label><button class="px-3 py-2 rounded-lg font-semibold bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] hover:opacity-90 transition-opacity text-sm" id="setup2FA">Setup</button></div></div>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">Session Timeout</h4><p class="m-0 text-[var(--muted)] text-sm">Auto logout after inactivity</p></div><div class="flex items-center gap-2.5"><select class="px-3 py-2.5 border border-[var(--border)] rounded-xl bg-[var(--surface)] text-[var(--text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30" id="sessionTimeout"><option value="15">15 minutes</option><option value="30" selected>30 minutes</option><option value="60">1 hour</option><option value="120">2 hours</option></select></div></div>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">Login Notifications</h4><p class="m-0 text-[var(--muted)] text-sm">Get notified of new logins</p></div><div class="flex items-center gap-2.5"><label class="relative w-[50px] h-[26px]"><input type="checkbox" id="loginNotif" checked class="opacity-0 w-0 h-0"><span class="absolute inset-0 rounded-[26px] bg-[#c7c7c7] transition-[0.25s] before:content-[''] before:absolute before:w-5 before:h-5 before:left-[3px] before:top-[3px] before:rounded-full before:bg-white before:transition-[0.25s] peer-checked:bg-[var(--brand)] peer-checked:before:translate-x-6"></span></label></div></div>
+            </div>
+
+            <div class="mb-5.5">
+              <h3 class="m-0 mb-2.5 text-base font-semibold text-[var(--text)]">Privacy</h3>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">Activity Tracking</h4><p class="m-0 text-[var(--muted)] text-sm">Track your activity logs</p></div><div class="flex items-center gap-2.5"><label class="relative w-[50px] h-[26px]"><input type="checkbox" id="activityTracking" checked class="opacity-0 w-0 h-0"><span class="absolute inset-0 rounded-[26px] bg-[#c7c7c7] transition-[0.25s] before:content-[''] before:absolute before:w-5 before:h-5 before:left-[3px] before:top-[3px] before:rounded-full before:bg-white before:transition-[0.25s] peer-checked:bg-[var(--brand)] peer-checked:before:translate-x-6"></span></label></div></div>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">Show Profile to Others</h4><p class="m-0 text-[var(--muted)] text-sm">Make profile visible to other users</p></div><div class="flex items-center gap-2.5"><label class="relative w-[50px] h-[26px]"><input type="checkbox" id="showProfile" checked class="opacity-0 w-0 h-0"><span class="absolute inset-0 rounded-[26px] bg-[#c7c7c7] transition-[0.25s] before:content-[''] before:absolute before:w-5 before:h-5 before:left-[3px] before:top-[3px] before:rounded-full before:bg-white before:transition-[0.25s] peer-checked:bg-[var(--brand)] peer-checked:before:translate-x-6"></span></label></div></div>
+            </div>
+
+            <div class="mb-5.5">
+              <h3 class="m-0 mb-2.5 text-base font-semibold text-[var(--text)]">Active Sessions</h3>
+              <div class="px-3 py-3 rounded-xl mb-2.5 border-l-4 border-[var(--brand)] bg-[color-mix(in_oklab,var(--brand)_10%,var(--surface))]">ℹ️ You have 2 active sessions. Your current session is from 192.168.1.100</div>
+              <button class="px-4 py-2.5 rounded-xl font-bold bg-[var(--danger)] text-white hover:opacity-90 transition-opacity shadow-sm" id="btnLogoutAll">Logout All Other Sessions</button>
+            </div>
+
+            <button class="px-4 py-2.5 rounded-xl font-bold bg-[var(--brand)] text-white hover:opacity-90 transition-opacity shadow-sm" id="btnSaveSecurity">Save Security Settings</button>
+          </section>
+
+          <!-- NOTIFICATIONS -->
+          <section class="settings-section hidden" id="notifications">
+            <div class="mb-4.5 pb-3 border-b border-[var(--border)]"><h2 class="m-0 mb-1.5 text-2xl font-semibold">Notifications</h2><p class="m-0 text-[var(--muted)]">Manage how you receive notifications.</p></div>
+
+            <div class="mb-5.5">
+              <h3 class="m-0 mb-2.5 text-base font-semibold text-[var(--text)]">Email Notifications</h3>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">New Reports</h4><p class="m-0 text-[var(--muted)] text-sm">Notify when new reports are generated</p></div><div class="flex items-center gap-2.5"><label class="relative w-[50px] h-[26px]"><input type="checkbox" checked class="opacity-0 w-0 h-0"><span class="absolute inset-0 rounded-[26px] bg-[#c7c7c7] transition-[0.25s] before:content-[''] before:absolute before:w-5 before:h-5 before:left-[3px] before:top-[3px] before:rounded-full before:bg-white before:transition-[0.25s] peer-checked:bg-[var(--brand)] peer-checked:before:translate-x-6"></span></label></div></div>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">System Updates</h4><p class="m-0 text-[var(--muted)] text-sm">Receive system updates</p></div><div class="flex items-center gap-2.5"><label class="relative w-[50px] h-[26px]"><input type="checkbox" checked class="opacity-0 w-0 h-0"><span class="absolute inset-0 rounded-[26px] bg-[#c7c7c7] transition-[0.25s] before:content-[''] before:absolute before:w-5 before:h-5 before:left-[3px] before:top-[3px] before:rounded-full before:bg-white before:transition-[0.25s] peer-checked:bg-[var(--brand)] peer-checked:before:translate-x-6"></span></label></div></div>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">Emergency Alerts</h4><p class="m-0 text-[var(--muted)] text-sm">Critical disaster alerts</p></div><div class="flex items-center gap-2.5"><label class="relative w-[50px] h-[26px]"><input type="checkbox" checked class="opacity-0 w-0 h-0"><span class="absolute inset-0 rounded-[26px] bg-[#c7c7c7] transition-[0.25s] before:content-[''] before:absolute before:w-5 before:h-5 before:left-[3px] before:top-[3px] before:rounded-full before:bg-white before:transition-[0.25s] peer-checked:bg-[var(--brand)] peer-checked:before:translate-x-6"></span></label></div></div>
+            </div>
+
+            <div class="mb-5.5">
+              <h3 class="m-0 mb-2.5 text-base font-semibold text-[var(--text)]">Push Notifications</h3>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">Browser Notifications</h4><p class="m-0 text-[var(--muted)] text-sm">Show desktop notifications</p></div><div class="flex items-center gap-2.5"><label class="relative w-[50px] h-[26px]"><input type="checkbox" id="browserNotif" class="opacity-0 w-0 h-0"><span class="absolute inset-0 rounded-[26px] bg-[#c7c7c7] transition-[0.25s] before:content-[''] before:absolute before:w-5 before:h-5 before:left-[3px] before:top-[3px] before:rounded-full before:bg-white before:transition-[0.25s] peer-checked:bg-[var(--brand)] peer-checked:before:translate-x-6"></span></label></div></div>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">Sound Alerts</h4><p class="m-0 text-[var(--muted)] text-sm">Play sound for notifications</p></div><div class="flex items-center gap-2.5"><label class="relative w-[50px] h-[26px]"><input type="checkbox" checked class="opacity-0 w-0 h-0"><span class="absolute inset-0 rounded-[26px] bg-[#c7c7c7] transition-[0.25s] before:content-[''] before:absolute before:w-5 before:h-5 before:left-[3px] before:top-[3px] before:rounded-full before:bg-white before:transition-[0.25s] peer-checked:bg-[var(--brand)] peer-checked:before:translate-x-6"></span></label></div></div>
+            </div>
+
+            <button class="px-4 py-2.5 rounded-xl font-bold bg-[var(--brand)] text-white hover:opacity-90 transition-opacity shadow-sm" id="btnSaveNotifications">Save Notification Settings</button>
+          </section>
+
+          <!-- DATA -->
+          <section class="settings-section hidden" id="data">
+            <div class="mb-4.5 pb-3 border-b border-[var(--border)]"><h2 class="m-0 mb-1.5 text-2xl font-semibold">Data Management</h2><p class="m-0 text-[var(--muted)]">Manage your data and storage.</p></div>
+
+            <div class="mb-5.5">
+              <h3 class="m-0 mb-2.5 text-base font-semibold text-[var(--text)]">Storage Usage</h3>
+              <div class="p-4 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl">
+                <h4 class="m-0 mb-2 text-base font-semibold">Totals</h4>
+                <div class="flex justify-between mb-1.5"><span>Documents</span><span class="font-bold text-[var(--brand)]">450 MB</span></div>
+                <div class="flex justify-between mb-1.5"><span>Health Records</span><span class="font-bold text-[var(--brand)]">280 MB</span></div>
+                <div class="flex justify-between mb-1.5"><span>Reports</span><span class="font-bold text-[var(--brand)]">150 MB</span></div>
+                <div class="flex justify-between mb-1.5"><span>System Logs</span><span class="font-bold text-[var(--brand)]">120 MB</span></div>
+                <hr class="border-none border-t border-[var(--border)] my-3">
+                <div class="flex justify-between mb-1.5"><strong>Total</strong><strong class="font-bold text-[var(--brand)]">1.0 GB / 10 GB</strong></div>
+                <div class="w-full h-2 bg-[var(--border)] rounded-lg overflow-hidden"><div class="h-full bg-[var(--brand)]" style="width:10%"></div></div>
+              </div>
+            </div>
+
+            <div class="mb-5.5">
+              <h3 class="m-0 mb-2.5 text-base font-semibold text-[var(--text)]">Data Export</h3>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">Export All Data</h4><p class="m-0 text-[var(--muted)] text-sm">Download a copy of your data</p></div><div class="flex items-center gap-2.5"><button class="px-4 py-2.5 rounded-xl font-bold bg-[var(--brand)] text-white hover:opacity-90 transition-opacity shadow-sm text-sm" id="exportData">Export Data</button></div></div>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">Export Format</h4><p class="m-0 text-[var(--muted)] text-sm">Choose export format</p></div><div class="flex items-center gap-2.5"><select class="px-3 py-2.5 border border-[var(--border)] rounded-xl bg-[var(--surface)] text-[var(--text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30" id="exportFormat"><option value="json">JSON</option><option value="csv">CSV</option><option value="excel">Excel</option><option value="pdf">PDF</option></select></div></div>
+            </div>
+
+            <div class="mb-5.5">
+              <h3 class="m-0 mb-2.5 text-base font-semibold text-[var(--text)]">Clear Data</h3>
+              <div class="px-3 py-3 rounded-xl mb-2.5 border-l-4 border-[var(--warn)] bg-[color-mix(in_oklab,var(--warn)_10%,var(--surface))]">⚠️ Clearing data is permanent and cannot be undone. Backup first.</div>
+              <div class="flex gap-2.5 flex-wrap">
+                <button class="px-4 py-2.5 rounded-xl font-bold bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] hover:opacity-90 transition-opacity" id="clearCache">Clear Cache</button>
+                <button class="px-4 py-2.5 rounded-xl font-bold bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] hover:opacity-90 transition-opacity" id="clearLogs">Clear Logs</button>
+                <button class="px-4 py-2.5 rounded-xl font-bold bg-[var(--danger)] text-white hover:opacity-90 transition-opacity shadow-sm" id="deleteAccount">Delete Account</button>
+              </div>
+            </div>
+          </section>
+
+          <!-- SYSTEM (ADMIN) -->
+          <section class="settings-section hidden" id="system">
+            <div class="mb-4.5 pb-3 border-b border-[var(--border)]"><h2 class="m-0 mb-1.5 text-2xl font-semibold">System Settings</h2><p class="m-0 text-[var(--muted)]">Configure system-wide settings (Admin only).</p></div>
+
+            <div class="px-3 py-3 rounded-xl mb-2.5 border-l-4 border-[var(--danger)] bg-[color-mix(in_oklab,var(--danger)_10%,var(--surface))]" id="adminOnlyAlert">🔒 This section is only accessible to administrators.</div>
+
+            <div id="systemSettingsContent" class="hidden">
+              <div class="mb-5.5">
+                <h3 class="m-0 mb-2.5 text-base font-semibold text-[var(--text)]">System Configuration</h3>
+                <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">Maintenance Mode</h4><p class="m-0 text-[var(--muted)] text-sm">Put system in maintenance</p></div><div class="flex items-center gap-2.5"><label class="relative w-[50px] h-[26px]"><input type="checkbox" id="maintenanceMode" class="opacity-0 w-0 h-0"><span class="absolute inset-0 rounded-[26px] bg-[#c7c7c7] transition-[0.25s] before:content-[''] before:absolute before:w-5 before:h-5 before:left-[3px] before:top-[3px] before:rounded-full before:bg-white before:transition-[0.25s] peer-checked:bg-[var(--brand)] peer-checked:before:translate-x-6"></span></label></div></div>
+                <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">User Registration</h4><p class="m-0 text-[var(--muted)] text-sm">Allow new registrations</p></div><div class="flex items-center gap-2.5"><label class="relative w-[50px] h-[26px]"><input type="checkbox" checked class="opacity-0 w-0 h-0"><span class="absolute inset-0 rounded-[26px] bg-[#c7c7c7] transition-[0.25s] before:content-[''] before:absolute before:w-5 before:h-5 before:left-[3px] before:top-[3px] before:rounded-full before:bg-white before:transition-[0.25s] peer-checked:bg-[var(--brand)] peer-checked:before:translate-x-6"></span></label></div></div>
+                <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">Debug Mode</h4><p class="m-0 text-[var(--muted)] text-sm">Enable debugging</p></div><div class="flex items-center gap-2.5"><label class="relative w-[50px] h-[26px]"><input type="checkbox" class="opacity-0 w-0 h-0"><span class="absolute inset-0 rounded-[26px] bg-[#c7c7c7] transition-[0.25s] before:content-[''] before:absolute before:w-5 before:h-5 before:left-[3px] before:top-[3px] before:rounded-full before:bg-white before:transition-[0.25s] peer-checked:bg-[var(--brand)] peer-checked:before:translate-x-6"></span></label></div></div>
+              </div>
+
+              <div class="mb-5.5">
+                <h3 class="m-0 mb-2.5 text-base font-semibold text-[var(--text)]">Database</h3>
+                <div class="p-4 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5">
+                  <h4 class="m-0 mb-2 text-base font-semibold">Database Status</h4>
+                  <div class="flex justify-between mb-1.5"><span>Connection Status</span><span class="font-bold text-[#27ae60]">● Connected</span></div>
+                  <div class="flex justify-between mb-1.5"><span>Total Records</span><span class="font-bold text-[var(--brand)]">15,432</span></div>
+                  <div class="flex justify-between mb-1.5"><span>Database Size</span><span class="font-bold text-[var(--brand)]">2.5 GB</span></div>
+                </div>
+                <button class="px-4 py-2.5 rounded-xl font-bold bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] hover:opacity-90 transition-opacity" id="optimizeDB">Optimize Database</button>
+              </div>
+
+              <div class="mb-5.5">
+                <h3 class="m-0 mb-2.5 text-base font-semibold text-[var(--text)]">System Logs</h3>
+                <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">Log Level</h4><p class="m-0 text-[var(--muted)] text-sm">Set logging level</p></div><div class="flex items-center gap-2.5"><select class="px-3 py-2.5 border border-[var(--border)] rounded-xl bg-[var(--surface)] text-[var(--text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30"><option value="error">Error Only</option><option value="warning">Warning & Error</option><option value="info" selected>Info</option><option value="debug">Debug (All)</option></select></div></div>
+                <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">Auto-Clear Logs</h4><p class="m-0 text-[var(--muted)] text-sm">Automatically delete old logs</p></div><div class="flex items-center gap-2.5"><select class="px-3 py-2.5 border border-[var(--border)] rounded-xl bg-[var(--surface)] text-[var(--text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30"><option value="7">After 7 days</option><option value="30" selected>After 30 days</option><option value="90">After 90 days</option><option value="never">Never</option></select></div></div>
+              </div>
+
+              <button class="px-4 py-2.5 rounded-xl font-bold bg-[var(--brand)] text-white hover:opacity-90 transition-opacity shadow-sm" id="btnSaveSystem">Save System Settings</button>
+            </div>
+          </section>
+
+          <!-- BACKUP -->
+          <section class="settings-section hidden" id="backup">
+            <div class="mb-4.5 pb-3 border-b border-[var(--border)]"><h2 class="m-0 mb-1.5 text-2xl font-semibold">Backup & Restore</h2><p class="m-0 text-[var(--muted)]">Backup and restore your data.</p></div>
+
+            <div class="mb-5.5">
+              <h3 class="m-0 mb-2.5 text-base font-semibold text-[var(--text)]">Automatic Backups</h3>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">Enable Auto Backup</h4><p class="m-0 text-[var(--muted)] text-sm">Automatically backup your data</p></div><div class="flex items-center gap-2.5"><label class="relative w-[50px] h-[26px]"><input type="checkbox" id="autoBackup" checked class="opacity-0 w-0 h-0"><span class="absolute inset-0 rounded-[26px] bg-[#c7c7c7] transition-[0.25s] before:content-[''] before:absolute before:w-5 before:h-5 before:left-[3px] before:top-[3px] before:rounded-full before:bg-white before:transition-[0.25s] peer-checked:bg-[var(--brand)] peer-checked:before:translate-x-6"></span></label></div></div>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">Backup Frequency</h4><p class="m-0 text-[var(--muted)] text-sm">How often to backup</p></div><div class="flex items-center gap-2.5"><select class="px-3 py-2.5 border border-[var(--border)] rounded-xl bg-[var(--surface)] text-[var(--text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30"><option value="daily" selected>Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></div></div>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">Backup Location</h4><p class="m-0 text-[var(--muted)] text-sm">Where to store backups</p></div><div class="flex items-center gap-2.5"><select class="px-3 py-2.5 border border-[var(--border)] rounded-xl bg-[var(--surface)] text-[var(--text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30"><option value="local" selected>Local Storage</option><option value="cloud">Cloud Storage</option><option value="both">Both</option></select></div></div>
+            </div>
+
+            <div class="mb-5.5">
+              <h3 class="m-0 mb-2.5 text-base font-semibold text-[var(--text)]">Manual Backup</h3>
+              <div class="p-4 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5">
+                <h4 class="m-0 mb-2 text-base font-semibold">Last Backup</h4>
+                <div class="flex justify-between mb-1.5"><span>Date</span><span class="font-bold text-[var(--brand)]">2025-01-15 10:30 AM</span></div>
+                <div class="flex justify-between mb-1.5"><span>Size</span><span class="font-bold text-[var(--brand)]">1.2 GB</span></div>
+                <div class="flex justify-between mb-1.5"><span>Status</span><span class="font-bold text-[#27ae60]">Successful</span></div>
+              </div>
+              <button class="px-4 py-2.5 rounded-xl font-bold bg-[var(--brand)] text-white hover:opacity-90 transition-opacity shadow-sm" id="backupNow">Backup Now</button>
+            </div>
+
+            <div class="mb-5.5">
+              <h3 class="m-0 mb-2.5 text-base font-semibold text-[var(--text)]">Restore Data</h3>
+              <div class="px-3 py-3 rounded-xl mb-2.5 border-l-4 border-[var(--warn)] bg-[color-mix(in_oklab,var(--warn)_10%,var(--surface))]">⚠️ Restoring will replace current data. Backup first.</div>
+              <div class="flex gap-2.5 items-center flex-wrap">
+                <input type="file" id="restoreFile" accept=".backup,.zip,.json" class="hidden">
+                <button class="px-4 py-2.5 rounded-xl font-bold bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] hover:opacity-90 transition-opacity" onclick="document.getElementById('restoreFile').click()">Choose Backup File</button>
+                <button class="px-4 py-2.5 rounded-xl font-bold bg-[var(--danger)] text-white hover:opacity-90 transition-opacity shadow-sm" id="restoreBtn" disabled>Restore</button>
+              </div>
+            </div>
+          </section>
+
+          <!-- ABOUT -->
+          <section class="settings-section hidden" id="about">
+            <div class="mb-4.5 pb-3 border-b border-[var(--border)]"><h2 class="m-0 mb-1.5 text-2xl font-semibold">About</h2><p class="m-0 text-[var(--muted)]">System information and details.</p></div>
+
+            <div class="mb-5.5">
+              <h3 class="m-0 mb-2.5 text-base font-semibold text-[var(--text)]">System Information</h3>
+              <div class="p-4 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl">
+                <h4 class="m-0 mb-2 text-base font-semibold">Barangay Langkaan II Web Management System</h4>
+                <div class="flex justify-between mb-1.5"><span>Version</span><span class="font-bold text-[var(--brand)]">1.0.0</span></div>
+                <div class="flex justify-between mb-1.5"><span>Build</span><span class="font-bold text-[var(--brand)]">2025.01.15</span></div>
+                <div class="flex justify-between mb-1.5"><span>Environment</span><span class="font-bold text-[var(--brand)]">Production</span></div>
+                <div class="flex justify-between mb-1.5"><span>Server Status</span><span class="font-bold text-[#27ae60]">● Online</span></div>
+              </div>
+            </div>
+
+            <div class="mb-5.5">
+              <h3 class="m-0 mb-2.5 text-base font-semibold text-[var(--text)]">License & Credits</h3>
+              <p class="text-[var(--muted)] leading-relaxed">
+                © 2025 Barangay Langkaan II. All rights reserved.<br>
+                Developed for Barangay Langkaan II, Dasmariñas City, Cavite.<br><br>
+                This system is designed to streamline barangay operations and improve community services.<br>
+                Powered by Lozon Associates Technology
+              </p>
+            </div>
+
+            <div class="mb-5.5">
+              <h3 class="m-0 mb-2.5 text-base font-semibold text-[var(--text)]">Support</h3>
+              <div class="flex gap-2.5 flex-wrap">
+                <button class="px-4 py-2.5 rounded-xl font-bold bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] hover:opacity-90 transition-opacity">📖 Documentation</button>
+                <button class="px-4 py-2.5 rounded-xl font-bold bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] hover:opacity-90 transition-opacity">🐛 Report a Bug</button>
+                <button class="px-4 py-2.5 rounded-xl font-bold bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] hover:opacity-90 transition-opacity">💬 Contact Support</button>
+                <button class="px-4 py-2.5 rounded-xl font-bold bg-[var(--brand)] text-white hover:opacity-90 transition-opacity shadow-sm" id="checkUpdates">Check for Updates</button>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- 2FA Modal -->
+<div class="fixed inset-0 bg-black/45 hidden items-center justify-center z-[1000]" id="twoFactorModal">
+  <div class="w-[min(520px,92vw)] bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5.5 shadow-[var(--shadow-md)]">
+    <div class="mb-2"><h3 class="m-0 mb-2 text-lg font-semibold">Setup Two-Factor Authentication</h3></div>
+    <div>
+      <p class="text-[var(--muted)] mb-2.5 text-sm">Scan this QR code with your authenticator app.</p>
+      <div class="text-center p-4 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-3">
+        <div class="w-[200px] h-[200px] bg-white mx-auto flex items-center justify-center border border-[var(--border)]">QR Code Here</div>
+      </div>
+      <label class="block mb-2 text-sm font-medium">Verification Code</label>
+      <input type="text" class="w-full px-3 py-2.5 border border-[var(--border)] rounded-xl bg-[var(--surface)] text-[var(--text)] text-center text-lg tracking-[5px] focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30" placeholder="Enter 6-digit code" maxlength="6">
+    </div>
+    <div class="flex justify-end gap-2.5 mt-4">
+      <button class="px-4 py-2.5 rounded-xl font-bold bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] hover:opacity-90 transition-opacity" id="close2FAModal">Cancel</button>
+      <button class="px-4 py-2.5 rounded-xl font-bold bg-[var(--brand)] text-white hover:opacity-90 transition-opacity shadow-sm">Verify & Enable</button>
+    </div>
+  </div>
+</div>
+
+<!-- Global prefs first, then page logic -->
+<script src="/app-preferences.js"></script>
+<script src="/admin/admin-settings.js"></script>
+
+<!-- Optional: tiny nav/section switcher if your settings.js doesn't already handle it -->
+<script>
+document.querySelectorAll('.settings-nav-item').forEach(item=>{
+  item.addEventListener('click', ()=>{
+    const id = item.dataset.section;
+    document.querySelectorAll('.settings-nav-item').forEach(i=>{
+      i.classList.toggle('active', i===item);
+      if(i===item) {
+        i.classList.add('bg-[color-mix(in_oklab,var(--brand)_12%,var(--surface))]', 'border', 'border-[var(--brand)]');
+        i.classList.remove('hover:bg-[color-mix(in_oklab,var(--surface)_90%,#000_0%)]');
+      } else {
+        i.classList.remove('bg-[color-mix(in_oklab,var(--brand)_12%,var(--surface))]', 'border', 'border-[var(--brand)]');
+        i.classList.add('hover:bg-[color-mix(in_oklab,var(--surface)_90%,#000_0%)]');
+      }
+    });
+    document.querySelectorAll('.settings-section').forEach(sec=>{
+      sec.classList.toggle('active', sec.id===id);
+      sec.classList.toggle('hidden', sec.id!==id);
+    });
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1472 @@
+/* ========= Barangay L2 Base Styles (sidebar icons-only collapse + widgets) ========= */
+
+/* Tokens */
+:root{
+  --bg:#f8f9fa; --surface:#ffffff; --text:#2c3e50; --muted:#7f8c8d; --border:#ecf0f1;
+  --brand:#3498db; --brand-600:#2d84bf; --success:#27ae60; --warn:#f39c12; --danger:#e74c3c;
+  --shadow-sm:0 2px 6px rgba(0,0,0,.06); --shadow-md:0 10px 24px rgba(0,0,0,.12);
+  --radius:12px; --tooltip:#111827; --tooltip-text:#f9fafb;
+}
+
+/* Reset & base */
+*{box-sizing:border-box} html,body{height:100%}
+body{margin:0;background:var(--bg);font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:var(--text)}
+img{max-width:100%;display:block} a{text-decoration:none;color:inherit} button{font:inherit}
+
+/* Layout */
+.dashboard-container{display:flex;min-height:100vh}
+
+/* --- Sidebar --- */
+.sidebar{
+  width:264px;background:#2c3e50;color:#fff;box-shadow:2px 0 5px rgba(0,0,0,.08);
+  display:flex;flex-direction:column;transition:width .22s ease;position:relative;z-index:10;
+}
+.sidebar.collapsed{width:84px}
+
+.sidebar-header{
+  padding:16px;background:#34495e;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,.08)
+}
+.sidebar-header img{width:36px;height:36px;border-radius:50%;object-fit:cover}
+.sidebar-title{margin:0;font-size:1rem;font-weight:800;line-height:1.2;white-space:normal;word-break:break-word}
+.sidebar.collapsed .sidebar-title{display:none} /* collapsed: logo only */
+
+/* Nav */
+.sidebar-menu{list-style:none;padding:10px 0;margin:0;overflow:auto}
+.sidebar-menu li{margin-bottom:2px}
+.sidebar-menu a, .sidebar-menu button.nav-link{
+  width:100%;text-align:left;background:transparent;border:0;color:#c9d3db;
+  display:flex;align-items:center;gap:12px;padding:12px 14px;border-left:3px solid transparent;
+  transition:background .17s ease,color .17s ease,border-color .17s ease,transform .05s ease;
+  cursor:pointer;position:relative;
+}
+.sidebar-menu .icon{width:22px;display:inline-grid;place-items:center;font-size:18px;flex-shrink:0}
+.sidebar-menu .label{flex:1;min-width:0}
+.sidebar-menu a:hover{background:#3a5168;color:#fff}
+.sidebar-menu a.active{background:#3d566f;color:#fff;border-left-color:#58a6ff;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+
+/* Collapsed: icons only + tooltips */
+.sidebar.collapsed .label{display:none}
+.sidebar.collapsed .sidebar-menu a,
+.sidebar.collapsed .sidebar-menu button.nav-link{justify-content:center;padding:12px 0}
+.sidebar.collapsed .sidebar-menu a::after,
+.sidebar.collapsed .sidebar-menu button.nav-link::after{
+  content:attr(data-tooltip); position:absolute; left:100%; top:50%; transform:translateY(-50%) translateX(8px);
+  background:var(--tooltip); color:var(--tooltip-text); padding:6px 8px; border-radius:8px; font-size:.78rem;
+  white-space:nowrap; opacity:0; pointer-events:none; transition:opacity .12s ease;
+}
+.sidebar.collapsed .sidebar-menu a:hover::after,
+.sidebar.collapsed .sidebar-menu button.nav-link:hover::after{opacity:1}
+
+/* Submenu */
+.sidebar .submenu{display:grid;grid-template-rows:0fr;transition:grid-template-rows .22s ease;padding-left:10px}
+.sidebar .submenu.open{grid-template-rows:1fr}
+.sidebar .submenu > div{overflow:hidden}
+.sidebar.collapsed .submenu{display:none}
+
+/* --- Main / Header --- */
+.main-content{flex:1;display:flex;flex-direction:column}
+.header{
+  position:sticky;top:0;z-index:5;background:var(--surface);padding:10px 16px;
+  box-shadow:0 2px 4px rgba(0,0,0,.06);display:flex;justify-content:space-between;align-items:center;
+  border-bottom:1px solid var(--border);gap:12px;animation:fadeDown .35s ease both;
+}
+.header-left{display:flex;align-items:center;gap:10px}
+.hamburger{
+  border:1px solid var(--border);background:var(--surface);width:40px;height:36px;border-radius:10px;display:grid;place-items:center;cursor:pointer;
+}
+.hamburger span{display:block;width:18px;height:2px;background:#34495e;position:relative}
+.hamburger span::before,.hamburger span::after{content:"";position:absolute;left:0;width:18px;height:2px;background:#34495e}
+.hamburger span::before{top:-6px}.hamburger span::after{top:6px}
+.header h1{font-size:1.12rem;color:#2c3e50;margin:0;letter-spacing:.2px}
+
+/* User area */
+.user-info{display:flex;align-items:center;gap:12px;position:relative}
+.user-avatar{width:36px;height:36px;border-radius:50%;background:var(--brand);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;box-shadow:var(--shadow-sm);cursor:pointer}
+.dropdown{position:absolute;right:0;top:110%;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow-md);padding:6px;min-width:220px;display:none;animation:pop .14s ease both}
+.dropdown.open{display:block}
+.dropdown .item{display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;cursor:pointer}
+.dropdown .item:hover{background:#f3f6f9}
+.notif-panel{position:absolute;right:0;top:110%;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-md);width:320px;max-height:60vh;overflow:auto;display:none;animation:slideDown .18s ease both}
+.notif-panel.open{display:block}
+.notif-head{padding:10px 12px;border-bottom:1px solid var(--border);font-weight:700}
+.notif-item{padding:10px 12px;border-bottom:1px dashed var(--border)}.notif-item:last-child{border-bottom:0}
+
+/* Content area & hero */
+.content-area{flex:1;padding:22px;overflow-y:auto}
+.hero{position:relative;height:200px;border-radius:12px;margin-bottom:22px;overflow:hidden;box-shadow:var(--shadow-md);background-position:center;background-size:cover;animation:fadeUp .45s ease both}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.25),rgba(0,0,0,.05))}
+.hero-badge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:64px;height:64px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:20px;background:rgba(62,188,238,.92);box-shadow:0 10px 24px rgba(0,0,0,.18);animation:pulse 2.4s ease-in-out infinite}
+
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin-bottom:20px}
+.stat-card{background:var(--surface);padding:20px;border-radius:var(--radius);box-shadow:var(--shadow-sm);border-left:4px solid var(--brand);animation:fadeUp .45s ease both}
+.stat-card h3{font-size:2rem;margin:0 0 6px}.stat-card p{color:var(--muted);margin:0}
+.stat-card.red{border-left-color:var(--danger)}.stat-card.amber{border-left-color:var(--warn)}.stat-card.green{border-left-color:var(--success)}
+
+/* Grid & cards */
+.dashboard-grid{display:grid;grid-template-columns:2fr 1fr;gap:20px}
+.dashboard-card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-sm);border:1px solid var(--border);animation:fadeUp .45s ease both}
+.dashboard-card-header{padding:16px 18px;border-bottom:1px solid var(--border);background:#f8fafb;display:flex;align-items:center;justify-content:space-between}
+.dashboard-card-header h3{font-size:1.05rem;margin:0}
+.dashboard-card-content{padding:18px}
+
+/* Buttons - Modern Design without Gradients */
+.btn{
+  display:inline-block;
+  padding:10px 18px;
+  border-radius:8px;
+  text-decoration:none;
+  border:1px solid transparent;
+  cursor:pointer;
+  font-weight:600;
+  font-size:0.9rem;
+  position:relative;
+  transition:all 0.2s ease;
+  box-sizing:border-box;
+}
+
+.btn-primary{
+  background:#3498db;
+  color:#fff;
+  border-color:#3498db;
+  box-shadow:0 2px 4px rgba(52, 152, 219, 0.2);
+}
+
+.btn-primary:hover{
+  background:#2980b9;
+  border-color:#2980b9;
+  box-shadow:0 4px 8px rgba(52, 152, 219, 0.3);
+  transform:translateY(-1px);
+}
+
+.btn-primary:active{
+  background:#21618c;
+  transform:translateY(0);
+  box-shadow:0 2px 4px rgba(52, 152, 219, 0.2);
+}
+
+.btn-outline{
+  background:#fff;
+  border-color:#e0e0e0;
+  color:#2c3e50;
+  box-shadow:0 1px 2px rgba(0,0,0,.05);
+}
+
+.btn-outline:hover{
+  background:#f8f9fa;
+  border-color:#3498db;
+  color:#3498db;
+  box-shadow:0 2px 4px rgba(0,0,0,.1);
+  transform:translateY(-1px);
+}
+
+.btn-outline:active{
+  background:#f0f0f0;
+  transform:translateY(0);
+}
+
+/* Calendar */
+.calendar-widget{background:var(--surface);border-radius:12px;padding:16px;box-shadow:var(--shadow-sm);border:1px solid var(--border)}
+.calendar-header{text-align:center;margin-bottom:10px;font-weight:700}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;font-size:.9rem}
+.calendar-grid .dow{color:var(--muted);text-align:center;font-size:.78rem;padding:4px 0}
+.calendar-day{padding:8px 0;text-align:center;border-radius:8px;cursor:pointer;background:#f4f6f8;border:1px solid #edf1f3;transition:transform .06s ease, background .15s ease, border-color .15s ease}
+.calendar-day:hover{background:#eef5ff;border-color:#d3e7ff;transform:translateY(-1px)}
+.calendar-day.today{background:var(--brand);color:#fff;border-color:transparent}
+
+/* Announcements */
+.announce-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.announce-dot{width:8px;height:8px;border-radius:50%}
+.dot-green{background:var(--success)} .dot-amber{background:var(--warn)} .dot-blue{background:var(--brand)}
+.announce-meta{font-size:.78rem;color:var(--muted)}
+
+/* Widget cards */
+.widget-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin:20px 0}
+.widget{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-sm);padding:16px}
+.clock-time{font-size:2rem;font-weight:800;letter-spacing:.5px}
+.weather-temp{font-size:1.8rem;font-weight:800}
+.weather-desc{color:var(--muted)}
+.event-list{display:grid;gap:10px}
+.event-item{border:1px dashed var(--border);border-radius:10px;padding:10px}
+
+/* Skeleton */
+.skel{display:grid;gap:8px}
+.skel-line{height:42px;border-radius:10px;background:linear-gradient(90deg,#eef1f3,#f8fafb,#eef1f3);background-size:200% 100%;animation:shimmer 1.4s linear infinite}
+
+/* Animations */
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.06)}}
+@keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+@keyframes pop{from{transform:translateY(-4px) scale(.98);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+@keyframes slideDown{from{transform:translateY(-8px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* Responsive */
+@media (max-width: 1024px){.dashboard-grid{grid-template-columns:1fr}}
+
+@media (max-width: 768px){
+  .dashboard-container{flex-direction:column}
+  .sidebar{width:100%;order:2}
+  .main-content{order:1}
+  
+  /* Responsive Table - Card Layout on Mobile */
+  .table-wrap{
+    border-radius:12px;
+    overflow:visible;
+    padding-bottom:20px;
+  }
+  
+  .table,
+  .table thead,
+  .table tbody,
+  .table th,
+  .table td,
+  .table tr{
+    display:block;
+  }
+  
+  .table thead{
+    display:none;
+  }
+  
+  .table tbody tr{
+    display:block;
+    margin-bottom:16px;
+    background:#fff;
+    border-radius:12px;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
+    border:1px solid var(--border);
+    padding:16px;
+    transition:all 0.2s ease;
+    position:relative;
+    z-index:0;
+    overflow:visible;
+  }
+  
+  .table tbody tr:hover{
+    transform:translateY(-2px);
+    box-shadow:0 4px 12px rgba(0,0,0,.12);
+  }
+  
+  .table tbody tr:nth-child(even){
+    background:#fff;
+  }
+  
+  .table td{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:12px 0;
+    border-bottom:1px solid #f1f3f5;
+    text-align:right;
+    position:relative;
+    padding-left:50%;
+    overflow:visible;
+  }
+  
+  .table td:before{
+    content:attr(data-label);
+    position:absolute;
+    left:0;
+    width:45%;
+    padding-right:10px;
+    white-space:nowrap;
+    text-align:left;
+    font-weight:700;
+    color:#52606d;
+    font-size:0.8rem;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+  }
+  
+  .table td:last-child{
+    border-bottom:none;
+  }
+  
+  .table td:first-child{
+    padding-left:0;
+    justify-content:flex-start;
+  }
+  
+  .table td:first-child:before{
+    display:none;
+  }
+  
+  .table .t-actions{
+    text-align:left;
+    padding-left:0;
+    justify-content:flex-start;
+    position:relative;
+    overflow:visible;
+    z-index:1;
+  }
+  
+  .table .t-actions:before{
+    display:none;
+  }
+  
+  /* Menu positioning on mobile */
+  .table .t-actions .menu{
+    right:auto;
+    left:0;
+    top:calc(100% + 8px);
+    z-index:10002;
+  }
+  
+  /* Hide checkbox on mobile or style it differently */
+  .table td:first-child input[type="checkbox"]{
+    margin-right:8px;
+  }
+  
+  /* Improve badge display on mobile */
+  .table td .badge{
+    font-size:0.7rem;
+    padding:4px 10px;
+  }
+  
+  /* Ensure table rows don't overlap on mobile */
+  .table tbody tr{
+    position:relative;
+    z-index:0;
+    margin-bottom:16px;
+  }
+  
+  .table tbody tr:has(.menu.open){
+    z-index:10;
+    margin-bottom:80px;
+  }
+}
+
+/* ===== Residents module (table/forms/modals) – shared across pages ===== */
+
+/* Toolbar */
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin:8px 0 14px}
+.toolbar-left,.toolbar-right{display:flex;gap:10px;align-items:center}
+.filter-chip{border:1px solid var(--border);border-radius:10px;padding:8px 10px;background:#fff;cursor:pointer}
+
+/* Search */
+.search{position:relative}
+.search input{border:1px solid var(--border);border-radius:10px;padding:10px 38px 10px 12px;min-width:240px;background:#fff}
+.search .icon{position:absolute;right:10px;top:50%;transform:translateY(-50%);opacity:.6}
+
+/* Data table - Modern & Responsive */
+.table-wrap{
+  width:100%;
+  background:#fff;
+  border-radius:12px;
+  box-shadow:0 2px 8px rgba(0,0,0,.04), 0 1px 3px rgba(0,0,0,.06);
+  overflow-x:auto;
+  overflow-y:visible;
+  border:1px solid var(--border);
+  position:relative;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* Ensure menus can overflow table container - allow vertical overflow */
+.table-wrap > .table{
+  position:relative;
+  min-width:100%;
+}
+
+/* Allow action menus to escape horizontal scroll clipping */
+.table tbody tr .t-actions,
+.table tbody tr .menu{
+  position:relative;
+  z-index:10001;
+}
+
+.table-wrap::-webkit-scrollbar{
+  height:8px;
+}
+
+.table-wrap::-webkit-scrollbar-track{
+  background:#f1f3f5;
+  border-radius:4px;
+}
+
+.table-wrap::-webkit-scrollbar-thumb{
+  background:#cbd5e0;
+  border-radius:4px;
+  transition:background 0.2s ease;
+}
+
+.table-wrap::-webkit-scrollbar-thumb:hover{
+  background:#a0aec0;
+}
+
+/* Empty state styling */
+.table tbody tr:only-child td[colspan]{
+  text-align:center;
+  padding:60px 20px;
+  color:var(--muted);
+  font-size:1rem;
+  background:#fafbfc;
+  border:none;
+}
+
+.table tbody tr:only-child td[colspan]:before{
+  content:'📋';
+  display:block;
+  font-size:3rem;
+  margin-bottom:12px;
+  opacity:0.5;
+}
+
+.table{
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0;
+  background:#fff;
+  margin:0;
+  position:relative;
+  overflow:visible;
+}
+
+.table thead{
+  background:#f8f9fa;
+  position:relative;
+}
+
+.table thead::after{
+  content:'';
+  position:absolute;
+  bottom:0;
+  left:0;
+  right:0;
+  height:1px;
+  background:linear-gradient(90deg, transparent, var(--brand), transparent);
+  opacity:0.3;
+}
+
+.table th{
+  padding:10px 12px;
+  text-align:left;
+  color:#2c3e50;
+  font-weight:700;
+  font-size:0.7rem;
+  text-transform:uppercase;
+  letter-spacing:0.3px;
+  user-select:none;
+  cursor:pointer;
+  position:relative;
+  white-space:nowrap;
+  border-bottom:1px solid #e9ecef;
+  transition:all 0.2s ease;
+}
+
+.table th:hover{
+  color:var(--brand);
+  background:#f0f7ff;
+}
+
+.table th:first-child{
+  padding-left:16px;
+}
+
+.table th:last-child{
+  padding-right:16px;
+}
+
+.table tbody tr{
+  transition:all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-bottom:1px solid #f1f3f5;
+  background:#fff;
+  animation:fadeInRow 0.3s ease both;
+  position:relative;
+  z-index:0;
+}
+
+.table tbody tr:hover{
+  z-index:1;
+}
+
+.table tbody tr:has(.menu.open){
+  z-index:2;
+  /* Prevent row from expanding when menu opens */
+  height:auto !important;
+  min-height:auto !important;
+  max-height:none !important;
+}
+
+.table tbody tr:has(.menu.open) td{
+  /* Ensure cells don't expand - menu is absolutely positioned */
+  height:auto !important;
+  min-height:auto !important;
+  max-height:none !important;
+  overflow:visible !important;
+  padding:10px 12px !important;
+}
+
+.table tbody tr:has(.menu.open) .t-actions{
+  /* Action cell should not expand */
+  width:auto !important;
+  min-width:50px !important;
+  max-width:80px !important;
+  overflow:visible !important;
+}
+
+/* Ensure menu doesn't affect table cell size */
+.t-actions .menu{
+  position:absolute !important;
+  /* Menu is outside normal flow, won't affect layout */
+  width:180px !important;
+  max-width:180px !important;
+  min-width:180px !important;
+}
+
+@keyframes fadeInRow{
+  from{
+    opacity:0;
+    transform:translateY(4px);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+
+.table tbody tr:nth-child(1){ animation-delay:0.02s; }
+.table tbody tr:nth-child(2){ animation-delay:0.04s; }
+.table tbody tr:nth-child(3){ animation-delay:0.06s; }
+.table tbody tr:nth-child(4){ animation-delay:0.08s; }
+.table tbody tr:nth-child(5){ animation-delay:0.10s; }
+.table tbody tr:nth-child(6){ animation-delay:0.12s; }
+.table tbody tr:nth-child(7){ animation-delay:0.14s; }
+.table tbody tr:nth-child(8){ animation-delay:0.16s; }
+.table tbody tr:nth-child(9){ animation-delay:0.18s; }
+.table tbody tr:nth-child(10){ animation-delay:0.20s; }
+
+.table tbody tr:nth-child(even){
+  background:#fafbfc;
+}
+
+.table tbody tr:hover{
+  background:#f0f7ff;
+  box-shadow:0 1px 4px rgba(52, 152, 219, 0.06);
+  border-bottom-color:#e3f2fd;
+}
+
+/* Menu is already handled above, removing duplicate */
+
+.table tbody tr:last-child{
+  border-bottom:none;
+}
+
+.table tbody tr:last-child td{
+  border-bottom:none;
+}
+
+.table td{
+  padding:10px 12px;
+  font-size:0.85rem;
+  color:#2c3e50;
+  vertical-align:middle;
+  border-bottom:1px solid #f1f3f5;
+  transition:background-color 0.2s ease;
+}
+
+.table td:first-child{
+  padding-left:16px;
+}
+
+.table td:last-child{
+  padding-right:16px;
+  position:relative;
+  overflow:visible;
+}
+
+/* Modern Checkbox Styling */
+.table input[type="checkbox"]{
+  width:18px;
+  height:18px;
+  cursor:pointer;
+  accent-color:var(--brand);
+  border-radius:4px;
+  border:2px solid #cbd5e0;
+  transition:all 0.2s ease;
+}
+
+.table input[type="checkbox"]:hover{
+  border-color:var(--brand);
+  transform:scale(1.1);
+}
+
+.table input[type="checkbox"]:checked{
+  background:var(--brand);
+  border-color:var(--brand);
+  box-shadow:0 2px 8px rgba(26, 115, 232, 0.3);
+}
+
+.t-actions{
+  position:relative;
+  text-align:right;
+  z-index:1;
+  overflow:visible;
+}
+
+/* Row action menu (kebab) - Modern Design */
+.kebab{
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:6px 10px;
+  cursor:pointer;
+  font-size:1.1rem;
+  line-height:1;
+  transition:background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  color:#52606d;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:32px;
+  max-width:32px;
+  height:32px;
+  flex-shrink:0;
+}
+
+.kebab:hover{
+  background:#f0f7ff;
+  border-color:var(--brand);
+  color:var(--brand);
+  box-shadow:0 2px 6px rgba(52, 152, 219, 0.12);
+}
+
+.kebab:active{
+  transform:none;
+  opacity:0.85;
+}
+
+.kebab:focus{
+  outline:none;
+  box-shadow:0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.menu{
+  position:absolute;
+  right:0;
+  top:calc(100% + 6px);
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:8px;
+  box-shadow:0 8px 24px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.08);
+  display:none;
+  width:180px;
+  max-width:180px;
+  min-width:180px;
+  z-index:10001;
+  overflow:hidden;
+  white-space:nowrap;
+  /* NO transforms, NO animations, NO scale */
+  transform:none !important;
+  transform-origin:unset !important;
+  animation:none !important;
+  /* Prevent any size changes */
+  box-sizing:border-box;
+}
+
+.menu.open{
+  display:block;
+  /* NO animations - instant display to prevent expansion */
+  animation:none !important;
+  transform:none !important;
+  opacity:1;
+}
+
+.menu .mi{
+  padding:8px 12px;
+  cursor:pointer;
+  transition:background-color 0.15s ease, color 0.15s ease;
+  font-size:0.85rem;
+  color:#2c3e50;
+  border-bottom:1px solid #f1f3f5;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  /* Prevent expansion */
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  width:100%;
+  box-sizing:border-box;
+}
+
+.menu .mi:last-child{
+  border-bottom:none;
+}
+
+.menu .mi:hover{
+  background:#f0f7ff;
+  color:var(--brand);
+  /* Don't change padding to prevent menu expansion */
+  padding-left:12px;
+}
+
+.menu .mi.delete:hover{
+  background:#fee;
+  color:#e74c3c;
+}
+
+/* Badges - Enhanced Modern Design */
+.badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:4px 10px;
+  border-radius:16px;
+  font-size:0.7rem;
+  font-weight:700;
+  letter-spacing:0.2px;
+  text-transform:uppercase;
+  box-shadow:0 1px 2px rgba(0,0,0,.08);
+  transition:all 0.2s ease;
+  position:relative;
+  overflow:hidden;
+}
+
+.badge::before{
+  content:'';
+  position:absolute;
+  top:0;
+  left:-100%;
+  width:100%;
+  height:100%;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.3), transparent);
+  transition:left 0.5s ease;
+}
+
+.badge:hover::before{
+  left:100%;
+}
+
+.badge:hover{
+  transform:translateY(-1px);
+  box-shadow:0 2px 6px rgba(0,0,0,.12);
+}
+
+.b-yes{
+  background:#d4edda;
+  color:#155724;
+  border:1px solid #c3e6cb;
+}
+
+.b-no{
+  background:#f8d7da;
+  color:#721c24;
+  border:1px solid #f5c6cb;
+}
+
+.b-info{
+  background:#d1ecf1;
+  color:#0c5460;
+  border:1px solid #bee5eb;
+}
+
+/* Pager - Enhanced Modern Design */
+.pager{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  justify-content:center;
+  margin-top:20px;
+  padding:16px;
+  background:#fafbfc;
+  border-radius:12px;
+  flex-wrap:wrap;
+}
+
+.pager .p{
+  border:1px solid var(--border);
+  padding:10px 16px;
+  border-radius:10px;
+  cursor:pointer;
+  background:#fff;
+  font-weight:600;
+  font-size:0.9rem;
+  color:#52606d;
+  transition:all 0.2s ease;
+  min-width:44px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 1px 3px rgba(0,0,0,.05);
+}
+
+.pager .p:hover:not(.active){
+  background:#f0f7ff;
+  border-color:var(--brand);
+  color:var(--brand);
+  transform:translateY(-1px);
+  box-shadow:0 2px 8px rgba(52, 152, 219, 0.15);
+}
+
+.pager .p.active{
+  background:#3498db;
+  color:#fff;
+  border-color:#3498db;
+  box-shadow:0 2px 8px rgba(52, 152, 219, 0.3);
+  font-weight:700;
+}
+
+.pager .p:active{
+  transform:scale(0.95);
+}
+
+/* Filters panel + form grids */
+.filters{display:none;margin:6px 0 10px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-weight:600;color:#394b59}
+.field input,.field select,.field textarea{border:1px solid var(--border);border-radius:10px;padding:10px 12px;background:#fff}
+
+/* Modal sheet */
+.modal{position:fixed;inset:0;background:rgba(17,24,39,.45);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+.modal.open{display:flex}
+.modal.open {
+  display: flex !important;
+}
+.sheet{background:#fff;border-radius:14px;box-shadow:var(--shadow-md);width:min(920px,96vw);max-height:90vh;overflow:auto;border:1px solid var(--border)}
+.sheet-head{padding:16px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.sheet-body{padding:18px}
+.sheet-foot{padding:14px 18px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
+.btn-danger{background:#e74c3c;color:#fff}
+
+/* Small helpers */
+.muted{color:var(--muted)}
+
+/* =========================
+   ✨ Animations & Hover UX
+   ========================= */
+
+/* Motion tokens */
+:root{
+  --ease: cubic-bezier(.22,.61,.36,1);
+  --dur-fast: .18s;
+  --dur: .28s;
+  --dur-slow: .45s;
+
+  /* component aliases (light mode) */
+  --bg-primary:   var(--bg);
+  --bg-secondary: var(--surface);
+  --bg-tertiary:  #f3f6f9;
+
+  --text-primary:   var(--text);
+  --text-secondary: var(--muted);
+
+  --border-color: var(--border);
+  --accent-color: var(--brand);
+
+  /* sidebar aliases for light */
+  --sidebar-bg:     #2c3e50;
+  --sidebar-active: #34495e;
+
+  /* keep your font-size token */
+  --fs-base: 16px;
+}
+
+/* --- DARK THEME: set base tokens + their aliases --- */
+[data-theme="dark"]{
+  /* dark tokens */
+  --bg:       #0f1115;
+  --surface:  #151a22;
+  --text:     #e5e7eb;
+  --muted:    #9aa4b2;
+  --border:   #2b3443;
+
+  --brand:    #60a5fa;
+  --brand-600:#3b82f6;
+  --success:  #22c55e;
+  --warn:     #f59e0b;
+  --danger:   #ef4444;
+
+  --tooltip:       #0b0f1a;
+  --tooltip-text:  #e5e7eb;
+
+  /* sidebar in dark */
+  --sidebar-bg:     #0e141b;
+  --sidebar-active: #121a24;
+
+  /* aliases in dark */
+  --bg-primary:   var(--bg);
+  --bg-secondary: var(--surface);
+  --bg-tertiary:  #1b2230;
+
+  --text-primary:   var(--text);
+  --text-secondary: var(--muted);
+
+  --border-color: var(--border);
+  --accent-color: var(--brand);
+}
+
+/* Respect users who prefer less motion */
+@media (prefers-reduced-motion: reduce){
+  * { animation: none !important; transition: none !important; }
+}
+
+/* ---------- Generic keyframes ---------- */
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+@keyframes fadeOut { from{opacity:1} to{opacity:0} }
+@keyframes popIn  { from{opacity:0; transform: translateY(6px) scale(.98)} to{opacity:1; transform: translateY(0) scale(1)} }
+@keyframes scaleIn{ from{opacity:0; transform: scale(.96)} to{opacity:1; transform: scale(1)} }
+@keyframes slideDown { from{opacity:0; transform: translateY(-6px)} to{opacity:1; transform: translateY(0)} }
+@keyframes ringPulse { from{box-shadow: 0 0 0 0 rgba(26,115,232,.22)} to{box-shadow: 0 0 0 10px rgba(26,115,232,0)} }
+
+/* Utility classes you can add if needed in HTML later */
+.animate-fade   { animation: fadeIn var(--dur) var(--ease) both; }
+.animate-pop    { animation: popIn var(--dur) var(--ease) both; }
+.animate-scale  { animation: scaleIn var(--dur) var(--ease) both; }
+.animate-down   { animation: slideDown var(--dur-fast) var(--ease) both; }
+
+/* ---------- Buttons & chips ---------- */
+.btn,
+.filter-chip,
+.kebab {
+  position: relative;
+  transition: transform var(--dur-fast) var(--ease), 
+              box-shadow var(--dur-fast) var(--ease),
+              border-color var(--dur-fast) var(--ease),
+              background-color var(--dur-fast) var(--ease),
+              color var(--dur-fast) var(--ease);
+}
+
+/* expand hover/click hit area without changing layout */
+.btn::before,
+.filter-chip::before,
+.kebab::before,
+.sidebar-menu a::before,
+.hamburger::before {
+  content:"";
+  position:absolute;
+  inset: -6px;          /* larger hover ring */
+  border-radius: 12px;
+  pointer-events: none; /* don’t block clicks */
+}
+
+.btn:hover,
+.filter-chip:hover,
+.kebab:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(17,24,39,.08);
+}
+
+.btn:active,
+.filter-chip:active,
+.kebab:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 10px rgba(17,24,39,.08);
+}
+
+/* subtle ring on keyboard focus */
+.btn:focus-visible,
+.filter-chip:focus-visible,
+.kebab:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 3px rgba(26,115,232,.22);
+  border-color: #1a73e8;
+}
+
+/* primary pulse when appearing (optional) */
+.btn-primary.appear {
+  animation: ringPulse .9s var(--ease) both;
+}
+
+/* ---------- Header hamburger ---------- */
+.hamburger { transition: transform var(--dur-fast) var(--ease), opacity var(--dur-fast); }
+.hamburger:hover { transform: scale(1.05); opacity: .9; }
+
+/* ---------- Sidebar links ---------- */
+.sidebar-menu a {
+  transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.sidebar-menu a:hover { transform: translateX(2px); }
+
+/* ---------- Table interactions ---------- */
+.table tr { transition: background-color var(--dur-fast) var(--ease); }
+.table tr:hover td { background: #fbfdff; }
+.table tr:focus-within td { background: #f3f7ff; }
+.table th { transition: color var(--dur-fast) var(--ease); }
+.table th:hover { color: #1a73e8; }
+
+/* Pager */
+.pager .p { transition: transform var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease); }
+.pager .p:hover { transform: translateY(-1px); }
+
+/* ---------- Dropdowns (user menu / kebab menu) ---------- */
+.dropdown {
+  transform-origin: top right;
+}
+.dropdown.open {
+  animation: popIn var(--dur-fast) var(--ease) both;
+}
+/* Table menu uses NO animation - prevent any expansion */
+.table .menu.open {
+  animation: none !important;
+  transform: none !important;
+}
+
+/* ---------- Modal & sheet ---------- */
+/* fade the backdrop */
+.modal { opacity: 0; pointer-events: none; transition: opacity var(--dur) var(--ease); }
+.modal.open { opacity: 1; pointer-events: auto; }
+
+/* pop the sheet in */
+.modal.open .sheet { animation: scaleIn var(--dur) var(--ease) both; }
+
+/* closing (optional class you can toggle if you add JS) */
+.modal.closing { animation: fadeOut var(--dur-fast) var(--ease) both; }
+.modal.closing .sheet { animation: fadeOut var(--dur-fast) var(--ease) both; }
+
+/* ---------- Search input ---------- */
+.search input {
+  transition: box-shadow var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), background-color var(--dur-fast);
+}
+.search input:hover { background:#fff; box-shadow: 0 2px 10px rgba(17,24,39,.05); }
+.search input:focus { box-shadow: 0 0 0 3px rgba(26,115,232,.22); border-color:#1a73e8; }
+
+/* ---------- Badges hover (read-only affordance) ---------- */
+.badge { transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease); }
+.badge:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(17,24,39,.06); }
+
+/* ---------- Filters panel reveal ---------- */
+.filters { animation: fadeIn var(--dur-fast) var(--ease) both; }
+
+/* ---------- Tooltips (if you’re using data-tooltip on collapsed sidebar) ---------- */
+[data-tooltip] { position: relative; }
+[data-tooltip]::after{
+  content: attr(data-tooltip);
+  position:absolute;
+  left: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: #111827;
+  color:#fff;
+  font-size:.78rem;
+  padding:6px 8px;
+  border-radius:8px;
+  white-space:nowrap;
+  opacity:0;
+  pointer-events:none;
+  transition: opacity var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.sidebar.collapsed .sidebar-menu a:hover::after{
+  opacity:1;
+  transform: translate(4px,-50%);
+}
+
+/* ---------- Tiny card lift for dashboard/resident blocks ---------- */
+.card, .dashboard-card, .calendar-widget, .stat-card, .sheet {
+  transition: box-shadow var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.card:hover, .dashboard-card:hover, .calendar-widget:hover, .stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(17,24,39,.08);
+}
+
+/* =========================
+   INTERACTIVE ANIMATIONS UX
+   (safe to append at end)
+   ========================= */
+:root{
+  --ease: cubic-bezier(.22,.61,.36,1);
+  --dur-xxs:.12s; --dur-xs:.18s; --dur:.28s; --dur-slow:.45s;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce){
+  *{animation:none!important;transition:none!important}
+}
+
+/* ---- Keyframes ---- */
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+@keyframes scaleIn { from{opacity:0;transform:scale(.96)} to{opacity:1;transform:scale(1)} }
+@keyframes popIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+@keyframes ringPulse { from{box-shadow:0 0 0 0 rgba(26,115,232,.2)} to{box-shadow:0 0 0 10px rgba(26,115,232,0)} }
+@keyframes ripple { to{transform:scale(10);opacity:0} }
+
+/* ---- Click/touch hit-area enlargement + tile hover ---- */
+.click-surface,
+.btn, .filter-chip, .kebab,
+.sidebar-menu a, .hamburger,
+.user-info, .user-info .btn {
+  position: relative;
+  isolation: isolate;
+}
+.tile-hover::after,
+.btn::after, .filter-chip::after, .kebab::after,
+.sidebar-menu a::after, .hamburger::after,
+.user-info::after, .user-info .btn::after {
+  /* invisible expansion to show hover boundaries */
+  content:"";
+  position:absolute;inset:-6px;
+  border-radius:12px;
+  transition: box-shadow var(--dur-xs) var(--ease), background-color var(--dur-xs) var(--ease);
+  z-index:-1;
+}
+.tile-hover:hover::after,
+.btn:hover::after, .filter-chip:hover::after, .kebab:hover::after,
+.sidebar-menu a:hover::after, .hamburger:hover::after,
+.user-info:hover::after, .user-info .btn:hover::after {
+  background: rgba(26,115,232,.06);
+  box-shadow: 0 0 0 2px rgba(26,115,232,.08) inset;
+}
+
+/* ---- Buttons polish ---- */
+.btn, .filter-chip, .kebab {
+  transition: transform var(--dur-xs) var(--ease), box-shadow var(--dur-xs) var(--ease), border-color var(--dur-xs) var(--ease), background-color var(--dur-xs) var(--ease), color var(--dur-xs) var(--ease);
+}
+.btn:hover, .filter-chip:hover, .kebab:hover { transform: translateY(-1px); box-shadow:0 8px 18px rgba(17,24,39,.08) }
+.btn:active, .filter-chip:active, .kebab:active { transform: translateY(0); }
+
+/* Focus rings (keyboard) */
+.btn:focus-visible, .filter-chip:focus-visible, .kebab:focus-visible,
+input:focus-visible, select:focus-visible, textarea:focus-visible,
+.sidebar-menu a:focus-visible, .hamburger:focus-visible, .user-info:focus-visible {
+  outline:0; box-shadow:0 0 0 3px rgba(26,115,232,.24); border-color:#1a73e8;
+}
+
+/* ---- Ripple effect (applied via JS) ---- */
+.ripple-host { position:relative; overflow:hidden; }
+.ripple-dot {
+  position:absolute; width:12px; height:12px; border-radius:50%;
+  background: rgba(26,115,232,.22); transform:translate(-50%,-50%) scale(0);
+  animation: ripple .6s var(--ease) forwards;
+  pointer-events:none;
+}
+
+/* ---- User chip / notification interactions ---- */
+.user-info { gap:10px; padding:6px 8px; border-radius:12px; transition: box-shadow var(--dur-xs) var(--ease), background-color var(--dur-xs) var(--ease), transform var(--dur-xs) var(--ease); }
+.user-info:hover { background:#ffffff; box-shadow:0 10px 24px rgba(17,24,39,.08) }
+.user-info .user-avatar { transition: transform var(--dur-xs) var(--ease) }
+.user-info:hover .user-avatar { transform: scale(1.06) }
+
+#notifBtn { position:relative; }
+#notifBtn .ping {
+  position:absolute; top:-2px; right:-2px; width:8px; height:8px; border-radius:50%;
+  background:#e11d48;
+  box-shadow:0 0 0 0 rgba(225,29,72,.6);
+  animation: ringPulse 1.2s var(--ease) infinite;
+}
+
+/* tooltip when collapsed sidebar */
+[data-tooltip]{position:relative}
+.sidebar.collapsed .sidebar-menu a .label { display:none }
+.sidebar.collapsed .sidebar-menu a::after{
+  content:attr(data-tooltip); position:absolute; left:calc(100% + 10px); top:50%; transform:translateY(-50%);
+  background:#111827; color:#fff; border-radius:8px; padding:6px 8px; font-size:.78rem; white-space:nowrap; opacity:0; transition:opacity var(--dur-xs) var(--ease), transform var(--dur-xs) var(--ease);
+}
+.sidebar.collapsed .sidebar-menu a:hover::after{ opacity:1; transform:translate(4px,-50%) }
+
+/* Dropdowns (user menu, kebab) */
+.dropdown { transform-origin: top right; }
+.dropdown.open { animation: popIn var(--dur-xxs) var(--ease) both; }
+/* Table menus use fade animation, not popIn */
+.table .menu.open { animation: none !important; transform: none !important; }
+
+/* Table polish */
+.table tr { transition: background-color var(--dur-xxs) var(--ease) }
+.table tr:hover td{ background:#fbfdff }
+.table tr:focus-within td{ background:#f3f7ff }
+.table th{ transition: color var(--dur-xxs) var(--ease) }
+.table th:hover{ color:#1a73e8 }
+
+/* Dark mode table support */
+[data-theme="dark"] .table-wrap{
+  background:var(--bg-secondary);
+  border-color:var(--border-color);
+}
+
+[data-theme="dark"] .table thead{
+  background:#1b2230;
+}
+
+[data-theme="dark"] .table th{
+  color:var(--text-primary);
+  border-bottom-color:var(--border-color);
+}
+
+[data-theme="dark"] .table th:hover{
+  background:#1f2838;
+}
+
+[data-theme="dark"] .table tbody tr{
+  background:var(--bg-secondary);
+  border-bottom-color:var(--border-color);
+}
+
+[data-theme="dark"] .table tbody tr:nth-child(even){
+  background:var(--bg-tertiary);
+}
+
+[data-theme="dark"] .table tbody tr:hover{
+  background:#1f2838;
+  box-shadow:0 2px 8px rgba(96, 165, 250, 0.15);
+}
+
+[data-theme="dark"] .table td{
+  color:var(--text-primary);
+  border-bottom-color:var(--border-color);
+}
+
+[data-theme="dark"] .pager{
+  background:var(--bg-tertiary);
+}
+
+[data-theme="dark"] .pager .p{
+  background:var(--bg-secondary);
+  border-color:var(--border-color);
+  color:var(--text-primary);
+}
+
+[data-theme="dark"] .pager .p:hover:not(.active){
+  background:#1f2838;
+  border-color:var(--brand);
+  color:var(--brand);
+}
+
+[data-theme="dark"] .kebab{
+  background:var(--bg-secondary);
+  border-color:var(--border-color);
+  color:var(--text-primary);
+}
+
+[data-theme="dark"] .kebab:hover{
+  background:#1f2838;
+  border-color:var(--brand);
+}
+
+[data-theme="dark"] .menu{
+  background:var(--bg-secondary);
+  border-color:var(--border-color);
+}
+
+[data-theme="dark"] .menu .mi{
+  color:var(--text-primary);
+  border-bottom-color:var(--border-color);
+}
+
+[data-theme="dark"] .menu .mi:hover{
+  background:linear-gradient(90deg, #1f2838 0%, var(--bg-secondary) 100%);
+  color:var(--brand);
+}
+
+/* Pager */
+.pager .p{ transition: transform var(--dur-xxs) var(--ease), background-color var(--dur-xxs) var(--ease) }
+.pager .p:hover{ transform: translateY(-1px) }
+
+/* Modal backdrop + sheet pop */
+.modal{ opacity:0; pointer-events:none; transition:opacity var(--dur) var(--ease) }
+.modal.open{ opacity:1; pointer-events:auto }
+.modal.open .sheet{ animation: scaleIn var(--dur) var(--ease) both }
+
+/* Toast notifications */
+.toast-stack{ position:fixed; right:16px; bottom:16px; display:flex; flex-direction:column; gap:10px; z-index:60 }
+.toast{ background:#111827; color:#fff; padding:12px 14px; border-radius:12px; box-shadow:0 12px 26px rgba(17,24,39,.24); animation: fadeIn var(--dur) var(--ease) both }
+.toast.success{ background:#065f46 }
+.toast.info{ background:#1f2937 }
+.toast.warn{ background:#92400e }
+
+/* Skeleton loaders */
+.skeleton{ position:relative; overflow:hidden; background:#eef2f7; border-radius:10px }
+.skeleton::after{
+  content:""; position:absolute; inset:0; transform:translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.6), transparent);
+  animation: shimmer 1.2s infinite;
+}
+@keyframes shimmer{ 100%{ transform: translateX(100%) } }
+
+/* =========================
+   FIXES: menu clickability, layering, hover overlays
+   ========================= */
+
+/* Never let hover overlays eat clicks */
+.btn::after, .filter-chip::after, .kebab::after,
+.sidebar-menu a::after, .hamburger::after,
+.user-info::after, .user-info .btn::after,
+.tile-hover::after {
+  pointer-events: none; /* ✅ critical so clicks pass through */
+}
+
+/* User chip must allow dropdown outside its bounds */
+.user-info { overflow: visible; }       /* ✅ no clipping */
+
+/* Menus should sit above header/sidebar & receive clicks */
+.dropdown, .menu {
+  z-index: 10000;                       /* ✅ visible above everything */
+  pointer-events: auto;                 /* ✅ clickable */
+}
+
+/* Slightly stronger floating shadow when opened */
+.dropdown.open, .menu.open {
+  box-shadow: 0 16px 36px rgba(17,24,39,.18);
+}
+
+/* Optional: clearer hover range for header actions (user, bell) */
+.user-info:hover::after,
+#notifBtn:hover::after {
+  content:""; position:absolute; inset:-6px; border-radius:12px;
+  background: rgba(26,115,232,.06);
+  box-shadow: 0 0 0 2px rgba(26,115,232,.08) inset;
+}
+
+/* =========================
+   Header tiles: separate & clickable everywhere
+   ========================= */
+
+/* Keep hover overlays transparent to clicks */
+.btn::after, .filter-chip::after, .kebab::after,
+.sidebar-menu a::after, .hamburger::after,
+.user-info::after, .user-info .btn::after,
+.tile-hover::after {
+  pointer-events: none;
+}
+
+/* Make the two tiles (user + notif) visually distinct */
+#userChip, #notifBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  position: relative;
+  transition: box-shadow var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+
+#userChip:hover,
+#notifBtn:hover {
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(17,24,39,.08);
+}
+
+/* Clear hit boundary glow (tile area) */
+#userChip:hover::after,
+#notifBtn:hover::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 14px;
+  background: rgba(26,115,232,.06);
+  box-shadow: 0 0 0 2px rgba(26,115,232,.08) inset;
+}
+
+/* Accessibility: keyboard focus ring */
+#userChip:focus-visible,
+#notifBtn:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 3px rgba(26,115,232,.24);
+}
+
+/* user dropdown / notif panel must float above header */
+.dropdown, .menu, #notifPanel {
+  z-index: 10000;
+  pointer-events: auto;
+}
+
+/* Ensure user chip doesn’t clip its dropdown */
+.user-info { overflow: visible; }
+
+/* Stronger shadow when open (feel "floating") */
+.dropdown.open, .menu.open, #notifPanel.open {
+  box-shadow: 0 16px 36px rgba(17,24,39,.18);
+}
+
+/* CRITICAL: Override all animations and transforms for table menus to prevent expansion */
+.table .menu,
+.table tbody tr .menu,
+.table .t-actions .menu {
+  animation: none !important;
+  transform: none !important;
+  width: 180px !important;
+  max-width: 180px !important;
+  min-width: 180px !important;
+}
+
+.table .menu.open,
+.table tbody tr .menu.open,
+.table .t-actions .menu.open {
+  animation: none !important;
+  transform: none !important;
+  transform-origin: unset !important;
+  width: 180px !important;
+  max-width: 180px !important;
+  min-width: 180px !important;
+  opacity: 1 !important;
+}
+
+/* Notification ping dot animation is already included; keep here for clarity */
+#notifBtn .ping {
+  position:absolute; top:-2px; right:-2px; width:8px; height:8px; border-radius:50%;
+  background:#e11d48; box-shadow:0 0 0 0 rgba(225,29,72,.6);
+  animation: ringPulse 1.2s var(--ease) infinite;
+}
+
+/* --- Clickability hardening for header tiles & menus --- */
+#userChip, [data-user-chip],
+#notifBtn, [data-notif-btn] {
+  cursor: pointer;
+  position: relative;
+  z-index: 2;          /* sits above header background */
+}
+
+.user-info { overflow: visible; }       /* dropdowns not clipped */
+
+.dropdown, .menu, #notifPanel, [data-user-menu], [data-notif-panel] {
+  z-index: 10000;       /* always above header/sidebar */
+  pointer-events: auto; /* make sure they can be clicked */
+}
+
+/* make any hover “tile” overlays transparent to clicks */
+#userChip::after, [data-user-chip]::after,
+#notifBtn::after, [data-notif-btn]::after {
+  pointer-events: none;
+}
+
+/* already in your file, just confirming */
+html[data-font-size="small"]  { --fs-base: 14px; }
+html[data-font-size="medium"] { --fs-base: 16px; }
+html[data-font-size="large"]  { --fs-base: 18px; }
+html[data-font-size="xlarge"] { --fs-base: 20px; }
+
+/* body uses the variable */
+body { font-size: var(--fs-base); }
+
+/* app surfaces */
+.sidebar { background: var(--sidebar-bg); }
+.sidebar .sidebar-header { background: var(--sidebar-active); }
+.sidebar a { color: #bdc3c7; }
+.sidebar a:hover,
+.sidebar a.active { background: var(--sidebar-active); color: #fff; }
+
+.header { background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); }
+.main-content { background: var(--bg-primary); }
+.content-area { background: var(--bg-primary); }
+
+/* “card-like” containers */
+.dashboard-card,
+.widget,
+.calendar-widget,
+.notif-panel,
+.dropdown {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+/* subtle texts */
+.muted,
+.announce-meta { color: var(--text-secondary); }
+
+/* stat card variants – keep their accent but respect dark base */
+.stat-card { background: var(--bg-secondary); border: 1px solid var(--border-color); }
+.stat-card.red   { --brand: #ef4444; }
+.stat-card.amber { --brand: #f59e0b; }
+.stat-card.green { --brand: #22c55e; }
+
+/* buttons already look good with your existing styles, but ensure contrast */
+.btn-primary { background: var(--accent-color); color: #fff; }
+
+
+
+

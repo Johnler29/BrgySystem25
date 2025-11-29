@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Request Documents — Barangay Langkaan II</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/base.css">
+</head>
+
+<script defer src="/base-header.js"></script>
+<script defer src="/base.js"></script>
+
+<body>
+<div class="dashboard-container">
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <img src="https://scontent.fmnl31-1.fna.fbcdn.net/v/t1.15752-9/566459805_2304695176635817_7965723576219961744_n.png?_nc_cat=100&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeFvsvFPtYKGEdwHZwyXJu6hLWJQAEjhjVotYlAASOGNWmCLSn6KIuOYN8ElKlNNHQrO159FSCuwFcll7OgdlzCP&_nc_ohc=yiA3bhEGnNAQ7kNvwGUy1mZ&_nc_oc=AdkuAJIw6rTtWuKWDNP7QJAFplSOwMhvUK5rJ7b_uZdCToSR1sT73c7CFJ5zrYhIU-I&_nc_zt=23&_nc_ht=scontent.fmnl31-1.fna&oh=03_Q7cD3gGocOn0qEMEx3iINh9aOx48m0LIlXIab9IT08mckx_JZw&oe=692126F5" alt="Logo">
+      <h3 class="sidebar-title">Barangay Langkaan II<br><small style="font-size:0.85em;opacity:0.8;">Resident Portal</small></h3>
+    </div>
+
+    <ul class="sidebar-menu" id="navList">
+      <li><a href="/user/dashboard" data-tooltip="Dashboard"><span class="icon">🏠</span><span class="label">Dashboard</span></a></li>
+      <li><a href="/user/document-permits" class="active" data-tooltip="Request Documents"><span class="icon">📄</span><span class="label">Request Documents</span></a></li>
+      <li><a href="/user/community" data-tooltip="Community"><span class="icon">🤝</span><span class="label">Community</span></a></li>
+      <li><a href="/user/cases" data-tooltip="Report Cases"><span class="icon">⚖️</span><span class="label">Report Cases</span></a></li>
+      <li><a href="/user/health" data-tooltip="Health Services"><span class="icon">🏥</span><span class="label">Health Services</span></a></li>
+      <li><a href="/user/disaster" data-tooltip="Disaster Info"><span class="icon">🚨</span><span class="label">Disaster Info</span></a></li>
+
+      <li style="margin-top:50px;"><a href="/user/settings" data-tooltip="Settings"><span class="icon">⚙️</span><span class="label">Settings</span></a></li>
+      <li><a href="#" onclick="fetch('/api/logout',{method:'POST'}).then(()=>location.href='/login')" data-tooltip="Log out"><span class="icon">🚪</span><span class="label">Log out</span></a></li>
+    </ul>
+  </nav>
+
+  <main class="main-content">
+    <header class="header">
+      <div class="header-left">
+        <button class="hamburger" id="hamburgerBtn" aria-label="Toggle sidebar"><span></span></button>
+        <h1 class="app-title">Request Documents</h1>
+      </div>
+      <div class="user-info" id="userChip">
+        <button class="btn btn-outline" id="notifBtn" title="Notifications">🔔</button>
+        <div class="user-avatar" id="avatar">U</div>
+        <span id="username" class="user-name">User</span>
+
+        <div class="notif-panel" id="notifPanel">
+          <div class="notif-head">Notifications</div>
+          <div class="notif-item">No new notifications.</div>
+        </div>
+
+        <div class="dropdown" id="userMenu">
+          <div class="item" id="goProfile">👤 Profile</div>
+          <div class="item" id="goSettings">⚙️ Settings</div>
+          <div class="item" id="doLogout">🚪 Log out</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="content-area">
+      <div style="background:#e3f2fd;color:#1565c0;padding:12px 16px;border-radius:8px;margin-bottom:20px;">
+        <strong>ℹ️ Resident Portal</strong> — View and request your documents here. Only your requests are visible.
+      </div>
+
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <button class="btn btn-primary" id="addNewBtn">+ Request New Document</button>
+        </div>
+        <div class="toolbar-right">
+          <div class="search">
+            <input id="searchInput" type="text" placeholder="Search by type, purpose"/>
+            <span class="icon">🔍</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="table" id="docsTable">
+          <thead>
+            <tr>
+              <th>Type of Document</th>
+              <th>Number of Copies</th>
+              <th>Date Requested</th>
+              <th>Date Released</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="reqTbody">
+            <!-- rows injected by user-document-permits.js -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pager" id="pager" style="display:none"></div>
+    </div>
+  </main>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal" id="formModal" aria-hidden="true">
+  <div class="sheet">
+    <div class="sheet-head">
+      <h3 id="formTitle">Request Document</h3>
+      <button class="btn btn-outline" id="closeFormX">✕</button>
+    </div>
+    <div class="sheet-body">
+      <form id="docForm" class="grid-2">
+        <div class="field">
+          <label>Type of Document</label>
+          <select id="typeOfDocument" required>
+            <option>Barangay Clearance</option>
+            <option>Certificate of Indigency</option>
+            <option>Certificate of Residency</option>
+            <option>Barangay ID</option>
+            <option>Construction Permit</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Number of Copies</label>
+          <input id="numberOfCopies" type="number" min="1" value="1" required/>
+        </div>
+        <div class="field" style="grid-column:1/-1">
+          <label>Requester's Name</label>
+          <input id="requesterName" type="text" required/>
+        </div>
+        <div class="field" style="grid-column:1/-1">
+          <label>Requester's Address</label>
+          <input id="address" type="text" required/>
+        </div>
+        <div class="field" style="grid-column:1/-1">
+          <label>Purpose</label>
+          <input id="purpose" type="text" placeholder="e.g. Employment, Scholarship" required/>
+        </div>
+        <div class="field">
+          <label>Payment Method</label>
+          <select id="paymentMethod">
+            <option value="">Select Payment Method</option>
+            <option>GCash</option>
+            <option>GoTyme</option>
+            <option>Local Bank</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Payment Status</label>
+          <select id="paymentStatus">
+            <option value="">No payment found</option>
+            <option>Successfully Paid</option>
+            <option>Pending</option>
+            <option>Failed</option>
+          </select>
+        </div>
+        <input type="hidden" id="docId"/>
+      </form>
+    </div>
+    <div class="sheet-foot">
+      <button class="btn btn-outline" id="cancelForm">Cancel</button>
+      <button class="btn btn-primary" id="saveForm">Submit Request</button>
+    </div>
+  </div>
+</div>
+
+<script defer src="/user/user-document-permits.js"></script>
+</body>
+</html>
+

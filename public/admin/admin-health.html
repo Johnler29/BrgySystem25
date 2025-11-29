@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Health & Social Services — Barangay Langkaan II</title>
+
+<script>
+/* set theme/font early from localStorage to avoid flash */
+(function () {
+  try {
+    var s = JSON.parse(localStorage.getItem('userSettings') || '{}');
+    var html = document.documentElement;
+
+    // theme
+    var t = s.theme || 'light';
+    if (t === 'dark') {
+      html.setAttribute('data-theme', 'dark');
+    } else if (t === 'auto') {
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (prefersDark) html.setAttribute('data-theme', 'dark'); else html.removeAttribute('data-theme');
+    } else {
+      html.removeAttribute('data-theme');
+    }
+
+    // font size
+    var fs = (s.fontSize || 'medium').toLowerCase();
+    var map = { small:'14px', medium:'16px', large:'18px', xlarge:'20px' };
+    html.setAttribute('data-font-size', fs);
+    html.style.setProperty('--fs-base', map[fs] || '16px');
+  } catch (e) {}
+})();
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/base.css">
+
+<style>
+  /* Health module specific tokens - Blue & Dark Blue Theme */
+  .bg-primary-btn { background-color: #3498db; }
+  .bg-success-btn { background-color: #2980b9; }
+  .bg-ghost-btn { background-color: #ecf0f1; }
+  .bg-danger-btn { background-color: #1e3a8a; }
+  .text-primary-btn { color: #2c3e50; }
+  .border-input { border-color: #dfe6e9; }
+
+  /* Enhanced Status Badges - Blue & Dark Blue */
+  .bg-active { 
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    color: #1565c0;
+    border: 1px solid #64b5f6;
+  }
+  .bg-completed { 
+    background: linear-gradient(135deg, #c5d5f5 0%, #a3b8e8 100%);
+    color: #1e40af;
+    border: 1px solid #3b82f6;
+  }
+  .bg-scheduled { 
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    color: #1565c0;
+    border: 1px solid #64b5f6;
+  }
+  .bg-pending { 
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    color: #1e40af;
+    border: 1px solid #60a5fa;
+  }
+  .bg-ongoing { 
+    background: linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%);
+    color: #0277bd;
+    border: 1px solid #4fc3f7;
+  }
+  .bg-due { 
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    color: #1e40af;
+    border: 1px solid #60a5fa;
+  }
+  .bg-overdue { 
+    background: linear-gradient(135deg, #c5d5f5 0%, #a3b8e8 100%);
+    color: #1e3a8a;
+    border: 1px solid #3b82f6;
+  }
+  .bg-resolved { 
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    color: #1565c0;
+    border: 1px solid #64b5f6;
+  }
+  .bg-administered { 
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    color: #1565c0;
+    border: 1px solid #64b5f6;
+  }
+
+  /* Enhanced Statistics Cards */
+  .health-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .health-stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+  .health-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  }
+  .health-stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--brand), var(--success));
+  }
+  .health-stat-card.blue::before { background: linear-gradient(90deg, #3498db, #2980b9); }
+  .health-stat-card.dark-blue::before { background: linear-gradient(90deg, #2980b9, #1e3a8a); }
+  .health-stat-card.light-blue::before { background: linear-gradient(90deg, #5dade2, #3498db); }
+  .health-stat-card.navy::before { background: linear-gradient(90deg, #1e3a8a, #1e40af); }
+  .health-stat-card.sky::before { background: linear-gradient(90deg, #85c1e9, #5dade2); }
+  
+  .health-stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-bottom: 12px;
+    background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(46, 204, 113, 0.1));
+  }
+  .health-stat-card.blue .health-stat-icon { background: linear-gradient(135deg, rgba(52, 152, 219, 0.15), rgba(52, 152, 219, 0.05)); }
+  .health-stat-card.dark-blue .health-stat-icon { background: linear-gradient(135deg, rgba(41, 128, 185, 0.15), rgba(41, 128, 185, 0.05)); }
+  .health-stat-card.light-blue .health-stat-icon { background: linear-gradient(135deg, rgba(93, 173, 226, 0.15), rgba(93, 173, 226, 0.05)); }
+  .health-stat-card.navy .health-stat-icon { background: linear-gradient(135deg, rgba(30, 58, 138, 0.15), rgba(30, 58, 138, 0.05)); }
+  .health-stat-card.sky .health-stat-icon { background: linear-gradient(135deg, rgba(133, 193, 233, 0.15), rgba(133, 193, 233, 0.05)); }
+  
+  .health-stat-label {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin: 0 0 8px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .health-stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  /* Enhanced Tabs */
+  .health-tabs {
+    display: flex;
+    border-bottom: 3px solid #e9ecef;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    overflow-x: auto;
+    gap: 6px;
+    padding-bottom: 2px;
+    background: linear-gradient(to bottom, #fafbfc 0%, transparent 100%);
+    padding-top: 8px;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+  .health-tabs::-webkit-scrollbar {
+    height: 6px;
+  }
+  .health-tabs::-webkit-scrollbar-track {
+    background: #f1f3f5;
+    border-radius: 10px;
+  }
+  .health-tabs::-webkit-scrollbar-thumb {
+    background: #bdc3c7;
+    border-radius: 10px;
+  }
+  .health-tabs::-webkit-scrollbar-thumb:hover {
+    background: #95a5a6;
+  }
+  .health-tab {
+    padding: 14px 24px;
+    cursor: pointer;
+    border-bottom: 4px solid transparent;
+    color: #7f8c8d;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    margin-bottom: -3px;
+    border-radius: 12px 12px 0 0;
+    background: transparent;
+  }
+  .health-tab::before {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: transparent;
+    transition: all 0.3s ease;
+  }
+  .health-tab:hover {
+    color: #3498db;
+    background: rgba(52, 152, 219, 0.08);
+    transform: translateY(-2px);
+  }
+  .health-tab.active {
+    color: #2563eb;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%);
+    border-bottom-color: #2563eb;
+    font-weight: 700;
+    box-shadow: 0 -2px 8px rgba(37, 99, 235, 0.15);
+  }
+  .health-tab.active::before {
+    background: linear-gradient(90deg, #3498db 0%, #2980b9 100%);
+    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+  }
+
+  /* Enhanced Toolbar */
+  .health-toolbar {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 24px;
+    padding: 20px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border: 1px solid #e9ecef;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+  .health-toolbar input,
+  .health-toolbar select {
+    padding: 12px 16px;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    background: #ffffff;
+    font-size: 0.9rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .health-toolbar input:focus,
+  .health-toolbar select:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1), 0 2px 8px rgba(52, 152, 219, 0.15);
+    transform: translateY(-1px);
+  }
+  .health-toolbar input {
+    min-width: 220px;
+  }
+  .health-toolbar select {
+    min-width: 150px;
+  }
+
+  /* Enhanced Calendar */
+  .health-calendar {
+    margin-top: 32px;
+    padding: 28px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border: 1px solid #e9ecef;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+  .health-calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--border);
+  }
+  .health-calendar-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .health-calendar-nav {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .health-calendar-nav button {
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--text);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .health-calendar-nav button:hover {
+    background: var(--brand);
+    color: #fff;
+    border-color: var(--brand);
+  }
+  .health-calendar-month {
+    font-size: 0.95rem;
+    color: var(--text);
+    font-weight: 600;
+    min-width: 140px;
+    text-align: center;
+  }
+  .health-calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 6px;
+    font-size: 0.85rem;
+  }
+  .health-calendar-dow {
+    text-align: center;
+    font-weight: 700;
+    color: var(--muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 8px 4px;
+  }
+  .health-calendar-cell {
+    min-height: 80px;
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    padding: 8px 10px;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+  }
+  .health-calendar-cell:hover {
+    background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);
+    border-color: #3498db;
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
+  }
+  .health-calendar-cell--muted {
+    background: #f8f9fa;
+    color: #95a5a6;
+    cursor: default;
+  }
+  .health-calendar-cell--muted:hover {
+    background: #f8f9fa;
+    transform: none;
+    box-shadow: none;
+  }
+  .health-calendar-day {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--text);
+  }
+  .health-calendar-events {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+    justify-content: flex-start;
+  }
+  .health-calendar-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    display: inline-block;
+    margin-right: 3px;
+  }
+  .health-calendar-dot--prenatal { background: #5dade2; }
+  .health-calendar-dot--infant { background: #3498db; }
+  .health-calendar-dot--health { background: #2980b9; }
+  .health-calendar-dot--general { background: #1e3a8a; }
+  .health-calendar-count {
+    font-size: 0.7rem;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .health-calendar-cell.today {
+    background: linear-gradient(135deg, rgba(52, 152, 219, 0.15) 0%, rgba(41, 128, 185, 0.15) 100%);
+    border-color: #3498db;
+    border-width: 3px;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
+  }
+  .health-calendar-cell.today .health-calendar-day {
+    color: #2980b9;
+    font-weight: 800;
+    font-size: 1rem;
+  }
+  .health-calendar-cell.today::before {
+    content: 'Today';
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #2980b9;
+    background: rgba(52, 152, 219, 0.2);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  /* Enhanced Form Styles */
+  .form-section { 
+    margin-bottom: 24px; 
+  }
+  .form-section h4 { 
+    margin: 0 0 14px; 
+    font-size: 1.05rem; 
+    color: var(--text);
+    font-weight: 600;
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .form-grid .full { 
+    grid-column: 1 / -1; 
+  }
+  .form-grid label { 
+    display: block; 
+    font-size: 0.9rem; 
+    margin-bottom: 6px; 
+    color: var(--text);
+    font-weight: 500;
+  }
+  .form-grid input,
+  .form-grid select,
+  .form-grid textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+  }
+  .form-grid input:focus,
+  .form-grid select:focus,
+  .form-grid textarea:focus {
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+  }
+  .form-grid textarea { 
+    resize: vertical; 
+    min-height: 80px; 
+  }
+
+  /* Enhanced Buttons */
+  .btn-health-primary {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    color: #fff;
+    padding: 14px 28px;
+    border-radius: 12px;
+    border: none;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(52, 152, 219, 0.35), 0 2px 4px rgba(52, 152, 219, 0.2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-health-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+  }
+  .btn-health-primary:hover::before {
+    left: 100%;
+  }
+  .btn-health-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(52, 152, 219, 0.45), 0 4px 8px rgba(52, 152, 219, 0.3);
+  }
+  .btn-health-primary:active {
+    transform: translateY(-1px);
+  }
+  .btn-health-secondary {
+    background: #ffffff;
+    color: #2c3e50;
+    padding: 12px 24px;
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+  .btn-health-secondary:hover {
+    background: #f8f9fa;
+    border-color: #3498db;
+    color: #3498db;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
+  }
+
+  /* Enhanced Table */
+  .health-table-wrap {
+    background: var(--surface);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+  .health-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  .health-table thead th {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    padding: 16px 20px;
+    text-align: left;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #2c3e50;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 3px solid #e9ecef;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    white-space: nowrap;
+  }
+  .health-table thead th:first-child {
+    padding-left: 24px;
+  }
+  .health-table thead th:last-child {
+    padding-right: 24px;
+  }
+  .health-table tbody td {
+    padding: 18px 20px;
+    border-bottom: 1px solid #f1f3f5;
+    font-size: 0.9rem;
+    color: var(--text);
+    vertical-align: middle;
+  }
+  .health-table tbody td:first-child {
+    padding-left: 24px;
+  }
+  .health-table tbody td:last-child {
+    padding-right: 24px;
+  }
+  .health-table tbody tr {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    background: #ffffff;
+  }
+  .health-table tbody tr:nth-child(even) {
+    background: #fafbfc;
+  }
+  .health-table tbody tr:hover {
+    background: linear-gradient(90deg, #f0f7ff 0%, #ffffff 100%);
+    transform: scale(1.001);
+    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.1);
+  }
+  .health-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  
+  /* Enhanced Action Buttons */
+  .health-table .action-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .health-table .action-btn {
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    text-decoration: none;
+  }
+  .health-table .action-btn-view {
+    background: #e3f2fd;
+    color: #1976d2;
+  }
+  .health-table .action-btn-view:hover {
+    background: #bbdefb;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(25, 118, 210, 0.3);
+  }
+  .health-table .action-btn-edit {
+    background: #fff3e0;
+    color: #f57c00;
+  }
+  .health-table .action-btn-edit:hover {
+    background: #ffe0b2;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(245, 124, 0, 0.3);
+  }
+  .health-table .action-btn-delete {
+    background: #ffebee;
+    color: #d32f2f;
+  }
+  .health-table .action-btn-delete:hover {
+    background: #ffcdd2;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(211, 47, 47, 0.3);
+  }
+
+  /* Enhanced Dashboard Card */
+  .dashboard-card {
+    background: var(--surface);
+    border-radius: 20px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    border: 1px solid #e9ecef;
+    overflow: hidden;
+  }
+  .dashboard-card-header {
+    padding: 24px 28px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border-bottom: 2px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .dashboard-card-header h3 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #2c3e50;
+    letter-spacing: -0.5px;
+  }
+  .dashboard-card-content {
+    padding: 28px;
+  }
+
+  /* Enhanced Pagination */
+  .pager {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 0;
+    margin-top: 20px;
+    border-top: 2px solid #f1f3f5;
+  }
+  .pager > div {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 0.9rem;
+  }
+  .pager button {
+    padding: 10px 18px;
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+    background: #ffffff;
+    color: #2c3e50;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+  .pager button:hover:not(:disabled) {
+    background: #f8f9fa;
+    border-color: #3498db;
+    color: #3498db;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.2);
+  }
+  .pager button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .pager button.bg-success-btn {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    color: #ffffff;
+    border-color: #3498db;
+    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .health-stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .health-toolbar {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .health-toolbar input,
+    .health-toolbar select {
+      width: 100%;
+    }
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+    .dashboard-card-header {
+      flex-direction: column;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .health-table-wrap {
+      overflow-x: auto;
+    }
+    .health-table {
+      min-width: 800px;
+    }
+  }
+</style>
+</head>
+
+<script defer src="/base-header.js"></script>
+<script defer src="/base.js"></script>
+
+<body>
+<div class="dashboard-container">
+  <!-- Sidebar (shared layout) -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <img src="https://scontent.fmnl31-1.fna.fbcdn.net/v/t1.15752-9/566459805_2304695176635817_7965723576219961744_n.png?_nc_cat=100&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeFvsvFPtYKGEdwHZwyXJu6hLWJQAEjhjVotYlAASOGNWmCLSn6KIuOYN8ElKlNNHQrO159FSCuwFcll7OgdlzCP&_nc_ohc=yiA3bhEGnNAQ7kNvwGUy1mZ&_nc_oc=AdkuAJIw6rTtWuKWDNP7QJAFplSOwMhvUK5rJ7b_uZdCToSR1sT73c7CFJ5zrYhIU-I&_nc_zt=23&_nc_ht=scontent.fmnl31-1.fna&oh=03_Q7cD3gGocOn0qEMEx3iINh9aOx48m0LIlXIab9IT08mckx_JZw&oe=692126F5" alt="Logo">
+      <h3 class="sidebar-title">Barangay Langkaan II<br><small style="font-size:0.85em;opacity:0.8;">Admin Portal</small></h3>
+    </div>
+
+    <ul class="sidebar-menu" id="navList">
+      <li><a href="/admin/dashboard" data-tooltip="Admin Dashboard"><span class="icon">🏠︎</span><span class="label">Dashboard</span></a></li>
+      <li><a href="/admin/residents" data-tooltip="Resident Management"><span class="icon">👪</span><span class="label">Resident Management</span></a></li>
+      <li><a href="/admin/document-permits" data-tooltip="Document & Permit Management"><span class="icon">📄</span><span class="label">Document & Permit Management</span></a></li>
+      <li><a href="/admin/community" data-tooltip="Community Development"><span class="icon">🤝</span><span class="label">Community Development</span></a></li>
+      <li><a href="/admin/cases" data-tooltip="Cases & Incidents"><span class="icon">⚖️</span><span class="label">Case & Incident Management</span></a></li>
+      <li><a href="/admin/health" class="active" data-tooltip="Health & Social"><span class="icon">🏥</span><span class="label">Health & Social Services</span></a></li>
+      <li><a href="/admin/disaster" data-tooltip="Disaster Response"><span class="icon">🚨</span><span class="label">Disaster & Emergency Response</span></a></li>
+      <li><a href="/admin/financial" data-tooltip="Finance & Budget"><span class="icon">💰</span><span class="label">Financial & Budget</span></a></li>
+      <li><a href="/admin/logs-reports" data-tooltip="Logs & Reports"><span class="icon">📊</span><span class="label">Logs & Reports</span></a></li>
+      <li><a href="/admin/settings" data-tooltip="System Settings"><span class="icon">⚙️</span><span class="label">System Settings</span></a></li>
+
+      <li style="margin-top:50px;"><a href="#" onclick="logout()" data-tooltip="Log out"><span class="icon">🚪</span><span class="label">Log out</span></a></li>
+    </ul>
+  </nav>
+
+  <!-- Main Content (shared header layout) -->
+  <main class="main-content">
+    <header class="header">
+      <div class="header-left">
+        <button class="hamburger" id="hamburgerBtn" aria-label="Toggle sidebar"><span></span></button>
+        <h1 id="greeting">Health & Social Services</h1>
+      </div>
+      <div class="user-info" id="userChip">
+        <button class="btn btn-outline" id="notifBtn" title="Notifications">🔔</button>
+        <div class="user-avatar" id="avatar">U</div>
+        <span id="username" class="user-name">User</span>
+
+        <div class="notif-panel" id="notifPanel">
+          <div class="notif-head">Notifications</div>
+          <div class="notif-item">No new notifications.</div>
+        </div>
+
+        <div class="dropdown" id="userMenu">
+          <div class="item" id="goProfile">👤 Profile</div>
+          <div class="item" id="goSettings">⚙️ Settings</div>
+          <div class="item" id="doLogout">🚪 Log out</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="content-area">
+      <!-- Enhanced Statistics -->
+      <div class="health-stats-grid">
+        <div class="health-stat-card blue">
+          <div class="health-stat-icon">👥</div>
+          <p class="health-stat-label">Total Patients</p>
+          <h3 class="health-stat-value" id="sTotal">0</h3>
+        </div>
+        <div class="health-stat-card dark-blue">
+          <div class="health-stat-icon">📋</div>
+          <p class="health-stat-label">Active Programs</p>
+          <h3 class="health-stat-value" id="sActive">0</h3>
+        </div>
+        <div class="health-stat-card light-blue">
+          <div class="health-stat-icon">📅</div>
+          <p class="health-stat-label">Scheduled</p>
+          <h3 class="health-stat-value" id="sScheduled">0</h3>
+        </div>
+        <div class="health-stat-card navy">
+          <div class="health-stat-icon">✅</div>
+          <p class="health-stat-label">Completed</p>
+          <h3 class="health-stat-value" id="sCompleted">0</h3>
+        </div>
+        <div class="health-stat-card sky">
+          <div class="health-stat-icon">⚠️</div>
+          <p class="health-stat-label">Overdue</p>
+          <h3 class="health-stat-value" id="sOverdue">0</h3>
+        </div>
+      </div>
+
+      <!-- Main Card -->
+      <div class="dashboard-card">
+        <div class="dashboard-card-header">
+          <h3>Health Records & Programs</h3>
+          <button class="btn-health-primary" id="btnAdd">+ Add New Record</button>
+        </div>
+        <div class="dashboard-card-content">
+          <!-- Enhanced Tabs -->
+          <div id="tabs" class="health-tabs">
+            <div class="health-tab active" data-tab="patient-data">Patient Data</div>
+            <div class="health-tab" data-tab="family-planning">Family Planning</div>
+            <div class="health-tab" data-tab="post-partum">Post Partum</div>
+            <div class="health-tab" data-tab="child-immunization">Child Immunization</div>
+            <div class="health-tab" data-tab="individual-treatment">Individual Treatment Record</div>
+            <div class="health-tab" data-tab="patient-data-record">Patient Data Record</div>
+            <div class="health-tab" data-tab="pregnancy-tracking">Pregnancy Tracking Master Listing</div>
+            <div class="health-tab" data-tab="pre-natal">Pre-Natal Visits</div>
+            <div class="health-tab" data-tab="medicine-list">Medicine Inventory</div>
+            <div class="health-tab" data-tab="midwives">Kumadronas / Midwives</div>
+            <div class="health-tab" data-tab="schedules">Health Schedules</div>
+          </div>
+
+          <!-- Enhanced Toolbar -->
+          <div class="health-toolbar">
+            <input id="fQ" placeholder="Search names, programs, records…" type="search">
+            <input id="fFrom" type="date">
+            <input id="fTo" type="date">
+            <select id="fStatus">
+              <option value="">All Status</option>
+              <option value="Active">Active</option>
+              <option value="Scheduled">Scheduled</option>
+              <option value="Completed">Completed</option>
+              <option value="Pending">Pending</option>
+              <option value="Overdue">Overdue</option>
+            </select>
+            <button class="btn-health-secondary" id="btnFilter">🔍 Apply Filter</button>
+            <div style="flex:1"></div>
+            <button class="btn-health-secondary" id="btnExport">📥 Export CSV</button>
+          </div>
+
+          <!-- Enhanced Table -->
+          <div class="health-table-wrap">
+            <table class="health-table" id="tbl">
+                <thead id="tableHead"></thead>
+              <tbody id="tableBody"></tbody>
+              </table>
+          </div>
+
+          <!-- Pagination -->
+          <div class="pager" id="pager" style="margin-top: 16px;"></div>
+
+          <!-- Enhanced Calendar -->
+          <div class="health-calendar" id="healthCalendarSection">
+            <div class="health-calendar-header">
+              <strong class="health-calendar-title">📅 Schedules Calendar</strong>
+              <div class="health-calendar-nav">
+                <button id="calPrev">← Prev</button>
+                <span class="health-calendar-month" id="calLabel">&nbsp;</span>
+                <button id="calNext">Next →</button>
+              </div>
+            </div>
+            <div class="health-calendar-grid" id="calGrid">
+              <!-- Calendar will be populated by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal" id="modal">
+  <div class="sheet">
+    <header class="sheet-head" id="dlgTitle">Add Health Record</header>
+    <div class="sheet-body">
+      <div class="muted" id="msg" style="margin-bottom:10px;font-size:0.9rem;"></div>
+      <form id="frm" novalidate>
+        <div id="formContent"></div>
+      </form>
+    </div>
+    <footer class="sheet-foot">
+      <button class="btn-health-secondary" id="btnCancel">Cancel</button>
+      <button class="btn-health-primary" id="btnSave">Save Record</button>
+    </footer>
+  </div>
+</div>
+
+<!-- Details Drawer -->
+<div class="fixed inset-0 hidden z-[1000]" id="drawer">
+  <div class="overlay absolute inset-0 bg-black/25"></div>
+  <div class="absolute right-0 top-0 h-full w-full md:w-[520px] bg-white shadow-[-10px_0_30px_rgba(0,0,0,0.2)] flex flex-col">
+    <header class="px-5 py-4 border-b border-[#ecf0f1] bg-[#f8f9fa] flex justify-between items-center">
+      <div class="flex items-center gap-2"><strong id="dRecordId" class="text-[#2c3e50]">Record</strong> <span id="dStatus" class="px-2 py-1 rounded-2xl text-xs font-bold bg-active ml-2">Active</span></div>
+      <button class="btn-health-secondary" id="dClose">Close</button>
+    </header>
+    <div class="p-5 overflow-auto flex-1" id="dBody"></div>
+  </div>
+</div>
+
+<script src="/app-preferences.js"></script>
+<script src="/admin/admin-health.js"></script>
+</body>
+</html>
+

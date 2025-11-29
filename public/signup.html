@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sign Up — Barangay Langkaan II</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',sans-serif;color:#333}
+  .wrap{min-height:100vh;background:linear-gradient(135deg,#1e3c72 0%,#2a5298 100%);display:flex;align-items:center}
+  .card{width:92%;max-width:980px;margin:40px auto;background:#2c3e50;color:#fff;border-radius:18px;box-shadow:0 20px 40px rgba(0,0,0,.3);display:grid;grid-template-columns:1fr 1fr;overflow:hidden}
+  .left{padding:40px}
+  .left h1{font-size:2.2rem;margin-bottom:8px}
+  .left p{opacity:.9}
+  .right{padding:40px;background:rgba(0,0,0,.15)}
+  .right h2{margin-bottom:4px}
+  .sub{color:#bdc3c7;margin-bottom:16px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .form-group{margin-bottom:14px}
+  label{display:block;color:#bdc3c7;margin-bottom:6px}
+  .form-control{width:100%;padding:12px 14px;border:1px solid #34495e;border-radius:10px;background:#ecf0f1}
+  .hint{display:block;color:#bdc3c7;font-size:12px;margin-top:6px}
+  .agree{display:flex;gap:8px;align-items:center;margin:10px 0 12px}
+  .btn{width:100%;padding:14px;border:none;border-radius:10px;background:#27ae60;color:#fff;font-weight:700;cursor:pointer}
+  .btn:hover{filter:brightness(.95)}
+  .alert{display:none;padding:12px;border-radius:10px;margin-bottom:12px;white-space:pre-line}
+  .alert.error{background:#e74c3c;color:#fff}
+  .alert.success{background:#27ae60;color:#fff}
+  .foot{margin-top:12px;color:#bdc3c7}
+  .foot a{color:#5dade2;text-decoration:none}
+  .foot a:hover{text-decoration:underline}
+  @media (max-width:900px){.card{grid-template-columns:1fr}.left{padding-bottom:0}}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="left">
+        <h1>Create Your Account</h1>
+        <p>Barangay Langkaan II — Serving the Community with Passion and Dedication</p>
+        <div style="margin-top:20px;color:#bdc3c7">
+          Already registered? <a href="/login" style="color:#5dade2;text-decoration:none">Log in here</a>
+        </div>
+      </div>
+
+      <div class="right">
+        <h2>Sign Up</h2>
+        <p class="sub">Fill in your details to get started</p>
+
+        <div class="alert error" id="err"></div>
+        <div class="alert success" id="ok"></div>
+
+        <form id="signupForm" novalidate>
+          <!-- Names -->
+          <div class="row">
+            <div class="form-group">
+              <label>First Name</label>
+              <input class="form-control" name="firstName" required>
+            </div>
+            <div class="form-group">
+              <label>Middle Name <span style="opacity:.7">(optional)</span></label>
+              <input class="form-control" name="middleName" placeholder="e.g., Dela or D.">
+              <small class="hint">Letters, spaces, hyphens, apostrophes, and periods are allowed.</small>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="form-group">
+              <label>Last Name</label>
+              <input class="form-control" name="lastName" required>
+            </div>
+            <div class="form-group">
+              <label>Username</label>
+              <input class="form-control" name="username" required
+                     pattern="^[a-zA-Z0-9._-]{3,20}$"
+                     placeholder="3–20 chars: letters, numbers, . _ - only">
+              <small class="hint">Example: anna.garcia or anna_garcia23</small>
+            </div>
+          </div>
+
+          <!-- Contact & Security -->
+          <div class="form-group">
+            <label>Email</label>
+            <input class="form-control" name="email" type="email" required
+                   placeholder="name@example.com">
+            <small class="hint">Must be a valid email address.</small>
+          </div>
+
+          <div class="form-group">
+            <label>Password</label>
+            <input class="form-control" name="password" type="password" required
+                   minlength="8"
+                   placeholder="At least 8 chars incl. capital, number, and symbol">
+            <small class="hint">Min 8 characters, with at least 1 uppercase letter, 1 number, and 1 symbol.</small>
+          </div>
+
+          <div class="form-group">
+            <label>Address</label>
+            <input class="form-control" name="address" required placeholder="Blk / Lot / Phase / Subdivision">
+          </div>
+
+          <div class="agree">
+            <input type="checkbox" id="terms" required>
+            <label for="terms" style="margin:0">I agree to the Terms & Conditions</label>
+          </div>
+
+          <button class="btn" id="signupBtn" type="submit">Create Account</button>
+        </form>
+
+        <div class="foot">By creating an account, you agree to receive updates about your requests.</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/signup.js"></script>
+</body>
+</html>

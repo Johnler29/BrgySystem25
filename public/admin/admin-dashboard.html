@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin Dashboard — Barangay Langkaan II</title>
+
+<script>
+/* set theme/font early from localStorage to avoid flash */
+(function () {
+  try {
+    var s = JSON.parse(localStorage.getItem('userSettings') || '{}');
+    var html = document.documentElement;
+
+    // theme
+    var t = s.theme || 'light';
+    if (t === 'dark') {
+      html.setAttribute('data-theme', 'dark');
+    } else if (t === 'auto') {
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (prefersDark) html.setAttribute('data-theme', 'dark'); else html.removeAttribute('data-theme');
+    } else {
+      html.removeAttribute('data-theme');
+    }
+
+    // font size
+    var fs = (s.fontSize || 'medium').toLowerCase();
+    var map = { small:'14px', medium:'16px', large:'18px', xlarge:'20px' };
+    html.setAttribute('data-font-size', fs);
+    html.style.setProperty('--fs-base', map[fs] || '16px');
+
+    // body-level toggles (not critical pre-paint, but fine)
+    document.addEventListener('DOMContentLoaded', function(){
+      document.body.classList.toggle('compact-mode', !!s.compactMode);
+      document.body.classList.toggle('high-contrast', !!s.highContrast);
+      document.body.classList.toggle('sidebar-collapsed', s.showSidebar === false);
+    });
+  } catch (e) {}
+})();
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/base.css">
+</head>
+<script defer src="/base-header.js"></script>
+<script defer src="/base.js"></script>
+<body>
+<div class="dashboard-container">
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <img src="https://scontent.fmnl31-1.fna.fbcdn.net/v/t1.15752-9/566459805_2304695176635817_7965723576219961744_n.png?_nc_cat=100&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeFvsvFPtYKGEdwHZwyXJu6hLWJQAEjhjVotYlAASOGNWmCLSn6KIuOYN8ElKlNNHQrO159FSCuwFcll7OgdlzCP&_nc_ohc=yiA3bhEGnNAQ7kNvwGUy1mZ&_nc_oc=AdkuAJIw6rTtWuKWDNP7QJAFplSOwMhvUK5rJ7b_uZdCToSR1sT73c7CFJ5zrYhIU-I&_nc_zt=23&_nc_ht=scontent.fmnl31-1.fna&oh=03_Q7cD3gGocOn0qEMEx3iINh9aOx48m0LIlXIab9IT08mckx_JZw&oe=692126F5" alt="Logo">
+      <h3 class="sidebar-title">Barangay Langkaan II<br><small style="font-size:0.85em;opacity:0.8;">Admin Portal</small></h3>
+    </div>
+
+    <ul class="sidebar-menu" id="navList">
+      <li><a href="/admin/dashboard" class="active" data-tooltip="Admin Dashboard"><span class="icon">🏠︎</span><span class="label">Dashboard</span></a></li>
+      <li><a href="/admin/residents" data-tooltip="Resident Management"><span class="icon">👪</span><span class="label">Resident Management</span></a></li>
+      <li><a href="/admin/document-permits" data-tooltip="Document & Permit Management"><span class="icon">📄</span><span class="label">Document & Permit Management</span></a></li>
+      <li><a href="/admin/community" data-tooltip="Community Development"><span class="icon">🤝</span><span class="label">Community Development</span></a></li>
+      <li><a href="/admin/cases" data-tooltip="Cases & Incidents"><span class="icon">⚖️</span><span class="label">Case & Incident Management</span></a></li>
+      <li><a href="/admin/health" data-tooltip="Health & Social"><span class="icon">🏥</span><span class="label">Health & Social Services</span></a></li>
+      <li><a href="/admin/disaster" data-tooltip="Disaster Response"><span class="icon">🚨</span><span class="label">Disaster & Emergency Response</span></a></li>
+      <li><a href="/admin/financial" data-tooltip="Finance & Budget"><span class="icon">💰</span><span class="label">Financial & Budget</span></a></li>
+      <li><a href="/admin/logs-reports" data-tooltip="Logs & Reports"><span class="icon">📊</span><span class="label">Logs & Reports</span></a></li>
+      <li><a href="/admin/settings" data-tooltip="System Settings"><span class="icon">⚙️</span><span class="label">System Settings</span></a></li>
+
+      <li style="margin-top:50px;"><a href="#" onclick="logout()" data-tooltip="Log out"><span class="icon">🚪</span><span class="label">Log out</span></a></li>
+    </ul>
+  </nav>
+
+  <main class="main-content">
+    <header class="header">
+      <div class="header-left">
+        <button class="hamburger" id="hamburgerBtn" aria-label="Toggle sidebar"><span></span></button>
+        <h1 id="greeting">Admin Dashboard</h1>
+      </div>
+      <div class="user-info" id="userChip">
+        <button class="btn btn-outline" id="notifBtn" title="Notifications">🔔</button>
+        <div class="user-avatar" id="avatar">A</div>
+        <span id="username" class="user-name">Admin</span>
+
+        <div class="notif-panel" id="notifPanel">
+          <div class="notif-head">Notifications</div>
+          <div class="notif-item">No new notifications.</div>
+        </div>
+
+        <div class="dropdown" id="userMenu">
+          <div class="item" id="goProfile">👤 Profile</div>
+          <div class="item" id="goSettings">⚙️ Settings</div>
+          <div class="item" id="doLogout">🚪 Log out</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="content-area">
+      <div style="background:#1a237e;color:#fff;padding:12px 16px;border-radius:8px;margin-bottom:20px;">
+        <strong>🔐 Admin Portal</strong> — Full system access and management capabilities
+      </div>
+
+      <p class="muted" style="margin-bottom:14px;">System overview and management</p>
+
+      <!-- hero -->
+<div class="hero" style="background-image:url('https://scontent.fmnl31-1.fna.fbcdn.net/v/t39.30808-6/559179917_811371128144813_2033939863166001982_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=833d8c&_nc_eui2=AeErwaGGf-IyGwfaZCYiCt0yQxibiW0L6D5DGJuJbQvoPqlRxNY4Qf4qLUA0w7ktwF93q9XhhNXGhlq-5cSw0Flw&_nc_ohc=a_okqPIPTocQ7kNvwGEM_gk&_nc_oc=AdmgEYHbYJHtkBCGx_lfFTKBzFWInzf_Hjv6gYAo_3FLOmQPuqWnhhA1Carobj8i3II&_nc_zt=23&_nc_ht=scontent.fmnl31-1.fna&_nc_gid=F3f9Alyblno22Cprh-zSRA&oh=00_AfcSKtL2vBzTv9DRqun0DAlXTtDBVg68Z_ogYt2si8WsZQ&oe=68FF6C7C'); background-size: cover; background-position: center;">
+  <div class="hero-badge">
+    <img src="https://scontent.fmnl31-1.fna.fbcdn.net/v/t1.15752-9/566459805_2304695176635817_7965723576219961744_n.png?_nc_cat=100&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeFvsvFPtYKGEdwHZwyXJu6hLWJQAEjhjVotYlAASOGNWmCLSn6KIuOYN8ElKlNNHQrO159FSCuwFcll7OgdlzCP&_nc_ohc=yiA3bhEGnNAQ7kNvwGUy1mZ&_nc_oc=AdkuAJIw6rTtWuKWDNP7QJAFplSOwMhvUK5rJ7b_uZdCToSR1sT73c7CFJ5zrYhIU-I&_nc_zt=23&_nc_ht=scontent.fmnl31-1.fna&oh=03_Q7cD3gGocOn0qEMEx3iINh9aOx48m0LIlXIab9IT08mckx_JZw&oe=692126F5" alt="Barangay Logo" style="width:120px; height:auto; border-radius:50%; box-shadow:0 0 10px rgba(0,0,0,0.3);">
+  </div>
+</div>
+
+      <!-- quick widgets -->
+      <section class="widget-row">
+        <div class="widget" id="clockWidget">
+          <div class="muted">Local Time</div>
+          <div class="clock-time" id="clockTime">--:--</div>
+          <div class="muted" id="clockDate">—</div>
+        </div>
+
+        <div class="widget" id="weatherWidget">
+          <div class="muted">Weather</div>
+          <div class="weather-temp" id="weatherTemp">--°C</div>
+          <div class="weather-desc" id="weatherDesc">Allow location to load weather</div>
+        </div>
+
+        <div class="widget">
+          <div class="muted">Admin Actions</div>
+          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+            <a class="btn btn-outline" href="/admin/residents">Manage Residents</a>
+            <a class="btn btn-outline" href="/admin/financial">View Financials</a>
+            <a class="btn btn-outline" href="/admin/logs-reports">System Reports</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- stats -->
+      <div class="stats-grid">
+        <div class="stat-card"><h3 id="totalResidents">0</h3><p>Total Residents</p></div>
+        <div class="stat-card red"><h3 id="totalDocuments">0</h3><p>Document Requests</p></div>
+        <div class="stat-card amber"><h3 id="pendingDocuments">0</h3><p>Pending Cases</p></div>
+        <div class="stat-card green"><h3 id="avgResidents">0</h3><p>Active Users</p></div>
+      </div>
+
+      <!-- grid -->
+      <div class="dashboard-grid">
+        <div>
+          <div class="dashboard-card" style="margin-bottom:20px;">
+            <div class="dashboard-card-header"><h3>System Management</h3></div>
+            <div class="dashboard-card-content">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:12px;">
+                <div style="font-size:1.4rem;font-weight:700;color:var(--brand);">Pending Approvals: <span id="pendingApprovals">0</span></div>
+              </div>
+              <div class="skel" id="requestsSkel"><div class="skel-line"></div><div class="skel-line"></div><div class="skel-line"></div></div>
+              <a href="/admin/document-permits" class="btn btn-primary" style="margin-top:12px">Manage Documents</a>
+            </div>
+          </div>
+
+          <div class="dashboard-card">
+            <div class="dashboard-card-header"><h3>Recent System Activities</h3></div>
+            <div class="dashboard-card-content" id="recentActivities"></div>
+          </div>
+        </div>
+
+        <aside>
+          <div class="calendar-widget" style="margin-bottom:20px;">
+            <div class="calendar-header" id="calMonth">January</div>
+            <div class="calendar-grid" id="calGrid"></div>
+          </div>
+
+          <div class="dashboard-card" style="margin-bottom:20px;">
+            <div class="dashboard-card-header"><h3>Upcoming Events</h3></div>
+            <div class="dashboard-card-content">
+              <div class="event-list" id="eventList"></div>
+            </div>
+          </div>
+
+          <div class="dashboard-card">
+            <div class="dashboard-card-header"><h3>System Alerts</h3></div>
+            <div class="dashboard-card-content">
+              <div class="announce-row"><div class="announce-dot dot-green"></div><div><div style="font-weight:600;">System Running Smoothly</div><div class="announce-meta">All services operational</div></div></div>
+              <div class="announce-row"><div class="announce-dot dot-amber"></div><div><div style="font-weight:600;">Pending Document Reviews</div><div class="announce-meta">Check document management</div></div></div>
+              <div class="announce-row"><div class="announce-dot dot-blue"></div><div><div style="font-weight:600;">Monthly Report Due</div><div class="announce-meta">Generate financial report</div></div></div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+</div>
+
+
+<script>
+(async function(){
+  try{
+    const r = await fetch('/api/settings/system');
+    if(!r.ok) return;
+    const { settings } = await r.json();
+    if(settings?.maintenanceMode){
+      const b = document.createElement('div');
+      b.textContent = 'Maintenance Mode is ON — users are seeing the maintenance page';
+      b.style.cssText = 'position:fixed;inset-inline:0;top:0;z-index:9999;padding:8px 12px;background:#f59e0b;color:#111827;text-align:center;font:14px/1.3 Inter,system-ui';
+      document.body.appendChild(b);
+      document.body.style.paddingTop = '36px';
+    }
+  }catch(e){}
+})();
+</script>
+
+<script src="/app-preferences.js"></script>
+<script src="/admin/admin-dashboard.js"></script>
+</body>
+</html>
+

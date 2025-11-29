@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Case & Incident Reporting — Barangay Langkaan II</title>
+
+<script>
+/* set theme/font early from localStorage to avoid flash */
+(function () {
+  try {
+    var s = JSON.parse(localStorage.getItem('userSettings') || '{}');
+    var html = document.documentElement;
+
+    // theme
+    var t = s.theme || 'light';
+    if (t === 'dark') {
+      html.setAttribute('data-theme', 'dark');
+    } else if (t === 'auto') {
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (prefersDark) html.setAttribute('data-theme', 'dark'); else html.removeAttribute('data-theme');
+    } else {
+      html.removeAttribute('data-theme');
+    }
+
+    // font size
+    var fs = (s.fontSize || 'medium').toLowerCase();
+    var map = { small:'14px', medium:'16px', large:'18px', xlarge:'20px' };
+    html.setAttribute('data-font-size', fs);
+    html.style.setProperty('--fs-base', map[fs] || '16px');
+
+    // body-level toggles (not critical pre-paint, but fine)
+    document.addEventListener('DOMContentLoaded', function(){
+      document.body.classList.toggle('compact-mode', !!s.compactMode);
+      document.body.classList.toggle('high-contrast', !!s.highContrast);
+      document.body.classList.toggle('sidebar-collapsed', s.showSidebar === false);
+    });
+  } catch (e) {}
+})();
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/base.css">
+
+<style>
+  /* Page-specific styles for cases */
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+  .stat{background:#fff;border:1px solid #ecf0f1;border-radius:10px;padding:16px}
+  .stat h4{font-size:13px;color:#7f8c8d;margin-bottom:6px}
+  .stat .n{font-size:22px;font-weight:700;color:#2c3e50}
+
+  .dashboard-card{background:#fff;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.1);overflow:hidden}
+  .dashboard-card-header{padding:18px 22px;border-bottom:1px solid #ecf0f1;background:#f8f9fa;display:flex;justify-content:space-between;align-items:center}
+  .dashboard-card-header h3{font-size:1.1rem;color:#2c3e50;margin:0}
+  .dashboard-card-content{padding:18px 22px}
+
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .chip{padding:8px 12px;border-radius:16px;background:#ecf0f1;cursor:pointer;font-size:13px}
+  .chip.active{background:#3498db;color:#fff}
+
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+  .btn{padding:10px 14px;border-radius:6px;border:none;cursor:pointer}
+  .btn-primary{background:#3498db;color:#fff}
+  .btn-ghost{background:#ecf0f1;color:#2c3e50}
+  .btn-danger{background:#e74c3c;color:#fff}
+  .input,.select{padding:10px 12px;border:1px solid #dfe6e9;border-radius:8px;background:#fff}
+  .input{min-width:200px}
+
+  .table-wrap{background:#fff;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.1);overflow:hidden}
+  table{width:100%;border-collapse:collapse}
+  thead th{position:sticky;top:0;background:#f8f9fa;border-bottom:1px solid #ecf0f1;padding:12px;text-align:left;color:#7f8c8d;font-size:13px}
+  tbody td{padding:12px;border-bottom:1px solid #f2f3f4;font-size:14px}
+  tr:hover td{background:#fbfcfd}
+  .badge{padding:4px 8px;border-radius:14px;font-size:12px;font-weight:700;display:inline-block}
+  .s-Pending{background:#fff4e5;color:#b9770e}
+  .s-Reported{background:#fff4e5;color:#b9770e}
+  .s-Ongoing{background:#eaf4ff;color:#1b73c7}
+  .s-Hearing{background:#e8f5e9;color:#2e7d32}
+  .s-Resolved{background:#e9f9ef;color:#239b56}
+  .s-Cancelled{background:#fdecea;color:#c0392b}
+  .badge.s-Reported{background:#fff4e5;color:#b9770e}
+  .badge.s-Hearing{background:#e8f5e9;color:#2e7d32}
+  .actions{display:flex;gap:8px}
+  .actions .btn{padding:6px 10px}
+
+  .pagination{display:flex;gap:6px;justify-content:flex-end;align-items:center;padding:10px}
+  .pagination .btn{padding:6px 10px;background:#fff;border:1px solid #dfe6e9}
+
+  /* Modal */
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.25);display:none;align-items:center;justify-content:center;padding:20px}
+  .modal.active{display:flex}
+  .dialog{width:100%;max-width:920px;background:#fff;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.2);overflow:hidden}
+  .dialog header{padding:16px 20px;background:#f8f9fa;border-bottom:1px solid #ecf0f1;font-weight:600}
+  .dialog .content{padding:20px}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .form-grid .full{grid-column:1 / -1}
+  label{display:block;color:#7f8c8d;margin-bottom:6px}
+  input,select,textarea{width:100%;padding:10px 12px;border:1px solid #dfe6e9;border-radius:8px;background:#fff}
+  textarea{min-height:110px;resize:vertical}
+  .note{color:#7f8c8d;margin-bottom:10px}
+  .dialog footer{display:flex;justify-content:flex-end;gap:10px;padding:14px 20px;background:#f8f9fa;border-top:1px solid #ecf0f1}
+
+  /* Drawer (case details) */
+  .drawer{position:fixed;inset:0;display:none}
+  .drawer.active{display:block}
+  .drawer .overlay{position:absolute;inset:0;background:rgba(0,0,0,.25)}
+  .drawer .panel{position:absolute;right:0;top:0;height:100%;width:520px;background:#fff;box-shadow:-10px 0 30px rgba(0,0,0,.2);display:flex;flex-direction:column}
+  .drawer header{padding:16px 20px;border-bottom:1px solid #ecf0f1;background:#f8f9fa;display:flex;justify-content:space-between;align-items:center}
+  .drawer .body{padding:18px 22px;overflow:auto}
+  .kv{display:grid;grid-template-columns:140px 1fr;gap:8px;margin-bottom:8px}
+  .timeline{margin-top:14px;border-left:2px solid #ecf0f1;padding-left:12px}
+  .tl-item{margin-bottom:10px}
+  .tl-item .t{font-size:12px;color:#7f8c8d}
+  .tl-item .m{font-weight:600}
+  .pill{display:inline-block;padding:4px 10px;border-radius:999px;font-size:11px;background:#ecf0f1;color:#636e72;margin-right:4px}
+  .note-box{padding:10px 12px;border-radius:8px;background:#fff4e5;color:#8e5b13;font-size:13px;margin-top:10px;border:1px solid #f5cba7}
+
+  /* Status Change Modal - Modern Design */
+  .status-modal{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px;z-index:1000}
+  .status-modal.active{display:flex}
+  .status-dialog{width:100%;max-width:520px;background:#fff;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.12),0 2px 8px rgba(0,0,0,.08);overflow:hidden;animation:slideUp 0.2s ease-out}
+  @keyframes slideUp{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+  .status-dialog header{padding:20px 24px;background:#fff;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center}
+  .status-dialog header h3{margin:0;font-size:1.125rem;font-weight:600;color:#111827;letter-spacing:-0.01em}
+  .status-dialog header .close{background:none;border:none;color:#6b7280;font-size:20px;cursor:pointer;padding:4px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;transition:all 0.15s;line-height:1}
+  .status-dialog header .close:hover{background:#f3f4f6;color:#374151}
+  .status-dialog .content{padding:24px}
+  .current-status{display:flex;align-items:center;gap:10px;padding:14px 16px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:24px}
+  .current-status-label{color:#6b7280;font-size:0.875rem;font-weight:500}
+  .status-select-wrapper{position:relative;margin-bottom:20px}
+  .status-select-wrapper label{display:block;color:#111827;font-weight:500;margin-bottom:8px;font-size:0.875rem;letter-spacing:0.01em}
+  .status-select-wrapper select{width:100%;padding:10px 14px;border:1.5px solid #d1d5db;border-radius:8px;background:#fff;font-size:0.9375rem;cursor:pointer;transition:all 0.15s;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M4 6l4 4 4-4' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:40px;color:#111827}
+  .status-select-wrapper select:focus{outline:none;border-color:#3498db;box-shadow:0 0 0 3px rgba(52,152,219,0.08)}
+  .status-select-wrapper select:hover{border-color:#9ca3af}
+  .status-select-wrapper select option{padding:10px}
+  .cancellation-reason-wrapper{display:none;margin-top:20px;animation:slideDown 0.2s ease-out}
+  .cancellation-reason-wrapper.show{display:block}
+  @keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+  .cancellation-reason-wrapper label{display:block;color:#111827;font-weight:500;margin-bottom:8px;font-size:0.875rem;letter-spacing:0.01em}
+  .cancellation-reason-wrapper textarea{width:100%;padding:10px 14px;border:1.5px solid #d1d5db;border-radius:8px;background:#fff;font-size:0.9375rem;resize:vertical;min-height:100px;font-family:inherit;transition:all 0.15s;color:#111827;line-height:1.5}
+  .cancellation-reason-wrapper textarea:focus{outline:none;border-color:#3498db;box-shadow:0 0 0 3px rgba(52,152,219,0.08)}
+  .cancellation-reason-wrapper textarea:hover{border-color:#9ca3af}
+  .cancellation-reason-wrapper textarea::placeholder{color:#9ca3af}
+  .status-dialog footer{display:flex;justify-content:flex-end;gap:10px;padding:16px 24px;background:#fff;border-top:1px solid #e5e7eb}
+  .status-dialog .btn-status{padding:10px 20px;border-radius:8px;font-weight:500;font-size:0.875rem;cursor:pointer;transition:all 0.15s;border:none;letter-spacing:0.01em}
+  .status-dialog .btn-status-cancel{background:#fff;color:#374151;border:1.5px solid #d1d5db}
+  .status-dialog .btn-status-cancel:hover{background:#f9fafb;border-color:#9ca3af}
+  .status-dialog .btn-status-save{background:#3498db;color:#fff;box-shadow:0 1px 2px rgba(0,0,0,0.05)}
+  .status-dialog .btn-status-save:hover{background:#2980b9;box-shadow:0 2px 4px rgba(0,0,0,0.1)}
+  .status-dialog .btn-status-save:active{transform:scale(0.98)}
+  .status-dialog .btn-status-save:disabled{opacity:0.6;cursor:not-allowed;transform:none}
+  .status-info{font-size:0.8125rem;color:#6b7280;margin-top:6px;line-height:1.5}
+
+  @media (max-width: 992px){ .stats{grid-template-columns:repeat(2,1fr)} .drawer .panel{width:100%} }
+  @media (max-width: 768px){ .form-grid{grid-template-columns:1fr} .status-dialog{max-width:90%} }
+</style>
+</head>
+<script defer src="/base-header.js"></script>
+<script defer src="/base.js"></script>
+<body>
+<div class="dashboard-container">
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <img src="https://scontent.fmnl31-1.fna.fbcdn.net/v/t1.15752-9/566459805_2304695176635817_7965723576219961744_n.png?_nc_cat=100&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeFvsvFPtYKGEdwHZwyXJu6hLWJQAEjhjVotYlAASOGNWmCLSn6KIuOYN8ElKlNNHQrO159FSCuwFcll7OgdlzCP&_nc_ohc=yiA3bhEGnNAQ7kNvwGUy1mZ&_nc_oc=AdkuAJIw6rTtWuKWDNP7QJAFplSOwMhvUK5rJ7b_uZdCToSR1sT73c7CFJ5zrYhIU-I&_nc_zt=23&_nc_ht=scontent.fmnl31-1.fna&oh=03_Q7cD3gGocOn0qEMEx3iINh9aOx48m0LIlXIab9IT08mckx_JZw&oe=692126F5" alt="Logo">
+      <h3 class="sidebar-title">Barangay Langkaan II<br><small style="font-size:0.85em;opacity:0.8;">Admin Portal</small></h3>
+    </div>
+
+    <ul class="sidebar-menu" id="navList">
+      <li><a href="/admin/dashboard" data-tooltip="Admin Dashboard"><span class="icon">🏠︎</span><span class="label">Dashboard</span></a></li>
+      <li><a href="/admin/residents" data-tooltip="Resident Management"><span class="icon">👪</span><span class="label">Resident Management</span></a></li>
+      <li><a href="/admin/document-permits" data-tooltip="Document & Permit Management"><span class="icon">📄</span><span class="label">Document & Permit Management</span></a></li>
+      <li><a href="/admin/community" data-tooltip="Community Development"><span class="icon">🤝</span><span class="label">Community Development</span></a></li>
+      <li><a href="/admin/cases" class="active" data-tooltip="Cases & Incidents"><span class="icon">⚖️</span><span class="label">Case & Incident Management</span></a></li>
+      <li><a href="/admin/health" data-tooltip="Health & Social"><span class="icon">🏥</span><span class="label">Health & Social Services</span></a></li>
+      <li><a href="/admin/disaster" data-tooltip="Disaster Response"><span class="icon">🚨</span><span class="label">Disaster & Emergency Response</span></a></li>
+      <li><a href="/admin/financial" data-tooltip="Finance & Budget"><span class="icon">💰</span><span class="label">Financial & Budget</span></a></li>
+      <li><a href="/admin/logs-reports" data-tooltip="Logs & Reports"><span class="icon">📊</span><span class="label">Logs & Reports</span></a></li>
+      <li><a href="/admin/settings" data-tooltip="System Settings"><span class="icon">⚙️</span><span class="label">System Settings</span></a></li>
+
+      <li style="margin-top:50px;"><a href="#" onclick="logout()" data-tooltip="Log out"><span class="icon">🚪</span><span class="label">Log out</span></a></li>
+    </ul>
+  </nav>
+
+  <main class="main-content">
+    <header class="header">
+      <div class="header-left">
+        <button class="hamburger" id="hamburgerBtn" aria-label="Toggle sidebar"><span></span></button>
+        <h1 id="greeting">Case & Incident Reporting</h1>
+      </div>
+      <div class="user-info" id="userChip">
+        <button class="btn btn-outline" id="notifBtn" title="Notifications">🔔</button>
+        <div class="user-avatar" id="avatar">A</div>
+        <span id="username" class="user-name">Admin</span>
+
+        <div class="notif-panel" id="notifPanel">
+          <div class="notif-head">Case Notifications</div>
+          <button class="btn btn-ghost" id="notifMarkAll" style="padding:4px 8px;font-size:11px;margin:8px;">Mark all as read</button>
+          <ul class="notif-list" id="notifList"></ul>
+          <div id="notifEmpty" style="font-size:12px;color:#95a5a6;text-align:center;padding:8px 0;">No notifications yet.</div>
+        </div>
+
+        <div class="dropdown" id="userMenu">
+          <div class="item" id="goProfile">👤 Profile</div>
+          <div class="item" id="goSettings">⚙️ Settings</div>
+          <div class="item" id="doLogout">🚪 Log out</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="content-area">
+      <div class="stats">
+        <div class="stat"><h4>Total</h4><div class="n" id="sTotal">0</div></div>
+        <div class="stat"><h4>Reported</h4><div class="n" id="sReported">0</div></div>
+        <div class="stat"><h4>Ongoing</h4><div class="n" id="sOngoing">0</div></div>
+        <div class="stat"><h4>Resolved</h4><div class="n" id="sResolved">0</div></div>
+      </div>
+
+      <div class="dashboard-card">
+        <div class="dashboard-card-header">
+          <h3>Reports</h3>
+          <div><button class="btn btn-primary" id="btnAdd">Add New</button></div>
+        </div>
+        <div class="dashboard-card-content">
+          <div class="chips" id="chips">
+            <div class="chip active" data-status="">All</div>
+            <div class="chip" data-status="Reported">Reported</div>
+            <div class="chip" data-status="Ongoing">Ongoing</div>
+            <div class="chip" data-status="Hearing">Hearing</div>
+            <div class="chip" data-status="Resolved">Resolved</div>
+            <div class="chip" data-status="Cancelled">Cancelled</div>
+          </div>
+
+          <div class="toolbar">
+            <input id="fQ" class="input" placeholder="Search case ID, names, type…">
+            <select id="fType" class="select">
+              <option value="">All types</option>
+            </select>
+            <select id="fPriority" class="select">
+              <option value="">Priority</option>
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+              <option value="Critical">Critical</option>
+            </select>
+            <input id="fFrom" type="date" class="input">
+            <input id="fTo" type="date" class="input">
+            <label style="display:flex;align-items:center;gap:6px">
+              <input type="checkbox" id="fMine"> My cases
+            </label>
+            <button class="btn btn-ghost" id="btnFilter">Apply</button>
+            <div style="flex:1"></div>
+            <button class="btn btn-ghost" id="btnExport">Export CSV</button>
+          </div>
+
+          <div class="table-wrap">
+            <table id="tbl">
+              <thead>
+                <tr>
+                  <th>Reported By</th>
+                  <th>Case/Report ID</th>
+                  <th>Type of Incident</th>
+                  <th>Date & Time Reported</th>
+                  <th>Date & Time of Incident</th>
+                  <th>Status</th>
+                  <th style="width:220px">Actions</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <div class="pagination" id="pager"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal" id="modal">
+  <div class="dialog">
+    <header id="dlgTitle">Add Case</header>
+    <div class="content">
+      <div class="note" id="msg"></div>
+      <form id="frm" novalidate>
+        <div class="form-grid">
+          <div>
+            <label>Type of Case *</label>
+            <select name="typeOfCase" id="typeOfCase" required></select>
+          </div>
+          <div>
+            <label>Date & Time of Incident *</label>
+            <input type="datetime-local" name="dateOfIncident" required>
+          </div>
+
+          <div class="full">
+            <label>Description *</label>
+            <textarea name="description" required placeholder="Describe what happened"></textarea>
+          </div>
+
+          <div class="full">
+            <label>Place of Incident</label>
+            <input name="placeOfIncident" placeholder="Blk/Lot/Phase/Subdivision or landmark">
+          </div>
+
+          <div>
+            <label>Complainant’s Name *</label>
+            <input name="complainantName" required>
+          </div>
+          <div>
+            <label>Complainant’s Address *</label>
+            <input name="complainantAddress" required>
+          </div>
+          <div>
+            <label>Complainant’s Contact</label>
+            <input name="complainantContact">
+          </div>
+
+          <div>
+            <label>Respondent’s Name</label>
+            <input name="respondentName">
+          </div>
+          <div>
+            <label>Respondent’s Address</label>
+            <input name="respondentAddress">
+          </div>
+          <div>
+            <label>Respondent’s Contact</label>
+            <input name="respondentContact">
+          </div>
+          <div class="full">
+            <label>Priority</label>
+            <select name="priority">
+              <option value="Medium">Normal / Medium</option>
+              <option value="Low">Low</option>
+              <option value="High">High</option>
+              <option value="Critical">Critical</option>
+            </select>
+          </div>
+          <div class="full" id="harassmentTypeWrap" style="display:none">
+            <label>Harassment Type *</label>
+            <select name="harassmentType" id="harassmentType">
+              <option value="">Select type</option>
+              <option value="Verbal">Verbal</option>
+              <option value="Physical">Physical</option>
+              <option value="Sexual">Sexual</option>
+              <option value="Online / Cyber">Online / Cyber</option>
+              <option value="Bullying">Bullying</option>
+              <option value="Stalking">Stalking</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="full">
+            <label>Senior-Involved Category</label>
+            <select name="seniorCategory" id="seniorCategory">
+              <option value="">None / Not specified</option>
+              <option value="Complainant">Complainant is a Senior</option>
+              <option value="Respondent">Respondent is a Senior</option>
+              <option value="Both">Both parties are Seniors</option>
+              <option value="Witness">Senior Witness</option>
+            </select>
+          </div>
+          <div class="full">
+            <label>Evidence Files (minimum 3) *</label>
+            <input type="file" name="evidenceFiles" id="evidenceFiles" multiple
+                   accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,image/*,application/pdf">
+            <div class="note">
+              Upload at least 3 supporting evidence files. For Physical Assault cases, a medico-legal
+              or physical exam file is required. For Vandalism cases, clear image proof is required.
+            </div>
+          </div>
+          <div class="full" id="medicoWrap" style="display:none">
+            <label>Medico-Legal / Physical Exam (Physical Assault cases)</label>
+            <input type="file" name="medicoLegalFile" id="medicoLegalFile" accept=".pdf,image/*">
+          </div>
+          <div class="full" id="vandalWrap" style="display:none">
+            <label>Image Proof (Vandalism cases)</label>
+            <input type="file" name="vandalismImage" id="vandalismImage" accept="image/*" multiple>
+          </div>
+        </div>
+      </form>
+    </div>
+    <footer>
+      <button class="btn btn-ghost" id="btnCancel">Cancel</button>
+      <button class="btn btn-primary" id="btnSave">Save Report</button>
+    </footer>
+  </div>
+</div>
+
+<!-- Status Change Modal -->
+<div class="status-modal" id="statusModal">
+  <div class="status-dialog">
+    <header>
+      <h3>Change Case Status</h3>
+      <button class="close" id="statusModalClose">&times;</button>
+    </header>
+    <div class="content">
+      <div class="current-status">
+        <span class="current-status-label">Current Status:</span>
+        <span class="badge" id="currentStatusBadge">-</span>
+      </div>
+      <div class="status-select-wrapper">
+        <label for="newStatusSelect">New Status *</label>
+        <select id="newStatusSelect">
+          <option value="">Select new status...</option>
+          <option value="Reported">Reported</option>
+          <option value="Ongoing">Ongoing</option>
+          <option value="Hearing">Hearing</option>
+          <option value="Resolved">Resolved</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+        <div class="status-info">Select the new status for this case. Status changes will be recorded in the case history.</div>
+      </div>
+      <div class="cancellation-reason-wrapper" id="cancellationReasonWrapper">
+        <label for="cancellationReason">Cancellation Reason</label>
+        <textarea id="cancellationReason" placeholder="Enter reason for cancellation (optional)"></textarea>
+        <div class="status-info">Provide a reason for cancelling this case. This will be included in the cancellation letter.</div>
+      </div>
+      <div id="statusModalMsg" style="color:#e74c3c;font-size:0.9rem;margin-top:12px;display:none;"></div>
+    </div>
+    <footer>
+      <button class="btn-status btn-status-cancel" id="statusModalCancel">Cancel</button>
+      <button class="btn-status btn-status-save" id="statusModalSave">Update Status</button>
+    </footer>
+  </div>
+</div>
+
+<!-- Details Drawer -->
+<div class="drawer" id="drawer">
+  <div class="overlay"></div>
+  <div class="panel">
+    <header>
+      <div><strong id="dCaseId">Case</strong> <span id="dStatus" class="badge s-Pending" style="margin-left:8px">Pending</span></div>
+      <button class="btn btn-ghost" id="dClose">Close</button>
+    </header>
+    <div class="body" id="dBody">
+      <!-- filled by JS -->
+    </div>
+  </div>
+</div>
+
+<script>
+(async function(){
+  try{
+    const r = await fetch('/api/settings/system');
+    if(!r.ok) return;
+    const { settings } = await r.json();
+    if(settings?.maintenanceMode){
+      const b = document.createElement('div');
+      b.textContent = 'Maintenance Mode is ON — users are seeing the maintenance page';
+      b.style.cssText = 'position:fixed;inset-inline:0;top:0;z-index:9999;padding:8px 12px;background:#f59e0b;color:#111827;text-align:center;font:14px/1.3 Inter,system-ui';
+      document.body.appendChild(b);
+      document.body.style.paddingTop = '36px';
+    } 
+  }catch(e){}
+})();
+</script>
+
+<script src="/app-preferences.js"></script>
+<script src="/admin/admin-cases.js"></script>
+</body>
+</html>

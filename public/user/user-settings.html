@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Settings — Barangay Langkaan II</title>
+
+<script>
+(function () {
+  try {
+    var s = JSON.parse(localStorage.getItem('userSettings') || '{}');
+    var html = document.documentElement;
+
+    var t = s.theme || 'light';
+    if (t === 'dark') {
+      html.setAttribute('data-theme', 'dark');
+    } else if (t === 'auto') {
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (prefersDark) html.setAttribute('data-theme', 'dark'); else html.removeAttribute('data-theme');
+    } else {
+      html.removeAttribute('data-theme');
+    }
+
+    var fs = (s.fontSize || 'medium').toLowerCase();
+    var map = { small:'14px', medium:'16px', large:'18px', xlarge:'20px' };
+    html.setAttribute('data-font-size', fs);
+    html.style.setProperty('--fs-base', map[fs] || '16px');
+
+    document.addEventListener('DOMContentLoaded', function(){
+      document.body.classList.toggle('compact-mode', !!s.compactMode);
+      document.body.classList.toggle('high-contrast', !!s.highContrast);
+      document.body.classList.toggle('sidebar-collapsed', s.showSidebar === false);
+    });
+  } catch (e) {}
+})();
+</script>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          'inter': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        }
+      }
+    }
+  }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/base.css">
+</head>
+
+<script defer src="/base-header.js"></script>
+<script defer src="/base.js"></script>
+
+<body>
+<div class="dashboard-container">
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <img src="https://scontent.fmnl31-1.fna.fbcdn.net/v/t1.15752-9/566459805_2304695176635817_7965723576219961744_n.png?_nc_cat=100&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeFvsvFPtYKGEdwHZwyXJu6hLWJQAEjhjVotYlAASOGNWmCLSn6KIuOYN8ElKlNNHQrO159FSCuwFcll7OgdlzCP&_nc_ohc=yiA3bhEGnNAQ7kNvwGUy1mZ&_nc_oc=AdkuAJIw6rTtWuKWDNP7QJAFplSOwMhvUK5rJ7b_uZdCToSR1sT73c7CFJ5zrYhIU-I&_nc_zt=23&_nc_ht=scontent.fmnl31-1.fna&oh=03_Q7cD3gGocOn0qEMEx3iINh9aOx48m0LIlXIab9IT08mckx_JZw&oe=692126F5" alt="Logo">
+      <h3 class="sidebar-title">Barangay Langkaan II<br><small style="font-size:0.85em;opacity:0.8;">Resident Portal</small></h3>
+    </div>
+
+    <ul class="sidebar-menu" id="navList">
+      <li><a href="/user/dashboard" data-tooltip="Dashboard"><span class="icon">🏠</span><span class="label">Dashboard</span></a></li>
+      <li><a href="/user/document-permits" data-tooltip="Request Documents"><span class="icon">📄</span><span class="label">Request Documents</span></a></li>
+      <li><a href="/user/community" data-tooltip="Community"><span class="icon">🤝</span><span class="label">Community</span></a></li>
+      <li><a href="/user/cases" data-tooltip="Report Cases"><span class="icon">⚖️</span><span class="label">Report Cases</span></a></li>
+      <li><a href="/user/health" data-tooltip="Health Services"><span class="icon">🏥</span><span class="label">Health Services</span></a></li>
+      <li><a href="/user/disaster" data-tooltip="Disaster Info"><span class="icon">🚨</span><span class="label">Disaster Info</span></a></li>
+      <li style="margin-top:50px;"><a href="/user/settings" class="active" data-tooltip="Settings"><span class="icon">⚙️</span><span class="label">Settings</span></a></li>
+      <li><a href="#" onclick="logout()" data-tooltip="Log out"><span class="icon">🚪</span><span class="label">Log out</span></a></li>
+    </ul>
+  </nav>
+
+  <!-- Main -->
+  <main class="main-content">
+    <header class="header">
+      <div class="header-left">
+        <button class="hamburger" id="hamburgerBtn" aria-label="Toggle sidebar"><span></span></button>
+        <h1>Settings</h1>
+      </div>
+      <div class="user-info" id="userChip">
+        <button class="btn btn-outline" id="notifBtn" title="Notifications">🔔</button>
+        <div class="user-avatar" id="avatar">U</div>
+        <span id="username" class="user-name">User</span>
+
+        <div class="notif-panel" id="notifPanel">
+          <div class="notif-head">Notifications</div>
+          <div class="notif-item">No new notifications.</div>
+        </div>
+
+        <div class="dropdown" id="userMenu">
+          <div class="item" id="goProfile">👤 Profile</div>
+          <div class="item" id="goSettings">⚙️ Settings</div>
+          <div class="item" id="doLogout">🚪 Log out</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="content-area">
+      <p class="muted mb-3.5">Adjust your preferences for appearance, account, privacy, and notifications.</p>
+
+      <div class="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-5 max-w-[1400px]">
+        <!-- Left: nav -->
+        <aside class="bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius)] shadow-[var(--shadow-sm)] p-4 sticky top-5 h-fit">
+          <h3 class="font-semibold text-[0.9rem] leading-tight text-[var(--muted)] uppercase tracking-wider mb-2.5">Settings</h3>
+          <div class="settings-nav-item active flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold bg-[color-mix(in_oklab,var(--brand)_12%,var(--surface))] border border-[var(--brand)]" data-section="general">⚙️ General</div>
+          <div class="settings-nav-item flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold hover:bg-[color-mix(in_oklab,var(--surface)_90%,#000_0%)] transition-colors" data-section="appearance">🎨 Appearance</div>
+          <div class="settings-nav-item flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold hover:bg-[color-mix(in_oklab,var(--surface)_90%,#000_0%)] transition-colors" data-section="account">👤 Account</div>
+          <div class="settings-nav-item flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold hover:bg-[color-mix(in_oklab,var(--surface)_90%,#000_0%)] transition-colors" data-section="security">🔒 Security & Privacy</div>
+          <div class="settings-nav-item flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold hover:bg-[color-mix(in_oklab,var(--surface)_90%,#000_0%)] transition-colors" data-section="notifications">🔔 Notifications</div>
+        </aside>
+
+        <!-- Right: sections -->
+        <div class="bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius)] shadow-[var(--shadow-sm)] p-6">
+          <!-- GENERAL -->
+          <section class="settings-section active" id="general">
+            <div class="mb-4.5 pb-3 border-b border-[var(--border)]">
+              <h2 class="m-0 mb-1.5 text-2xl font-semibold">General Settings</h2>
+              <p class="m-0 text-[var(--muted)]">Manage general preferences.</p>
+            </div>
+
+            <div class="mb-5.5">
+              <h3 class="m-0 mb-2.5 text-base font-semibold text-[var(--text)]">Language & Region</h3>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5">
+                <div>
+                  <h4 class="m-0 mb-1 text-base font-semibold">Language</h4><p class="m-0 text-[var(--muted)] text-sm">Choose your preferred language</p>
+                </div>
+                <div class="flex items-center gap-2.5">
+                  <select class="px-3 py-2.5 border border-[var(--border)] rounded-xl bg-[var(--surface)] text-[var(--text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30" id="language">
+                    <option value="en">English</option>
+                    <option value="tl">Tagalog</option>
+                    <option value="ceb">Cebuano</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5">
+                <div>
+                  <h4 class="m-0 mb-1 text-base font-semibold">Time Zone</h4><p class="m-0 text-[var(--muted)] text-sm">Set your local time zone</p>
+                </div>
+                <div class="flex items-center gap-2.5">
+                  <select class="px-3 py-2.5 border border-[var(--border)] rounded-xl bg-[var(--surface)] text-[var(--text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30" id="timezone">
+                    <option value="Asia/Manila">Asia/Manila (GMT+8)</option>
+                    <option value="Asia/Tokyo">Asia/Tokyo (GMT+9)</option>
+                    <option value="UTC">UTC</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-5.5">
+              <h3 class="m-0 mb-2.5 text-base font-semibold text-[var(--text)]">Preferences</h3>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5">
+                <div>
+                  <h4 class="m-0 mb-1 text-base font-semibold">Compact Mode</h4><p class="m-0 text-[var(--muted)] text-sm">Use less spacing in the interface</p>
+                </div>
+                <div class="flex items-center gap-2.5">
+                  <label class="relative w-[50px] h-[26px]">
+                    <input type="checkbox" id="compactMode" class="opacity-0 w-0 h-0">
+                    <span class="absolute inset-0 rounded-[26px] bg-[#c7c7c7] transition-[0.25s] before:content-[''] before:absolute before:w-5 before:h-5 before:left-[3px] before:top-[3px] before:rounded-full before:bg-white before:transition-[0.25s] peer-checked:bg-[var(--brand)] peer-checked:before:translate-x-6"></span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5">
+                <div>
+                  <h4 class="m-0 mb-1 text-base font-semibold">Show Sidebar</h4><p class="m-0 text-[var(--muted)] text-sm">Display the sidebar by default</p>
+                </div>
+                <div class="flex items-center gap-2.5">
+                  <label class="relative w-[50px] h-[26px]">
+                    <input type="checkbox" id="showSidebar" checked class="opacity-0 w-0 h-0">
+                    <span class="absolute inset-0 rounded-[26px] bg-[#c7c7c7] transition-[0.25s] before:content-[''] before:absolute before:w-5 before:h-5 before:left-[3px] before:top-[3px] before:rounded-full before:bg-white before:transition-[0.25s] peer-checked:bg-[var(--brand)] peer-checked:before:translate-x-6"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <button class="px-4 py-2.5 rounded-xl font-bold bg-[var(--brand)] text-white hover:opacity-90 transition-opacity shadow-sm" id="btnSaveGeneral">Save Changes</button>
+          </section>
+
+          <!-- APPEARANCE -->
+          <section class="settings-section hidden" id="appearance">
+            <div class="mb-4.5 pb-3 border-b border-[var(--border)]">
+              <h2 class="m-0 mb-1.5 text-2xl font-semibold">Appearance</h2><p class="m-0 text-[var(--muted)]">Customize how the system looks.</p>
+            </div>
+
+            <div class="mb-5.5">
+              <h3 class="m-0 mb-2.5 text-base font-semibold text-[var(--text)]">Theme</h3>
+              <div class="grid gap-3 grid-cols-[repeat(auto-fit,minmax(150px,1fr))]">
+                <div class="theme-card border border-[var(--border)] rounded-2xl p-3.5 text-center cursor-pointer hover:border-[var(--brand)] transition-colors" data-theme="light">
+                  <div class="h-[60px] rounded-xl mb-2.5 flex gap-1.5 p-2 bg-[color-mix(in_oklab,var(--surface)_92%,#000_0%)]"><div class="flex-1 rounded-lg bg-white"></div><div class="flex-1 rounded-lg bg-[#ecf0f1]"></div><div class="flex-1 rounded-lg bg-[#3498db]"></div></div>
+                  <strong>Light</strong>
+                </div>
+                <div class="theme-card border border-[var(--border)] rounded-2xl p-3.5 text-center cursor-pointer hover:border-[var(--brand)] transition-colors" data-theme="dark">
+                  <div class="h-[60px] rounded-xl mb-2.5 flex gap-1.5 p-2 bg-[#1a1a1a]"><div class="flex-1 rounded-lg bg-[#2d2d2d]"></div><div class="flex-1 rounded-lg bg-[#3b82f6]"></div><div class="flex-1 rounded-lg bg-[#111]"></div></div>
+                  <strong>Dark</strong>
+                </div>
+                <div class="theme-card border border-[var(--border)] rounded-2xl p-3.5 text-center cursor-pointer hover:border-[var(--brand)] transition-colors" data-theme="auto">
+                  <div class="h-[60px] rounded-xl mb-2.5 flex gap-1.5 p-2 bg-gradient-to-r from-[#f8f9fa] via-[#f8f9fa] to-[#1a1a1a]"><div class="flex-1 rounded-lg bg-[#3498db]"></div></div>
+                  <strong>Auto</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-5.5">
+              <h3 class="m-0 mb-2.5 text-base font-semibold text-[var(--text)]">Display</h3>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5">
+                <div><h4 class="m-0 mb-1 text-base font-semibold">Font Size</h4><p class="m-0 text-[var(--muted)] text-sm">Adjust text size</p></div>
+                <div class="flex items-center gap-2.5">
+                  <select class="px-3 py-2.5 border border-[var(--border)] rounded-xl bg-[var(--surface)] text-[var(--text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30" id="fontSize">
+                    <option value="small">Small</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="large">Large</option>
+                    <option value="xlarge">Extra Large</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5">
+                <div><h4 class="m-0 mb-1 text-base font-semibold">High Contrast</h4><p class="m-0 text-[var(--muted)] text-sm">Increase color contrast</p></div>
+                <div class="flex items-center gap-2.5">
+                  <label class="relative w-[50px] h-[26px]">
+                    <input type="checkbox" id="highContrast" class="opacity-0 w-0 h-0">
+                    <span class="absolute inset-0 rounded-[26px] bg-[#c7c7c7] transition-[0.25s] before:content-[''] before:absolute before:w-5 before:h-5 before:left-[3px] before:top-[3px] before:rounded-full before:bg-white before:transition-[0.25s] peer-checked:bg-[var(--brand)] peer-checked:before:translate-x-6"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <button class="px-4 py-2.5 rounded-xl font-bold bg-[var(--brand)] text-white hover:opacity-90 transition-opacity shadow-sm" id="btnApplyTheme">Apply Theme</button>
+          </section>
+
+          <!-- ACCOUNT -->
+          <section class="settings-section hidden" id="account">
+            <div class="mb-4.5 pb-3 border-b border-[var(--border)]"><h2 class="m-0 mb-1.5 text-2xl font-semibold">Account Settings</h2><p class="m-0 text-[var(--muted)]">Manage your account information.</p></div>
+
+            <div class="mb-5.5">
+              <h3 class="m-0 mb-2.5 text-base font-semibold text-[var(--text)]">Profile Information</h3>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">Full Name</h4><p class="m-0 text-[var(--muted)] text-sm">Your display name</p></div><div class="flex items-center gap-2.5"><input type="text" class="px-3 py-2.5 border border-[var(--border)] rounded-xl bg-[var(--surface)] text-[var(--text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30" id="fullName" placeholder="Enter your name"></div></div>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">Email Address</h4><p class="m-0 text-[var(--muted)] text-sm">Your contact email</p></div><div class="flex items-center gap-2.5"><input type="email" class="px-3 py-2.5 border border-[var(--border)] rounded-xl bg-[var(--surface)] text-[var(--text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30" id="email" placeholder="email@example.com"></div></div>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">Phone Number</h4><p class="m-0 text-[var(--muted)] text-sm">Contact number</p></div><div class="flex items-center gap-2.5"><input type="tel" class="px-3 py-2.5 border border-[var(--border)] rounded-xl bg-[var(--surface)] text-[var(--text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30" id="phone" placeholder="09XXXXXXXXX"></div></div>
+            </div>
+
+            <div class="mb-5.5">
+              <h3 class="m-0 mb-2.5 text-base font-semibold text-[var(--text)]">Change Password</h3>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">Current Password</h4><p class="m-0 text-[var(--muted)] text-sm">Enter your current password</p></div><div class="flex items-center gap-2.5"><input type="password" class="px-3 py-2.5 border border-[var(--border)] rounded-xl bg-[var(--surface)] text-[var(--text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30" id="currentPassword"></div></div>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">New Password</h4><p class="m-0 text-[var(--muted)] text-sm">Choose a strong password</p></div><div class="flex items-center gap-2.5"><input type="password" class="px-3 py-2.5 border border-[var(--border)] rounded-xl bg-[var(--surface)] text-[var(--text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30" id="newPassword"></div></div>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">Confirm Password</h4><p class="m-0 text-[var(--muted)] text-sm">Re-enter new password</p></div><div class="flex items-center gap-2.5"><input type="password" class="px-3 py-2.5 border border-[var(--border)] rounded-xl bg-[var(--surface)] text-[var(--text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/30" id="confirmPassword"></div></div>
+            </div>
+
+            <div class="flex gap-2.5 flex-wrap">
+              <button class="px-4 py-2.5 rounded-xl font-bold bg-[var(--brand)] text-white hover:opacity-90 transition-opacity shadow-sm" id="btnSaveAccount">Update Profile</button>
+              <button class="px-4 py-2.5 rounded-xl font-bold bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] hover:opacity-90 transition-opacity">Change Password</button>
+            </div>
+          </section>
+
+          <!-- SECURITY -->
+          <section class="settings-section hidden" id="security">
+            <div class="mb-4.5 pb-3 border-b border-[var(--border)]"><h2 class="m-0 mb-1.5 text-2xl font-semibold">Security & Privacy</h2><p class="m-0 text-[var(--muted)]">Protect your account and data.</p></div>
+
+            <div class="mb-5.5">
+              <h3 class="m-0 mb-2.5 text-base font-semibold text-[var(--text)]">Privacy</h3>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">Show Profile to Others</h4><p class="m-0 text-[var(--muted)] text-sm">Make profile visible to other users</p></div><div class="flex items-center gap-2.5"><label class="relative w-[50px] h-[26px]"><input type="checkbox" id="showProfile" checked class="opacity-0 w-0 h-0"><span class="absolute inset-0 rounded-[26px] bg-[#c7c7c7] transition-[0.25s] before:content-[''] before:absolute before:w-5 before:h-5 before:left-[3px] before:top-[3px] before:rounded-full before:bg-white before:transition-[0.25s] peer-checked:bg-[var(--brand)] peer-checked:before:translate-x-6"></span></label></div></div>
+            </div>
+
+            <button class="px-4 py-2.5 rounded-xl font-bold bg-[var(--brand)] text-white hover:opacity-90 transition-opacity shadow-sm" id="btnSaveSecurity">Save Security Settings</button>
+          </section>
+
+          <!-- NOTIFICATIONS -->
+          <section class="settings-section hidden" id="notifications">
+            <div class="mb-4.5 pb-3 border-b border-[var(--border)]"><h2 class="m-0 mb-1.5 text-2xl font-semibold">Notifications</h2><p class="m-0 text-[var(--muted)]">Manage how you receive notifications.</p></div>
+
+            <div class="mb-5.5">
+              <h3 class="m-0 mb-2.5 text-base font-semibold text-[var(--text)]">Email Notifications</h3>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">Case Updates</h4><p class="m-0 text-[var(--muted)] text-sm">Notify when your cases are updated</p></div><div class="flex items-center gap-2.5"><label class="relative w-[50px] h-[26px]"><input type="checkbox" checked class="opacity-0 w-0 h-0"><span class="absolute inset-0 rounded-[26px] bg-[#c7c7c7] transition-[0.25s] before:content-[''] before:absolute before:w-5 before:h-5 before:left-[3px] before:top-[3px] before:rounded-full before:bg-white before:transition-[0.25s] peer-checked:bg-[var(--brand)] peer-checked:before:translate-x-6"></span></label></div></div>
+              <div class="flex justify-between gap-4.5 items-center p-3.5 bg-[color-mix(in_oklab,var(--surface)_94%,#000_0%)] border border-[var(--border)] rounded-2xl mb-2.5"><div><h4 class="m-0 mb-1 text-base font-semibold">Emergency Alerts</h4><p class="m-0 text-[var(--muted)] text-sm">Critical disaster alerts</p></div><div class="flex items-center gap-2.5"><label class="relative w-[50px] h-[26px]"><input type="checkbox" checked class="opacity-0 w-0 h-0"><span class="absolute inset-0 rounded-[26px] bg-[#c7c7c7] transition-[0.25s] before:content-[''] before:absolute before:w-5 before:h-5 before:left-[3px] before:top-[3px] before:rounded-full before:bg-white before:transition-[0.25s] peer-checked:bg-[var(--brand)] peer-checked:before:translate-x-6"></span></label></div></div>
+            </div>
+
+            <button class="px-4 py-2.5 rounded-xl font-bold bg-[var(--brand)] text-white hover:opacity-90 transition-opacity shadow-sm" id="btnSaveNotifications">Save Notification Settings</button>
+          </section>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="/app-preferences.js"></script>
+<script src="/user/user-settings.js"></script>
+
+<script>
+document.querySelectorAll('.settings-nav-item').forEach(item=>{
+  item.addEventListener('click', ()=>{
+    const id = item.dataset.section;
+    document.querySelectorAll('.settings-nav-item').forEach(i=>{
+      i.classList.toggle('active', i===item);
+      if(i===item) {
+        i.classList.add('bg-[color-mix(in_oklab,var(--brand)_12%,var(--surface))]', 'border', 'border-[var(--brand)]');
+        i.classList.remove('hover:bg-[color-mix(in_oklab,var(--surface)_90%,#000_0%)]');
+      } else {
+        i.classList.remove('bg-[color-mix(in_oklab,var(--brand)_12%,var(--surface))]', 'border', 'border-[var(--brand)]');
+        i.classList.add('hover:bg-[color-mix(in_oklab,var(--surface)_90%,#000_0%)]');
+      }
+    });
+    document.querySelectorAll('.settings-section').forEach(sec=>{
+      sec.classList.toggle('active', sec.id===id);
+      sec.classList.toggle('hidden', sec.id!==id);
+    });
+  });
+});
+</script>
+</body>
+</html>
+

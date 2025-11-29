@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Barangay Langkaan II — Maintenance</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { --bg:#0f172a; --card:#111827; --muted:#94a3b8; --text:#e5e7eb; --accent:#22c55e; }
+    html,body{height:100%}
+    body{
+      margin:0; display:grid; place-items:center; background:radial-gradient(75% 75% at 50% 30%, #0b1220, #0a0f1f 60%, #070b16);
+      font:16px/1.5 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial;
+      color:var(--text);
+    }
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:16px; padding:32px; max-width:680px; margin:16px;
+      box-shadow:0 20px 60px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.04);
+      text-align:center;
+      backdrop-filter: blur(10px);
+      animation: pop .35s ease-out;
+    }
+    h1{margin:0 0 8px; font-size:28px}
+    p{margin:6px 0; color:var(--muted)}
+    .pill{display:inline-block; padding:6px 10px; border-radius:999px; background:#0b1220; border:1px solid rgba(255,255,255,0.08); color:#9ca3af; font-size:12px}
+    .btn{display:inline-block; margin-top:14px; padding:10px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.1); color:var(--text); text-decoration:none}
+    .btn:hover{border-color:rgba(255,255,255,0.2)}
+    @keyframes pop{from{transform:translateY(10px); opacity:0} to{transform:translateY(0); opacity:1}}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="pill">Barangay Langkaan II</div>
+    <h1>We’ll be right back</h1>
+    <p>The system is temporarily unavailable due to scheduled maintenance.</p>
+    <p>Thank you for your patience — please try again in a few minutes.</p>
+    <a class="btn" href="/">Try again</a>
+  </div>
+</body>
+</html>

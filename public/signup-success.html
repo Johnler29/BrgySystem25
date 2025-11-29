@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sign Up — Verification</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',sans-serif;color:#333}
+  .wrap{min-height:100vh;background:linear-gradient(135deg,#1e3c72 0%,#2a5298 100%);display:flex;align-items:center;justify-content:center;padding:20px}
+  .card{max-width:700px;background:#2c3e50;color:#fff;border-radius:18px;box-shadow:0 20px 40px rgba(0,0,0,.3);padding:32px}
+  .card h2{margin:0 0 14px}
+  .msg{background:#27ae60;padding:18px;border-radius:12px;margin:16px 0;color:#fff}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+  .btn{padding:12px 16px;border:none;border-radius:10px;cursor:pointer}
+  .primary{background:#3498db;color:#fff}
+  .ghost{background:#ecf0f1;color:#2c3e50}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h2>Account Created</h2>
+      <div class="msg">
+        <strong>Thank you for registering.</strong> Your account is currently under verification to determine your eligibility for full access to the system's features. While the verification is ongoing, you may explore the platform with limited access. Once the verification process is successfully completed, you will receive a notification. We appreciate your patience and look forward to providing you with full access soon.
+      </div>
+      <div class="actions">
+        <a class="btn ghost" href="/login">← Back to Login</a>
+        <a class="btn primary" href="/dashboard">Proceed to Dashboard</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

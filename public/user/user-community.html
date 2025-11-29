@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Community — Barangay Langkaan II</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',sans-serif;color:#333;background:#f0f2f5}
+  .dashboard-container{display:flex;min-height:100vh}
+  .sidebar{width:250px;background:#2c3e50;color:#fff}
+  .sidebar-header{padding:20px;background:#34495e;display:flex;align-items:center;gap:10px}
+  .sidebar-header img{width:30px;height:30px;border-radius:50%}
+  .sidebar-header h3{font-size:1.05rem;font-weight:600}
+  .sidebar-menu{list-style:none;padding:16px 0}
+  .sidebar-menu a{display:block;padding:12px 20px;color:#bdc3c7;text-decoration:none}
+  .sidebar-menu a:hover,.sidebar-menu a.active{background:#34495e;color:#fff}
+
+  .main-content{flex:1;display:flex;flex-direction:column}
+  .header{background:#fff;padding:14px 24px;box-shadow:0 2px 4px rgba(0,0,0,.06);display:flex;justify-content:space-between;align-items:center}
+  .header h1{font-size:1.3rem;color:#2c3e50}
+  .user{display:flex;align-items:center;gap:12px}
+  .avatar{width:34px;height:34px;border-radius:50%;background:#3498db;color:#fff;font-weight:600;display:flex;align-items:center;justify-content:center}
+
+  .shell{flex:1;padding:26px}
+  .grid{display:grid;grid-template-columns: minmax(0,1.4fr) 420px; gap:18px; align-items:start; max-width:1300px; margin:0 auto}
+  @media (max-width:1100px){.grid{grid-template-columns:1fr}}
+  .card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+  .content{display:flex;flex-direction:column;gap:16px}
+  .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:14px}
+  .search{flex:1;background:#fff;border-radius:50px;padding:10px 16px;display:flex;gap:8px;align-items:center;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+  .search input{border:none;outline:none;flex:1}
+  .btn{border:none;border-radius:8px;padding:10px 14px;cursor:pointer}
+  .btn-primary{background:#1877f2;color:#fff}
+  .btn-light{background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+  .feed{display:flex;flex-direction:column;gap:16px}
+  .post{padding:14px}
+  .post-header{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+  .post-title{font-size:1.05rem;font-weight:700;color:#222}
+  .post-body{color:#444;margin:6px 0 10px}
+  .post-image{width:100%;max-height:450px;object-fit:cover;border-radius:10px}
+  .post-meta{font-size:.85rem;color:#888;margin-top:6px}
+  .pill{padding:6px 10px;border-radius:999px;font-size:.85rem;border:1px solid #eee;background:#fff}
+  .category{color:#1877f2;border-color:#dfe8ff;background:#f6f9ff}
+  .event{color:#1d9c72;border-color:#d4f1e6;background:#eefaf6}
+  .actions{display:flex;gap:6px;border-top:1px solid #eee;margin-top:10px;padding-top:8px}
+  .actions .btn{flex:1;background:#f7f8fa;border:1px solid #eee}
+  .comments{border-top:1px solid #eee;margin-top:8px;padding-top:8px}
+  .comment{display:flex;gap:8px;margin:8px 0}
+  .comment .bubble{background:#f0f2f5;border-radius:14px;padding:8px 12px}
+  .add-comment{display:flex;gap:8px;margin-top:8px}
+  .add-comment input{flex:1;border:1px solid #e5e5e5;border-radius:16px;padding:8px 12px}
+
+  .widget{padding:14px}
+  .widget h4{font-size:1rem;margin-bottom:10px;color:#2c3e50}
+  .mini-calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;font-size:12px}
+  .mini-calendar .day{padding:8px 0;text-align:center;border-radius:6px;cursor:pointer}
+  .mini-calendar .muted{color:#bbb}
+  .mini-calendar .today{background:#1877f2;color:#fff}
+  .mini-calendar .has{position:relative}
+  .mini-calendar .has::after{content:'';width:6px;height:6px;border-radius:50%;background:#27ae60;position:absolute;bottom:4px;left:50%;transform:translateX(-50%)}
+  .cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .list{display:flex;flex-direction:column;gap:10px}
+  .event-row{display:flex;gap:10px}
+  .datepill{min-width:46px;text-align:center;background:#f6f9ff;border:1px solid #dfe8ff;border-radius:8px;padding:6px 6px}
+  .datepill .d{font-weight:700;font-size:14px}
+  .datepill .m{font-size:11px;color:#5b77c2}
+  .catchips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{font-size:12px;border:1px solid #eee;background:#fff;border-radius:999px;padding:6px 10px;cursor:pointer}
+  .chip.active{background:#1877f2;color:#fff;border-color:#1877f2}
+
+  .toast{position:fixed;right:16px;bottom:16px;background:#333;color:#fff;padding:10px 14px;border-radius:8px;opacity:0;transform:translateY(10px);transition:.2s}
+  .toast.show{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+<div class="dashboard-container">
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <img src="https://scontent.fmnl25-7.fna.fbcdn.net/v/t1.15752-9/521855138_708847785308771_2003273510610048423_n.png?_nc_cat=102&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeHDFSpZtSsJSKuyQM7o0VleafGYk3KEJmFp8ZiTcoQmYS-9dL9WVlBLaCm6fdRpBPzL3iz4ANsXkhyOl_XQY57t&_nc_ohc=ixNedG93Qg0Q7kNvwGBrifR&_nc_oc=AdlJKrVlPOjbyH0hRHyOH82O4R5vm6oafmhvPpvfgHaEm_uxBTHPbZvqR7BJvu_VA1c&_nc_zt=23&_nc_ht=scontent.fmnl25-7.fna&oh=03_Q7cD3QHh5Q7Ftgg21vXwURVdGXmmtkpPIn5QRbjLL3mDko9YiQ&oe=68F399EB" alt="Logo">
+      <h3 class="sidebar-title">Barangay Langkaan II<br><small style="font-size:0.85em;opacity:0.8;">Resident Portal</small></h3>
+    </div>
+    <ul class="sidebar-menu" id="navList">
+      <li><a href="/user/dashboard" data-tooltip="Dashboard"><span class="icon">🏠</span><span class="label">Dashboard</span></a></li>
+      <li><a href="/user/document-permits" data-tooltip="Request Documents"><span class="icon">📄</span><span class="label">Request Documents</span></a></li>
+      <li><a href="/user/community" class="active" data-tooltip="Community"><span class="icon">🤝</span><span class="label">Community</span></a></li>
+      <li><a href="/user/cases" data-tooltip="Report Cases"><span class="icon">⚖️</span><span class="label">Report Cases</span></a></li>
+      <li><a href="/user/health" data-tooltip="Health Services"><span class="icon">🏥</span><span class="label">Health Services</span></a></li>
+      <li><a href="/user/disaster" data-tooltip="Disaster Info"><span class="icon">🚨</span><span class="label">Disaster Info</span></a></li>
+      <li style="margin-top:50px;"><a href="/user/settings" data-tooltip="Settings"><span class="icon">⚙️</span><span class="label">Settings</span></a></li>
+      <li><a href="#" onclick="logout()" data-tooltip="Log out"><span class="icon">🚪</span><span class="label">Log out</span></a></li>
+    </ul>
+  </nav>
+
+  <main class="main-content">
+    <header class="header">
+      <h1>Community</h1>
+      <div class="user">
+        🔔
+        <div class="avatar" id="avatar">U</div>
+        <span id="username">User</span>
+      </div>
+    </header>
+
+    <div class="shell">
+      <div style="background:#e3f2fd;color:#1565c0;padding:12px 16px;border-radius:8px;margin-bottom:14px;">
+        <strong>ℹ️ Resident Portal</strong> — View community posts and events. Only administrators can create posts.
+      </div>
+
+      <div class="toolbar">
+        <div class="search">🔎 <input id="search" placeholder="Search posts or events"></div>
+        <select id="filterCategory" class="btn btn-light">
+          <option value="">All Categories</option>
+          <option>Announcement</option>
+          <option>Health</option>
+          <option>Environment</option>
+          <option>Safety</option>
+          <option>Sports</option>
+        </select>
+      </div>
+
+      <div class="grid">
+        <div class="content">
+          <div id="feed" class="feed"></div>
+          <div style="text-align:center;margin:12px 0;">
+            <button id="loadMore" class="btn btn-light">Load more</button>
+          </div>
+        </div>
+
+        <div class="widgets">
+          <div class="card widget">
+            <div class="cal-head">
+              <h4 id="calLabel">April 2025</h4>
+              <div style="display:flex;gap:6px">
+                <button id="prevMonth" class="btn btn-light">←</button>
+                <button id="nextMonth" class="btn btn-light">→</button>
+              </div>
+            </div>
+            <div id="calendar" class="mini-calendar"></div>
+            <div style="display:flex;gap:8px;margin-top:10px">
+              <button id="clearDate" class="btn btn-light" style="flex:1">Clear date</button>
+            </div>
+          </div>
+
+          <div class="card widget">
+            <h4>Upcoming Events</h4>
+            <div id="eventList" class="list"></div>
+          </div>
+
+          <div class="card widget">
+            <h4>Categories</h4>
+            <div class="catchips">
+              <span class="chip" data-cat="">All</span>
+              <span class="chip" data-cat="Announcement">Announcement</span>
+              <span class="chip" data-cat="Health">Health</span>
+              <span class="chip" data-cat="Environment">Environment</span>
+              <span class="chip" data-cat="Safety">Safety</span>
+              <span class="chip" data-cat="Sports">Sports</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast">Saved</div>
+
+<script src="/user/user-community.js" defer></script>
+<script>
+  async function logout(){ await fetch('/api/logout',{method:'POST'}); location.href='/login'; }
+  window.logout = logout;
+</script>
+</body>
+</html>
+

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Disaster Info — Barangay Langkaan II</title>
+
+<script>
+/* set theme/font early from localStorage to avoid flash */
+(function () {
+  try {
+    var s = JSON.parse(localStorage.getItem('userSettings') || '{}');
+    var html = document.documentElement;
+
+    // theme
+    var t = s.theme || 'light';
+    if (t === 'dark') {
+      html.setAttribute('data-theme', 'dark');
+    } else if (t === 'auto') {
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (prefersDark) html.setAttribute('data-theme', 'dark'); else html.removeAttribute('data-theme');
+    } else {
+      html.removeAttribute('data-theme');
+    }
+
+    // font size
+    var fs = (s.fontSize || 'medium').toLowerCase();
+    var map = { small:'14px', medium:'16px', large:'18px', xlarge:'20px' };
+    html.setAttribute('data-font-size', fs);
+    html.style.setProperty('--fs-base', map[fs] || '16px');
+  } catch (e) {}
+})();
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/base.css">
+
+<style>
+  .bg-primary-btn { background-color: #3498db; }
+  .bg-ghost-btn { background-color: #ecf0f1; }
+  .text-primary-btn { color: #2c3e50; }
+  .border-input { border-color: #dfe6e9; }
+
+  .bg-pending { background-color: #fff4e5; color: #b9770e; }
+  .bg-ongoing { background-color: #eaf4ff; color: #1b73c7; }
+  .bg-resolved { background-color: #e9f9ef; color: #239b56; }
+  .bg-critical { background-color: #fdecea; color: #c0392b; }
+</style>
+</head>
+
+<script defer src="/base-header.js"></script>
+<script defer src="/base.js"></script>
+
+<body>
+<div class="dashboard-container">
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <img src="https://scontent.fmnl31-1.fna.fbcdn.net/v/t1.15752-9/566459805_2304695176635817_7965723576219961744_n.png?_nc_cat=100&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeFvsvFPtYKGEdwHZwyXJu6hLWJQAEjhjVotYlAASOGNWmCLSn6KIuOYN8ElKlNNHQrO159FSCuwFcll7OgdlzCP&_nc_ohc=yiA3bhEGnNAQ7kNvwGUy1mZ&_nc_oc=AdkuAJIw6rTtWuKWDNP7QJAFplSOwMhvUK5rJ7b_uZdCToSR1sT73c7CFJ5zrYhIU-I&_nc_zt=23&_nc_ht=scontent.fmnl31-1.fna&oh=03_Q7cD3gGocOn0qEMEx3iINh9aOx48m0LIlXIab9IT08mckx_JZw&oe=692126F5" alt="Logo">
+      <h3 class="sidebar-title">Barangay Langkaan II<br><small style="font-size:0.85em;opacity:0.8;">Resident Portal</small></h3>
+    </div>
+
+    <ul class="sidebar-menu" id="navList">
+      <li><a href="/user/dashboard" data-tooltip="Dashboard"><span class="icon">🏠︎</span><span class="label">Dashboard</span></a></li>
+      <li><a href="/user/document-permits" data-tooltip="Request Documents"><span class="icon">📄</span><span class="label">Request Documents</span></a></li>
+      <li><a href="/user/community" data-tooltip="Community"><span class="icon">🤝</span><span class="label">Community</span></a></li>
+      <li><a href="/user/cases" data-tooltip="Report Cases"><span class="icon">⚖️</span><span class="label">Report Cases</span></a></li>
+      <li><a href="/user/health" data-tooltip="Health Services"><span class="icon">🏥</span><span class="label">Health Services</span></a></li>
+      <li><a href="/user/disaster" class="active" data-tooltip="Disaster Info"><span class="icon">🚨</span><span class="label">Disaster Info</span></a></li>
+      <li style="margin-top:50px;"><a href="/user/settings" data-tooltip="Settings"><span class="icon">⚙️</span><span class="label">Settings</span></a></li>
+      <li><a href="#" onclick="logout()" data-tooltip="Log out"><span class="icon">🚪</span><span class="label">Log out</span></a></li>
+    </ul>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <header class="header">
+      <div class="header-left">
+        <button class="hamburger" id="hamburgerBtn" aria-label="Toggle sidebar"><span></span></button>
+        <h1 id="greeting">Disaster & Emergency Info</h1>
+      </div>
+      <div class="user-info" id="userChip">
+        <button class="btn btn-outline" id="notifBtn" title="Notifications">🔔</button>
+        <div class="user-avatar" id="avatar">U</div>
+        <span id="username" class="user-name">User</span>
+
+        <div class="notif-panel" id="notifPanel">
+          <div class="notif-head">Notifications</div>
+          <div class="notif-item">No new notifications.</div>
+        </div>
+
+        <div class="dropdown" id="userMenu">
+          <div class="item" id="goProfile">👤 Profile</div>
+          <div class="item" id="goSettings">⚙️ Settings</div>
+          <div class="item" id="doLogout">🚪 Log out</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="content-area">
+      <div class="bg-[#e3f2fd] text-[#1565c0] px-4 py-3 rounded-lg mb-5">
+        <strong>ℹ️ Resident Portal</strong> — View disaster information, emergency alerts, and report emergencies here.
+      </div>
+
+      <!-- Alert Banner -->
+      <div id="alertBanner" class="hidden" style="background:linear-gradient(90deg,#3498db,#2980b9);color:#fff;padding:14px 16px;border-radius:14px;margin-bottom:18px;display:flex;align-items:flex-start;gap:10px;box-shadow:0 4px 12px rgba(52,152,219,0.3);">
+        <div style="font-size:1.8rem;line-height:1;">🚨</div>
+        <div style="flex:1;">
+          <div id="alertTitle" style="font-weight:700;margin-bottom:4px;">Emergency Alert</div>
+          <div id="alertMessage" style="font-size:0.9rem;opacity:.95;">No active alerts at this time.</div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin:18px 0;">
+        <button class="btn btn-primary" style="background:linear-gradient(90deg,#e74c3c,#c0392b);box-shadow:0 4px 12px rgba(231,76,60,0.3);" id="btnEmergency">🚨 Report Emergency</button>
+        <button class="btn" style="background:linear-gradient(90deg,#f39c12,#e67e22);" id="btnIncident">⚠️ Log Incident</button>
+      </div>
+
+      <!-- Statistics -->
+      <div class="stats-grid" style="margin-bottom:20px;">
+        <div class="stat-card">
+          <h4 class="muted" style="font-size:0.78rem;margin:0 0 4px;">My Reports</h4>
+          <h3 id="sTotal">0</h3>
+        </div>
+        <div class="stat-card red">
+          <h4 class="muted" style="font-size:0.78rem;margin:0 0 4px;">Critical</h4>
+          <h3 id="sCritical">0</h3>
+        </div>
+        <div class="stat-card amber">
+          <h4 class="muted" style="font-size:0.78rem;margin:0 0 4px;">Ongoing</h4>
+          <h3 id="sOngoing">0</h3>
+        </div>
+        <div class="stat-card green">
+          <h4 class="muted" style="font-size:0.78rem;margin:0 0 4px;">Resolved</h4>
+          <h3 id="sResolved">0</h3>
+        </div>
+      </div>
+
+      <!-- Main Card -->
+      <div class="dashboard-card">
+        <div class="dashboard-card-header">
+          <h3>Emergency Information</h3>
+        </div>
+        <div class="dashboard-card-content">
+          <!-- Tabs -->
+          <div id="tabs" class="flex border-b border-[#ecf0f1] mb-5 flex-wrap overflow-x-auto" style="gap:4px;">
+            <div class="tab active px-4 py-3 cursor-pointer border-b-2 border-transparent text-[#7f8c8d] text-sm whitespace-nowrap hover:text-[#e74c3c] transition-colors" data-tab="incidents">My Reports</div>
+            <div class="tab px-4 py-3 cursor-pointer border-b-2 border-transparent text-[#7f8c8d] text-sm whitespace-nowrap hover:text-[#e74c3c] transition-colors" data-tab="announcements">Announcements</div>
+            <div class="tab px-4 py-3 cursor-pointer border-b-2 border-transparent text-[#7f8c8d] text-sm whitespace-nowrap hover:text-[#e74c3c] transition-colors" data-tab="contacts">Emergency Contacts</div>
+          </div>
+
+          <!-- Toolbar -->
+          <div class="flex gap-2.5 flex-wrap items-center mb-3">
+            <input id="fQ" class="px-3 py-2.5 border border-input rounded-lg bg-white min-w-[200px] text-sm" placeholder="Search incidents, locations...">
+            <input id="fFrom" type="date" class="px-3 py-2.5 border border-input rounded-lg bg-white text-sm">
+            <input id="fTo" type="date" class="px-3 py-2.5 border border-input rounded-lg bg-white text-sm">
+            <select id="fStatus" class="px-3 py-2.5 border border-input rounded-lg bg-white text-sm">
+              <option value="">All Status</option>
+              <option value="Critical">Critical</option>
+              <option value="Ongoing">Ongoing</option>
+              <option value="Resolved">Resolved</option>
+            </select>
+            <button class="btn" style="background:#ecf0f1;color:#2c3e50;" id="btnFilter">Apply</button>
+          </div>
+
+          <!-- Table -->
+          <div class="table-wrap">
+            <table class="table" id="tbl">
+              <thead id="tableHead"></thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div class="pager" id="pager"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Report Emergency Modal -->
+<div class="modal" id="modal">
+  <div class="sheet">
+    <header class="sheet-head" id="dlgTitle">Report Emergency</header>
+    <div class="sheet-body">
+      <div class="muted" id="msg" style="margin-bottom:10px;font-size:0.9rem;"></div>
+      <form id="frm" novalidate>
+        <div class="form-grid">
+          <div class="full">
+            <label>Emergency Type *</label>
+            <select name="type" required>
+              <option value="">Select type</option>
+              <option value="Fire">Fire</option>
+              <option value="Flood">Flood</option>
+              <option value="Earthquake">Earthquake</option>
+              <option value="Medical">Medical Emergency</option>
+              <option value="Accident">Accident</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="full">
+            <label>Location *</label>
+            <input name="location" required placeholder="Address or landmark">
+          </div>
+          <div class="full">
+            <label>Description *</label>
+            <textarea name="description" required placeholder="Describe the emergency situation"></textarea>
+          </div>
+          <div>
+            <label>Your Name *</label>
+            <input name="reporterName" required>
+          </div>
+          <div>
+            <label>Contact Number *</label>
+            <input name="contact" required type="tel">
+          </div>
+        </div>
+      </form>
+    </div>
+    <footer class="sheet-foot">
+      <button class="btn" id="btnCancel">Cancel</button>
+      <button class="btn btn-primary" id="btnSave">Submit Report</button>
+    </footer>
+  </div>
+</div>
+
+<!-- Details Drawer -->
+<div class="fixed inset-0 hidden z-[1000]" id="drawer">
+  <div class="overlay absolute inset-0 bg-black/25"></div>
+  <div class="absolute right-0 top-0 h-full w-full md:w-[520px] bg-white shadow-[-10px_0_30px_rgba(0,0,0,0.2)] flex flex-col">
+    <header class="px-5 py-4 border-b border-[#ecf0f1] bg-[#f8f9fa] flex justify-between items-center">
+      <div class="flex items-center gap-2"><strong id="dRecordId" class="text-[#2c3e50]">Report</strong> <span id="dStatus" class="px-2 py-1 rounded-2xl text-xs font-bold bg-pending ml-2">Pending</span></div>
+      <button class="px-4 py-2.5 rounded-lg border-none cursor-pointer bg-ghost-btn text-primary-btn font-medium hover:opacity-90 transition-opacity" id="dClose">Close</button>
+    </header>
+    <div class="p-5 overflow-auto flex-1" id="dBody"></div>
+  </div>
+</div>
+
+<style>
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .form-grid .full { grid-column: 1 / -1; }
+  .form-grid label { display:block; font-size:0.88rem; margin-bottom:4px; color:#34495e; }
+  .form-grid input,
+  .form-grid select,
+  .form-grid textarea {
+    width:100%;
+    padding:8px 10px;
+    border-radius:10px;
+    border:1px solid #dfe6e9;
+    font-size:0.9rem;
+  }
+  .form-grid textarea { resize: vertical; min-height: 70px; }
+</style>
+
+<script src="/app-preferences.js"></script>
+<script src="/user/user-disaster.js"></script>
+</body>
+</html>
+
