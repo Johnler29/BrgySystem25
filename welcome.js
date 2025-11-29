@@ -12,7 +12,7 @@ const bcrypt = require('bcrypt'); // if this gives issues on Windows, use: const
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const MONGO_URI = 'mongodb+srv://adminDB:capstonelozonvill@barangaydb.5ootwqc.mongodb.net/barangayDB?retryWrites=true&w=majority';
+const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://adminDB:capstonelozonvill@barangaydb.5ootwqc.mongodb.net/barangayDB?retryWrites=true&w=majority';
 
 // --- Sample credentials (legacy fallback) ---
 const CREDENTIALS = {
@@ -33,11 +33,11 @@ app.use(maintenanceGuard);
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(session({
-  secret: 'langkaan2-secret-key-2024',
+  secret: process.env.SESSION_SECRET || 'langkaan2-secret-key-2024',
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: false,               // set true if behind HTTPS proxy
+    secure: process.env.NODE_ENV === 'production',  // true in production (Vercel uses HTTPS)
     maxAge: 24 * 60 * 60 * 1000  // default 1 day
   }
 }));
@@ -70,7 +70,8 @@ app.set('views', path.join(__dirname, 'views'));
     app.use('/api/logs', logsApiInner);
 
     // only start the inner listener if not already started below (in dev this file is required once)
-    if (!app.locals._startedEarly) {
+    // Skip if running on Vercel (serverless environment)
+    if (!app.locals._startedEarly && !process.env.VERCEL) {
       app.locals._startedEarly = true;
       app.listen(PORT, () =>
         console.log(`🚀 Server running on http://localhost:${PORT}`)
@@ -1672,12 +1673,15 @@ app.use((req, res) => {
 });
 
 // ---------- Start ----------
-app.listen(PORT, () => {
-  console.log(`🚀 Barangay Langkaan II Web Management System`);
-  console.log(`📡 Server running on http://localhost:${PORT}`);
-  console.log(`📁 Serving static files from 'public' directory`);
-  console.log(`\n📋 Routes: /, /login, /signup, /signup-success, /dashboard`);
-  console.log(`🔐 Auth APIs: POST /api/login, POST /api/signup, POST /api/forgot-password, GET /api/me, POST /api/logout`);
-});
+// Only start server if not running on Vercel (serverless environment)
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`🚀 Barangay Langkaan II Web Management System`);
+    console.log(`📡 Server running on http://localhost:${PORT}`);
+    console.log(`📁 Serving static files from 'public' directory`);
+    console.log(`\n📋 Routes: /, /login, /signup, /signup-success, /dashboard`);
+    console.log(`🔐 Auth APIs: POST /api/login, POST /api/signup, POST /api/forgot-password, GET /api/me, POST /api/logout`);
+  });
+}
 
 module.exports = app;
