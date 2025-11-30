@@ -1522,6 +1522,52 @@ app.get('/api/residents', requireAuth, async (req, res) => {
   res.json({ ok: true, residents: residents || [] });
 });
 
+// Search/validate residents by name or residentId
+app.get('/api/residents/search', requireAuth, async (req, res) => {
+  const { q = '' } = req.query;
+  if (!q || q.trim().length < 2) {
+    return res.json({ ok: true, residents: [] });
+  }
+  
+  const searchTerm = q.trim();
+  const residents = await withDb(async (db) => {
+    return await db.collection('residents').find({
+      $or: [
+        { name: { $regex: searchTerm, $options: 'i' } },
+        { residentId: { $regex: searchTerm, $options: 'i' } },
+        { contactNumber: { $regex: searchTerm, $options: 'i' } }
+      ]
+    }).limit(20).toArray();
+  });
+  
+  res.json({ ok: true, residents: residents || [] });
+});
+
+// Get resident by ID
+app.get('/api/residents/:id', requireAuth, async (req, res) => {
+  const { id } = req.params;
+  let resident = null;
+  
+  if (ObjectId.isValid(id)) {
+    resident = await withDb(async (db) => 
+      await db.collection('residents').findOne({ _id: new ObjectId(id) })
+    );
+  }
+  
+  if (!resident) {
+    // Try by residentId
+    resident = await withDb(async (db) => 
+      await db.collection('residents').findOne({ residentId: id })
+    );
+  }
+  
+  if (!resident) {
+    return res.status(404).json({ ok: false, message: 'Resident not found' });
+  }
+  
+  res.json({ ok: true, resident });
+});
+
 app.get('/api/documents', requireAuth, async (req, res) => {
   const user = req.session.user;
   const isAdmin = /^(admin)$/i.test(user?.role||'') || user?.isAdmin===true || user?.type==='admin' || user?.accountType==='admin';
@@ -1548,11 +1594,44 @@ app.post('/api/documents/add', requireAuth, async (req, res) => {
   const {
     requesterName, address, typeOfDocument,
     purpose = '', numberOfCopies = 1,
-    paymentMethod = '', paymentStatus = ''
+    paymentMethod = '', paymentStatus = '',
+    residentId = null // New field to link to resident
   } = req.body || {};
 
   if (!requesterName || !address || !typeOfDocument) {
     return res.status(400).json({ ok:false, message:'Missing required fields.' });
+  }
+
+  // Validate resident if residentId is provided
+  let resident = null;
+  if (residentId) {
+    if (ObjectId.isValid(residentId)) {
+      resident = await withDb(async (db) => 
+        await db.collection('residents').findOne({ _id: new ObjectId(residentId) })
+      );
+    }
+    
+    if (!resident) {
+      // Try by residentId field
+      resident = await withDb(async (db) => 
+        await db.collection('residents').findOne({ residentId: String(residentId) })
+      );
+    }
+    
+    if (!resident) {
+      return res.status(400).json({ ok: false, message: 'Invalid resident ID. Please select a valid resident.' });
+    }
+    
+    // Validate that the requester name matches the resident
+    if (resident.name && requesterName.trim().toLowerCase() !== resident.name.trim().toLowerCase()) {
+      return res.status(400).json({ ok: false, message: 'Requester name does not match selected resident.' });
+    }
+    
+    // Use resident's address if available and address matches
+    if (resident.address && address.trim().toLowerCase() !== resident.address.trim().toLowerCase()) {
+      // Allow override but warn - or use resident address
+      // For now, we'll use the provided address but could auto-fill from resident
+    }
   }
 
   const doc = {
@@ -1565,7 +1644,12 @@ app.post('/api/documents/add', requireAuth, async (req, res) => {
     status: 'Pending',
     dateRequested: new Date(),
     paymentMethod: String(paymentMethod || ''),
-    paymentStatus: String(paymentStatus || '')
+    paymentStatus: String(paymentStatus || ''),
+    ...(resident ? { 
+      residentId: resident._id,
+      residentIdString: resident.residentId || null,
+      residentValidated: true 
+    } : { residentValidated: false })
   };
 
   await withDb(async (db) => db.collection('documents').insertOne(doc));
@@ -1628,22 +1712,57 @@ app.put('/api/documents/:id', requireAdmin, async (req, res) => {
   const {
     requesterName, address, typeOfDocument,
     purpose = '', numberOfCopies = 1,
-    paymentMethod = '', paymentStatus = ''
+    paymentMethod = '', paymentStatus = '',
+    residentId = null
   } = req.body || {};
 
+  // Validate resident if residentId is provided
+  let resident = null;
+  if (residentId) {
+    if (ObjectId.isValid(residentId)) {
+      resident = await withDb(async (db) => 
+        await db.collection('residents').findOne({ _id: new ObjectId(residentId) })
+      );
+    }
+    
+    if (!resident) {
+      // Try by residentId field
+      resident = await withDb(async (db) => 
+        await db.collection('residents').findOne({ residentId: String(residentId) })
+      );
+    }
+    
+    if (!resident) {
+      return res.status(400).json({ ok: false, message: 'Invalid resident ID. Please select a valid resident.' });
+    }
+  }
+
+  const updateData = {
+    requesterName: String(requesterName||'').trim(),
+    address: String(address||'').trim(),
+    typeOfDocument: String(typeOfDocument||'').trim(),
+    purpose: String(purpose||'').trim(),
+    numberOfCopies: Math.max(1, parseInt(numberOfCopies || 1, 10)),
+    paymentMethod: String(paymentMethod||''),
+    paymentStatus: String(paymentStatus||'')
+  };
+
+  // Add resident linking if validated
+  if (resident) {
+    updateData.residentId = resident._id;
+    updateData.residentIdString = resident.residentId || null;
+    updateData.residentValidated = true;
+  }
+
   await withDb(async (db) => {
+    const update = { $set: updateData };
+    // If no resident provided, remove resident linking fields
+    if (!resident) {
+      update.$unset = { residentId: '', residentIdString: '', residentValidated: '' };
+    }
     await db.collection('documents').updateOne(
       { _id: new ObjectId(id) },
-      { $set: {
-          requesterName: String(requesterName||'').trim(),
-          address: String(address||'').trim(),
-          typeOfDocument: String(typeOfDocument||'').trim(),
-          purpose: String(purpose||'').trim(),
-          numberOfCopies: Math.max(1, parseInt(numberOfCopies || 1, 10)),
-          paymentMethod: String(paymentMethod||''),
-          paymentStatus: String(paymentStatus||'')
-        }
-      }
+      update
     );
   });
   res.json({ ok: true });

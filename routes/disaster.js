@@ -518,6 +518,218 @@ module.exports = function disasterRoutes(withDb, requireAuth, requireAdmin) {
     }
   });
 
+  // Update incident (admin only, or user can update their own)
+  router.put('/api/disaster/incidents/:id', requireAuth, (req, res) => {
+    if (!upload) {
+      return res.status(501).json({
+        ok: false,
+        message: 'File upload disabled. Please ask the administrator to install multer (npm i multer).'
+      });
+    }
+
+    const handler = upload.fields([
+      { name: 'planFile', maxCount: 1 },
+      { name: 'attachments', maxCount: 10 }
+    ]);
+
+    handler(req, res, async (err) => {
+      if (err) {
+        return res.status(400).json({ ok: false, message: err.message });
+      }
+
+      try {
+        let _id;
+        try {
+          _id = new ObjectId(req.params.id);
+        } catch {
+          return res.status(400).json({ ok: false, message: 'Invalid incident id.' });
+        }
+
+        const body = req.body || {};
+        const me = req.session.user || {};
+        const isAdmin = /^(admin)$/i.test(me?.role || '') || me?.isAdmin === true;
+        const now = new Date();
+
+        // Check if user owns this record (if not admin) and get existing record
+        let existing = null;
+        if (!isAdmin) {
+          existing = await withDisaster(async (db) => {
+            return db.collection('disaster_incidents').findOne({ _id });
+          });
+          if (!existing) {
+            return res.status(404).json({ ok: false, message: 'Incident not found.' });
+          }
+          const reporterUsername = existing.reportedBy?.username || '';
+          if (reporterUsername !== (me.username || '').toLowerCase()) {
+            return res.status(403).json({ ok: false, message: 'You can only edit incidents that you reported.' });
+          }
+        } else {
+          existing = await withDisaster(async (db) => {
+            return db.collection('disaster_incidents').findOne({ _id });
+          });
+          if (!existing) {
+            return res.status(404).json({ ok: false, message: 'Incident not found.' });
+          }
+        }
+
+        const type = String(body.type || '').trim();
+        const location = String(body.location || '').trim();
+        const description = String(body.description || '').trim();
+        // Preserve original values if not provided in update
+        const reporterName = String(body.reporterName || existing.reporterName || me.name || '').trim();
+        const contact = String(body.contact || existing.contact || me.address || '').trim();
+        const otherType = String(body.typeOther || '').trim();
+        const hasPlan = String(body.hasPlan || '').toLowerCase() === 'yes';
+
+        if (!type || !location || !description || !reporterName || !contact) {
+          return res.status(400).json({ ok: false, message: 'Please fill all required fields.' });
+        }
+
+        let finalType = type === 'Other' || type === 'Others' ? 'Others' : type;
+        if ((type === 'Other' || type === 'Others') && !otherType) {
+          return res.status(400).json({ ok: false, message: 'Please specify the emergency type.' });
+        }
+
+        const incidentDateStr = body.incidentDate || body.dateTime || '';
+        const dateTime = incidentDateStr ? new Date(incidentDateStr) : now;
+        if (Number.isNaN(dateTime.getTime())) {
+          return res.status(400).json({ ok: false, message: 'Invalid incident date/time.' });
+        }
+
+        const priorityRaw = String(body.priority || '').trim();
+        const priority = INCIDENT_PRIORITIES.includes(priorityRaw) ? priorityRaw : 'Medium';
+
+        const casualties = Number(body.casualties || 0) || 0;
+        const injuries = Number(body.injuries || 0) || 0;
+        const affectedCount = Number(body.affectedCount || body.peopleAffected || 0) || 0;
+        const responseTimeMinutes = body.responseTime ? Number(body.responseTime) || null : null;
+        const status = INCIDENT_STATUSES.includes(body.status) ? body.status : 'Pending';
+
+        // Handle file uploads
+        const files = req.files || {};
+        const planFiles = files.planFile || [];
+        const otherFiles = files.attachments || [];
+
+        const attachments = [];
+        const pushAtt = (file, kind) => {
+          attachments.push({
+            _id: new ObjectId(),
+            kind,
+            filename: file.originalname,
+            url: '/uploads/' + file.filename,
+            mimeType: file.mimetype,
+            size: file.size,
+            uploadedAt: now,
+            uploadedBy: {
+              username: (me.username || '').toLowerCase(),
+              name: me.name || ''
+            }
+          });
+        };
+
+        let preparednessPlan = null;
+        if (hasPlan && planFiles[0]) {
+          const f = planFiles[0];
+          preparednessPlan = {
+            filename: f.originalname,
+            url: '/uploads/' + f.filename,
+            mimeType: f.mimetype,
+            size: f.size,
+            uploadedAt: now
+          };
+          pushAtt(planFiles[0], 'preparednessPlan');
+        }
+
+        otherFiles.forEach(f => pushAtt(f, 'attachment'));
+
+        const updateDoc = {
+          type: finalType,
+          typeOther: otherType || null,
+          location,
+          description,
+          reporterName,
+          contact,
+          hasPreparednessPlan: hasPlan,
+          casualties,
+          injuries,
+          affectedCount,
+          priority,
+          status,
+          dateTime,
+          incidentDate: dateTime,
+          responseTimeMinutes,
+          updatedAt: now
+        };
+
+        // Only update attachments if new files were uploaded
+        if (attachments.length > 0) {
+          const existingAttachments = existing?.attachments || [];
+          updateDoc.attachments = [...existingAttachments, ...attachments];
+        }
+
+        // Only update preparedness plan if new file was uploaded
+        if (preparednessPlan) {
+          updateDoc.preparednessPlan = preparednessPlan;
+        }
+
+        const updatedDoc = await withDisaster(async (db) => {
+          const col = db.collection('disaster_incidents');
+          await col.updateOne({ _id }, { $set: updateDoc });
+          return col.findOne({ _id });
+        });
+
+        res.json({ ok: true, row: updatedDoc });
+      } catch (e) {
+        console.error('[disaster] incident update error', e);
+        res.status(500).json({ ok: false, message: 'Failed to update incident.' });
+      }
+    });
+  });
+
+  // Delete incident (admin only, or user can delete their own)
+  router.delete('/api/disaster/incidents/:id', requireAuth, async (req, res) => {
+    try {
+      let _id;
+      try {
+        _id = new ObjectId(req.params.id);
+      } catch {
+        return res.status(400).json({ ok: false, message: 'Invalid incident id.' });
+      }
+
+      const me = req.session.user || {};
+      const isAdmin = /^(admin)$/i.test(me?.role || '') || me?.isAdmin === true;
+
+      // Check if user owns this record (if not admin)
+      if (!isAdmin) {
+        const existing = await withDisaster(async (db) => {
+          return db.collection('disaster_incidents').findOne({ _id });
+        });
+        if (!existing) {
+          return res.status(404).json({ ok: false, message: 'Incident not found.' });
+        }
+        const reporterUsername = existing.reportedBy?.username || '';
+        if (reporterUsername !== (me.username || '').toLowerCase()) {
+          return res.status(403).json({ ok: false, message: 'You can only delete incidents that you reported.' });
+        }
+      }
+
+      const result = await withDisaster(async (db) => {
+        const col = db.collection('disaster_incidents');
+        const deleteResult = await col.deleteOne({ _id });
+        return deleteResult.deletedCount > 0;
+      });
+
+      if (result) {
+        res.json({ ok: true, message: 'Incident deleted successfully.' });
+      } else {
+        res.status(404).json({ ok: false, message: 'Incident not found.' });
+      }
+    } catch (e) {
+      console.error('[disaster] incident delete error', e);
+      res.status(500).json({ ok: false, message: 'Failed to delete incident.' });
+    }
+  });
+
   // Printable view / document generator for incidents + attachments
   router.get('/disaster/incidents/:id/print', requireAuth, async (req, res) => {
     try {

@@ -42,6 +42,9 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
   tailwind.config = {
+    corePlugins: {
+      preflight: false, // Disable Tailwind's reset to prevent layout conflicts
+    },
     theme: {
       extend: {
         fontFamily: {
@@ -55,6 +58,71 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/base.css">
+<style>
+  /* Prevent Tailwind from affecting layout */
+  * {
+    box-sizing: border-box;
+  }
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 100% !important;
+    width: 100% !important;
+    overflow-x: hidden !important;
+  }
+  .dashboard-container {
+    display: flex !important;
+    min-height: 100vh !important;
+    position: relative !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    height: 100vh !important;
+    width: 264px !important;
+    z-index: 10 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .sidebar.collapsed {
+    width: 84px !important;
+  }
+  .main-content {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    margin-left: 264px !important;
+    transition: margin-left .22s ease !important;
+    width: calc(100% - 264px) !important;
+    min-width: 0 !important;
+  }
+  .sidebar.collapsed ~ .main-content {
+    margin-left: 84px !important;
+    width: calc(100% - 84px) !important;
+  }
+  .content-area {
+    flex: 1 !important;
+    padding: 22px !important;
+    overflow-y: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+  }
+  .content-area > * {
+    box-sizing: border-box !important;
+  }
+  .content-area .grid {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+</style>
 </head>
 
 <!-- Use same header/behaviour scripts as dashboard -->
@@ -81,7 +149,8 @@
       <li><a href="/admin/financial" data-tooltip="Finance & Budget"><span class="icon">💰</span><span class="label">Financial & Budget</span></a></li>
       <li><a href="/admin/logs-reports" data-tooltip="Logs & Reports"><span class="icon">📊</span><span class="label">Logs & Reports</span></a></li>
       <li><a href="/admin/settings" class="active" data-tooltip="System Settings"><span class="icon">⚙️</span><span class="label">System Settings</span></a></li>
-      <li><a href="#" onclick="logout()" data-tooltip="Log out"><span class="icon">🚪</span><span class="label">Log out</span></a></li>
+
+      <li style="margin-top:50px;"><a href="#" onclick="logout()" data-tooltip="Log out"><span class="icon">🚪</span><span class="label">Log out</span></a></li>
     </ul>
   </nav>
 
@@ -113,7 +182,7 @@
     <div class="content-area">
       <p class="muted mb-3.5">Adjust preferences for appearance, account, privacy, notifications, data, and more.</p>
 
-      <div class="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-5 max-w-[1400px]">
+      <div class="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-5" style="width: 100%; max-width: 100%; margin: 0; padding: 0;">
         <!-- Left: nav -->
         <aside class="bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius)] shadow-[var(--shadow-sm)] p-4 sticky top-5 h-fit">
           <h3 class="font-semibold text-[0.9rem] leading-tight text-[var(--muted)] uppercase tracking-wider mb-2.5">Settings</h3>

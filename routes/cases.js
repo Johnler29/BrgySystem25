@@ -954,139 +954,800 @@ module.exports = function mountCases(app) {
       return res.status(404).send('Case not found.');
     }
 
-    const fmt = (d) => d ? new Date(d).toLocaleString() : '-';
-    const fmtDate = (d) => d ? new Date(d).toLocaleDateString() : '-';
+    const fmt = (d) => d ? new Date(d).toLocaleString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric', 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    }) : '-';
+    const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    }) : '-';
+    const fmtShort = (d) => d ? new Date(d).toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    }) : '-';
 
     const html = `
 <!doctype html>
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Case Report - ${row.caseId}</title>
+    <title>Official Case Report - ${row.caseId}</title>
     <style>
-      body { font-family: Arial, sans-serif; padding: 40px; line-height: 1.6; }
-      h1 { text-align: center; margin-bottom: 8px; color: #2c3e50; }
-      .subtitle { text-align: center; color: #7f8c8d; margin-bottom: 32px; }
-      .meta { margin-bottom: 24px; padding: 16px; background: #f8f9fa; border-radius: 8px; }
-      .section { margin-top: 24px; page-break-inside: avoid; }
-      .section h3 { border-bottom: 2px solid #3498db; padding-bottom: 8px; color: #2c3e50; }
-      .kv { display: grid; grid-template-columns: 180px 1fr; gap: 12px; margin-bottom: 8px; }
-      .label { font-weight: bold; color: #7f8c8d; }
-      .value { color: #2c3e50; }
-      .timeline { margin-top: 16px; border-left: 3px solid #3498db; padding-left: 16px; }
-      .tl-item { margin-bottom: 12px; }
-      .tl-item .m { font-weight: 600; color: #2c3e50; }
-      .tl-item .t { font-size: 0.9em; color: #7f8c8d; }
-      .badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; font-weight: 600; }
-      .badge-Reported { background: #fff4e5; color: #b9770e; }
-      .badge-Ongoing { background: #eaf4ff; color: #1b73c7; }
-      .badge-Hearing { background: #e8f5e9; color: #2e7d32; }
-      .badge-Resolved { background: #e9f9ef; color: #239b56; }
-      .badge-Cancelled { background: #fdecea; color: #c0392b; }
-      .evidence-list { list-style: none; padding-left: 0; }
-      .evidence-list li { padding: 8px; margin-bottom: 8px; background: #f8f9fa; border-radius: 6px; }
-      .note-box { padding: 12px; background: #fff4e5; border-left: 4px solid #f39c12; border-radius: 4px; margin-top: 12px; }
+      @page {
+        size: letter;
+        margin: 0.6in 0.8in;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: 'Times New Roman', Times, serif;
+        font-size: 11pt;
+        line-height: 1.6;
+        color: #000;
+        background: #fff;
+        padding: 20px;
+        max-width: 8.5in;
+        margin: 0 auto;
+        letter-spacing: 0.01em;
+        position: relative;
+      }
+      body::before {
+        content: '';
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(0,56,168,0.03) 0%, transparent 70%);
+        border-radius: 50%;
+        z-index: 0;
+        pointer-events: none;
+      }
+      body > * {
+        position: relative;
+        z-index: 1;
+      }
+      .print-btn {
+        position: fixed;
+        top: 25px;
+        right: 25px;
+        padding: 16px 32px;
+        background: linear-gradient(135deg, #0038a8 0%, #002d87 100%);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: 600;
+        box-shadow: 0 4px 16px rgba(0,56,168,0.3);
+        z-index: 1000;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .print-btn:hover {
+        background: linear-gradient(135deg, #002d87 0%, #001f5c 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,56,168,0.4);
+      }
+      .letterhead {
+        border: 3px solid #0038a8;
+        padding: 30px 40px;
+        margin-bottom: 30px;
+        background: #ffffff;
+        position: relative;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+      .letterhead-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 20px;
+      }
+      .seal-left {
+        width: 100px;
+        height: 100px;
+        border: 3px solid #0038a8;
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-size: 8pt;
+        color: #0038a8;
+        font-weight: bold;
+        background: #f8f9fa;
+        text-align: center;
+        line-height: 1.2;
+        padding: 8px;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+      }
+      .seal-right {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .seal-small {
+        width: 60px;
+        height: 60px;
+        border: 2px solid #0038a8;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 7pt;
+        color: #0038a8;
+        font-weight: bold;
+        background: #f8f9fa;
+        text-align: center;
+      }
+      .letterhead-center {
+        text-align: center;
+        flex: 1;
+        padding: 0 20px;
+      }
+      .letterhead-title {
+        font-size: 14pt;
+        font-weight: bold;
+        color: #000;
+        letter-spacing: 1px;
+        margin-bottom: 4px;
+        text-transform: uppercase;
+        line-height: 1.3;
+      }
+      .letterhead-subtitle {
+        font-size: 16pt;
+        color: #0038a8;
+        font-weight: bold;
+        margin-bottom: 3px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+      .letterhead-address {
+        font-size: 11pt;
+        color: #333;
+        font-weight: normal;
+        margin-top: 3px;
+      }
+      .flag-lines {
+        display: flex;
+        gap: 0;
+        margin: 15px 0;
+        height: 3px;
+      }
+      .flag-line-blue {
+        flex: 1;
+        background: #0038a8;
+        height: 3px;
+      }
+      .flag-line-yellow {
+        flex: 1;
+        background: #fcd116;
+        height: 3px;
+      }
+      .office-name {
+        text-align: center;
+        font-size: 12pt;
+        font-weight: bold;
+        color: #0038a8;
+        margin: 10px 0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .document-title {
+        text-align: center;
+        font-size: 24pt;
+        font-weight: bold;
+        color: #000;
+        margin: 20px 0 30px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-family: Arial, sans-serif;
+      }
+      .form-section {
+        margin: 25px 0;
+        page-break-inside: avoid;
+      }
+      .form-item {
+        margin-bottom: 18px;
+        font-size: 11pt;
+      }
+      .form-label {
+        font-weight: bold;
+        color: #000;
+        margin-bottom: 5px;
+        display: block;
+      }
+      .form-label-number {
+        font-weight: bold;
+        color: #0038a8;
+        margin-right: 5px;
+      }
+      .form-value {
+        border-bottom: 2px solid #000;
+        padding: 5px 0;
+        min-height: 20px;
+        color: #000;
+        font-weight: 500;
+        margin-top: 3px;
+      }
+      .form-value-inline {
+        display: inline-block;
+        border-bottom: 2px solid #000;
+        padding: 5px 10px;
+        min-width: 200px;
+        color: #000;
+        font-weight: 500;
+      }
+      .form-note {
+        font-size: 9pt;
+        color: #666;
+        font-style: italic;
+        margin-top: 3px;
+      }
+      .checkbox-group {
+        display: flex;
+        gap: 20px;
+        margin-top: 8px;
+      }
+      .checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 10.5pt;
+      }
+      .checkbox-item input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        border: 2px solid #0038a8;
+      }
+      .case-header {
+        background: #fff;
+        border: 2px solid #ddd;
+        padding: 25px;
+        margin: 30px 0;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+      }
+      .section {
+        margin: 30px 0;
+        page-break-inside: avoid;
+      }
+      .section-title {
+        font-size: 13pt;
+        font-weight: bold;
+        margin-bottom: 15px;
+        padding: 10px 15px;
+        background: #f0f0f0;
+        color: #0038a8;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border-left: 5px solid #0038a8;
+        border-bottom: 2px solid #0038a8;
+      }
+      .info-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin: 18px 0;
+        font-size: 11pt;
+        border: 2px solid #d0d0d0;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      }
+      .info-table td {
+        padding: 14px 18px;
+        border: 1px solid #e0e0e0;
+      }
+      .info-table td:first-child {
+        width: 28%;
+        font-weight: 700;
+        color: #0038a8;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        text-align: right;
+        padding-right: 25px;
+        vertical-align: top;
+        border-right: 3px solid #0038a8;
+        text-transform: uppercase;
+        font-size: 10pt;
+        letter-spacing: 0.5px;
+      }
+      .info-table td:last-child {
+        color: #1a1a1a;
+        font-weight: 500;
+        background: #ffffff;
+      }
+      .description-box {
+        background: linear-gradient(135deg, #fafbfc 0%, #ffffff 100%);
+        border: 2px solid #d0d0d0;
+        border-left: 8px solid #0038a8;
+        padding: 25px;
+        margin: 18px 0;
+        white-space: pre-wrap;
+        font-size: 11pt;
+        line-height: 2;
+        text-align: justify;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        border-radius: 0 4px 4px 0;
+      }
+      .evidence-section {
+        margin: 25px 0;
+      }
+      .evidence-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin: 18px 0;
+        font-size: 10.5pt;
+        border: 2px solid #d0d0d0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      }
+      .evidence-table thead {
+        background: linear-gradient(135deg, #0038a8 0%, #002d87 100%);
+        color: #fff;
+      }
+      .evidence-table th {
+        padding: 14px 16px;
+        text-align: left;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 10pt;
+        letter-spacing: 0.8px;
+        border-right: 1px solid rgba(255,255,255,0.2);
+      }
+      .evidence-table th:last-child {
+        border-right: none;
+      }
+      .evidence-table td {
+        padding: 14px 16px;
+        border: 1px solid #e0e0e0;
+        border-top: none;
+        vertical-align: middle;
+      }
+      .evidence-table tbody tr {
+        background: #ffffff;
+        transition: background 0.2s;
+      }
+      .evidence-table tbody tr:nth-child(even) {
+        background: #f8f9fa;
+      }
+      .evidence-table tbody tr:hover {
+        background: #e8f0f8;
+      }
+      .evidence-table a {
+        color: #0038a8;
+        text-decoration: none;
+        font-weight: 600;
+        border-bottom: 1px dotted #0038a8;
+      }
+      .evidence-table a:hover {
+        color: #002d87;
+        border-bottom: 1px solid #002d87;
+      }
+      .timeline {
+        margin: 25px 0;
+        border-left: 5px solid #0038a8;
+        padding-left: 35px;
+        position: relative;
+        margin-left: 15px;
+      }
+      .timeline::before {
+        content: '';
+        position: absolute;
+        left: -10px;
+        top: 0;
+        width: 18px;
+        height: 18px;
+        background: #0038a8;
+        border-radius: 50%;
+        border: 4px solid #fff;
+        box-shadow: 0 0 0 3px #0038a8;
+      }
+      .timeline-item {
+        margin-bottom: 25px;
+        position: relative;
+        padding-left: 25px;
+        padding-bottom: 18px;
+        border-bottom: 2px dotted #d0d0d0;
+      }
+      .timeline-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+      }
+      .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -42px;
+        top: 10px;
+        width: 12px;
+        height: 12px;
+        background: #ce1126;
+        border-radius: 50%;
+        border: 3px solid #fff;
+        box-shadow: 0 0 0 3px #ce1126;
+      }
+      .timeline-label {
+        font-weight: 700;
+        color: #0038a8;
+        font-size: 12pt;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        font-family: 'Georgia', serif;
+      }
+      .timeline-value {
+        font-size: 10.5pt;
+        color: #444;
+        font-style: italic;
+        margin-left: 12px;
+        line-height: 1.6;
+      }
+      .badge {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 5px;
+        font-size: 9.5pt;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border: 2px solid;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      .badge-Reported {
+        background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+        color: #e65100;
+        border-color: #ff9800;
+      }
+      .badge-Ongoing {
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        color: #1565c0;
+        border-color: #1976d2;
+      }
+      .badge-Hearing {
+        background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+        color: #2e7d32;
+        border-color: #4caf50;
+      }
+      .badge-Resolved {
+        background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+        color: #1b5e20;
+        border-color: #2e7d32;
+      }
+      .badge-Cancelled {
+        background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+        color: #b71c1c;
+        border-color: #c62828;
+      }
+      .hearing-box, .patawag-box {
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        border: 2px solid #d0d0d0;
+        border-left: 8px solid #0038a8;
+        padding: 22px;
+        margin-bottom: 18px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        border-radius: 0 4px 4px 0;
+      }
+      .hearing-box h4, .patawag-box h4 {
+        color: #0038a8;
+        margin-bottom: 15px;
+        font-size: 12.5pt;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border-bottom: 3px solid #0038a8;
+        padding-bottom: 8px;
+        font-weight: 700;
+        font-family: 'Georgia', serif;
+      }
+      .note-box {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffe082 100%);
+        border: 3px solid #ffc107;
+        border-left: 10px solid #ff9800;
+        padding: 22px;
+        margin: 30px 0;
+        font-size: 11pt;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+        border-radius: 0 5px 5px 0;
+      }
+      .note-box strong {
+        color: #e65100;
+        display: block;
+        margin-bottom: 12px;
+        font-size: 12.5pt;
+        text-transform: uppercase;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+      }
+      .footer {
+        margin-top: 70px;
+        padding-top: 30px;
+        border-top: 4px double #0038a8;
+        text-align: center;
+        font-size: 10pt;
+        color: #666;
+        font-style: italic;
+        line-height: 1.8;
+      }
+      .signature-section {
+        margin-top: 60px;
+        page-break-inside: avoid;
+        display: flex;
+        justify-content: space-between;
+      }
+      .signature-box {
+        width: 45%;
+      }
+      .signature-line {
+        border-top: 2px solid #000;
+        width: 100%;
+        margin: 50px auto 8px;
+        padding-top: 5px;
+        text-align: center;
+        font-size: 11pt;
+        font-weight: bold;
+      }
+      .bcn-section {
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 2px solid #ddd;
+      }
+      .bcn-item {
+        margin-bottom: 15px;
+      }
+      .control-number {
+        text-align: right;
+        font-size: 9.5pt;
+        color: #777;
+        margin-bottom: 15px;
+        font-style: italic;
+        letter-spacing: 0.5px;
+        padding: 8px 12px;
+        background: #f8f9fa;
+        border-left: 4px solid #0038a8;
+        display: inline-block;
+        float: right;
+      }
       @media print {
-        button { display: none; }
-        body { padding: 20px; }
-        .section { page-break-inside: avoid; }
+        .print-btn { display: none; }
+        body {
+          padding: 0;
+          max-width: 100%;
+        }
+        .section {
+          page-break-inside: avoid;
+        }
+        .letterhead {
+          page-break-after: avoid;
+        }
+        .case-header {
+          page-break-inside: avoid;
+        }
+        .control-number {
+          float: none;
+          display: block;
+        }
       }
     </style>
   </head>
   <body>
-    <button onclick="window.print()" style="padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer; margin-bottom: 20px;">Print Report</button>
-    <h1>COMPREHENSIVE CASE REPORT</h1>
-    <div class="subtitle">Barangay Langkaan II</div>
-
-    <div class="meta">
-      <div class="kv">
-        <div class="label">Case ID:</div>
-        <div class="value"><strong>${row.caseId}</strong></div>
+    <button class="print-btn" onclick="window.print()">🖨️ Print Report</button>
+    
+    <div class="control-number">Control No: ${row._id.toString().slice(-8).toUpperCase()}</div>
+    <div style="clear: both;"></div>
+    
+    <div class="letterhead">
+      <div class="letterhead-top">
+        <div class="seal-left">
+          <div style="font-size: 7pt; margin-bottom: 3px;">SAGISAG NG</div>
+          <div style="font-size: 7pt; margin-bottom: 3px;">BARANGAY</div>
+          <div style="font-size: 6pt; color: #666;">BRGY. LANGKAAN II</div>
+          <div style="font-size: 6pt; color: #666;">DASMARIÑAS, CAVITE</div>
+        </div>
+        <div class="letterhead-center">
+          <div class="letterhead-title">Republic of the Philippines</div>
+          <div class="letterhead-subtitle">Province of Cavite</div>
+          <div class="letterhead-address">City of Dasmariñas</div>
+          <div class="letterhead-subtitle" style="font-size: 14pt; margin-top: 5px;">Barangay Langkaan II</div>
+        </div>
+        <div class="seal-right">
+          <div class="seal-small">DILG</div>
+          <div class="seal-small" style="font-size: 6pt;">PH<br>FLAG</div>
+        </div>
       </div>
-      <div class="kv">
-        <div class="label">Status:</div>
-        <div class="value"><span class="badge badge-${row.status}">${row.status}</span></div>
+      <div class="flag-lines">
+        <div class="flag-line-blue"></div>
+        <div class="flag-line-yellow"></div>
       </div>
-      <div class="kv">
-        <div class="label">Type of Case:</div>
-        <div class="value">${row.typeOfCase || '-'}</div>
-      </div>
-      <div class="kv">
-        <div class="label">Priority:</div>
-        <div class="value">${row.priority || 'Medium'}</div>
-      </div>
-      <div class="kv">
-        <div class="label">Reported By:</div>
-        <div class="value">${row.reportedBy?.name || row.reportedBy?.username || '-'}</div>
-      </div>
-      <div class="kv">
-        <div class="label">Date Reported:</div>
-        <div class="value">${fmt(row.createdAt)}</div>
-      </div>
-      <div class="kv">
-        <div class="label">Date of Incident:</div>
-        <div class="value">${fmt(row.dateOfIncident)}</div>
-      </div>
-      <div class="kv">
-        <div class="label">Place of Incident:</div>
-        <div class="value">${row.placeOfIncident || '-'}</div>
-      </div>
-      ${row.harassmentType ? `
-      <div class="kv">
-        <div class="label">Harassment Type:</div>
-        <div class="value">${row.harassmentType}</div>
-      </div>
-      ` : ''}
-      ${row.seniorCategory ? `
-      <div class="kv">
-        <div class="label">Senior-Involved:</div>
-        <div class="value">${row.seniorCategory}</div>
-      </div>
-      ` : ''}
+      <div class="office-name">Office of the Punong Barangay</div>
     </div>
 
-    <div class="section">
-      <h3>Complainant Information</h3>
-      <div class="kv"><div class="label">Name:</div><div class="value">${row.complainant?.name || '-'}</div></div>
-      <div class="kv"><div class="label">Address:</div><div class="value">${row.complainant?.address || '-'}</div></div>
-      <div class="kv"><div class="label">Contact:</div><div class="value">${row.complainant?.contact || '-'}</div></div>
+    <div class="document-title">Barangay Case Report</div>
+
+    <div class="case-header">
+      <div class="form-section">
+        <div class="form-item">
+          <div class="form-label">
+            <span class="form-label-number">1.)</span> Barangay Case Number / Numero ng Kaso:
+          </div>
+          <div class="form-value" style="font-size: 13pt; font-weight: bold; color: #0038a8;">${row.caseId}</div>
+          <div class="form-note">(to be filled by Brgy. Staff)</div>
+        </div>
+
+        <div class="form-item">
+          <div class="form-label">
+            <span class="form-label-number">2.)</span> Date / Petsa ng pag File:
+          </div>
+          <div class="form-value">${fmtDate(row.createdAt)}</div>
+        </div>
+
+        <div class="form-item">
+          <div class="form-label">
+            <span class="form-label-number">3.)</span> Name / Title ng Case / Kaso:
+          </div>
+          <div class="form-value">${row.typeOfCase || 'Not Specified'}</div>
+          <div style="margin-top: 10px;">
+            <span style="font-weight: bold; margin-right: 15px;">Nature ng Kaso:</span>
+            <div class="checkbox-group">
+              <div class="checkbox-item">
+                <input type="checkbox" ${row.typeOfCase && ['Theft', 'Physical Assault', 'Vandalism', 'Harassment'].includes(row.typeOfCase) ? 'checked' : ''} disabled>
+                <label>Criminal Case</label>
+              </div>
+              <div class="checkbox-item">
+                <input type="checkbox" ${row.typeOfCase && ['Domestic Dispute', 'Noise Complaint', 'Trespassing'].includes(row.typeOfCase) ? 'checked' : ''} disabled>
+                <label>Civil Case</label>
+              </div>
+            </div>
+          </div>
+          <div class="form-note">(Refer to Katarungang Pambarangay Handbook)</div>
+        </div>
+
+        <div class="form-item">
+          <div class="form-label">
+            <span class="form-label-number">4.)</span> Who / Sino?
+          </div>
+          <div style="margin-left: 20px; margin-top: 10px;">
+            <div class="form-item">
+              <div class="form-label">4.1 Complainant(s) / Reklamante:</div>
+              <div class="form-value">${row.complainant?.name || 'Not Provided'}</div>
+              <div class="form-note">(Pirmahan sa gilid ng iyong pangalan para sa katibayan ng pag file ng reklamo)</div>
+            </div>
+            <div class="form-item">
+              <div class="form-label">4.2 Address / Tirahan:</div>
+              <div class="form-value">${row.complainant?.address || 'Not Provided'}</div>
+            </div>
+            <div class="form-item">
+              <div class="form-label">4.3 Contact Number:</div>
+              <div class="form-value">${row.complainant?.contact || 'Not Provided'}</div>
+            </div>
+            <div class="form-item">
+              <div class="form-label">4.4 Respondent(s) / Sinisingil:</div>
+              <div class="form-value">${row.respondent?.name || 'Not Provided'}</div>
+            </div>
+            <div class="form-item">
+              <div class="form-label">4.5 Address / Tirahan:</div>
+              <div class="form-value">${row.respondent?.address || 'Not Provided'}</div>
+            </div>
+            <div class="form-item">
+              <div class="form-label">4.6 Contact Number:</div>
+              <div class="form-value">${row.respondent?.contact || 'Not Provided'}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-item">
+          <div class="form-label">
+            <span class="form-label-number">5.)</span> What / Ano?
+          </div>
+          <div class="form-value" style="min-height: 120px; padding: 10px; white-space: pre-wrap; text-align: justify;">${(row.description || 'No description provided.').replace(/\n/g, '\n')}</div>
+          <div class="form-note">(Isulat ang short na detalye anong mga nangyari tungkol sa iyong reklamo)</div>
+        </div>
+
+        <div class="form-item">
+          <div class="form-label">
+            <span class="form-label-number">6.)</span> Where / Saan?
+          </div>
+          <div class="form-value" style="min-height: 80px; padding: 10px;">${row.placeOfIncident || 'Not Specified'}</div>
+          <div class="form-note">(Isulat kung saan particular ang lugar nangyari ang iyong inereklamo insidente)</div>
+        </div>
+
+        <div class="form-item">
+          <div class="form-label">
+            <span class="form-label-number">7.)</span> When / Kailan?
+          </div>
+          <div style="margin-left: 20px; margin-top: 10px;">
+            <div class="form-item" style="display: inline-block; width: 48%; margin-right: 4%;">
+              <div class="form-label">Date / Petsa:</div>
+              <div class="form-value">${fmtDate(row.dateOfIncident)}</div>
+            </div>
+            <div class="form-item" style="display: inline-block; width: 48%;">
+              <div class="form-label">Time / Oras:</div>
+              <div class="form-value">${row.dateOfIncident ? new Date(row.dateOfIncident).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'Not Specified'}</div>
+            </div>
+          </div>
+          <div class="form-note">(Isulat ang insakto na petsa at ang oras sa pangyayari)</div>
+        </div>
+
+        <div class="form-item">
+          <div class="form-label">
+            <span class="form-label-number">8.)</span> Case Status / Estado ng Kaso:
+          </div>
+          <div class="form-value"><span class="badge badge-${row.status}">${row.status}</span></div>
+        </div>
+
+        ${row.priority ? `
+        <div class="form-item">
+          <div class="form-label">
+            <span class="form-label-number">9.)</span> Priority Level / Antas ng Priyoridad:
+          </div>
+          <div class="form-value"><strong>${row.priority}</strong></div>
+        </div>
+        ` : ''}
+      </div>
     </div>
 
-    <div class="section">
-      <h3>Respondent Information</h3>
-      <div class="kv"><div class="label">Name:</div><div class="value">${row.respondent?.name || '-'}</div></div>
-      <div class="kv"><div class="label">Address:</div><div class="value">${row.respondent?.address || '-'}</div></div>
-      <div class="kv"><div class="label">Contact:</div><div class="value">${row.respondent?.contact || '-'}</div></div>
-    </div>
-
-    <div class="section">
-      <h3>Case Description</h3>
-      <p style="white-space: pre-wrap; background: #f8f9fa; padding: 16px; border-radius: 6px;">${row.description || '-'}</p>
-    </div>
 
     ${Array.isArray(row.evidences) && row.evidences.length ? `
     <div class="section">
-      <h3>Evidence Files (${row.evidences.length})</h3>
-      <ul class="evidence-list">
-        ${row.evidences.map(ev => `
-          <li>
-            <strong>${ev.kind || 'File'}:</strong> 
-            <a href="${ev.url}" target="_blank">${ev.filename}</a>
-            ${ev.uploadedAt ? ` (Uploaded: ${fmtDate(ev.uploadedAt)})` : ''}
-          </li>
-        `).join('')}
-      </ul>
+      <div class="section-title">IV. Evidence Files (${row.evidences.length})</div>
+      <table class="evidence-table">
+        <thead>
+          <tr>
+            <th style="width: 60px;">#</th>
+            <th>Type</th>
+            <th>File Name</th>
+            <th style="width: 120px;">Uploaded</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${row.evidences.map((ev, idx) => `
+            <tr>
+              <td><strong>${idx + 1}</strong></td>
+              <td>${ev.kind || 'Document'}</td>
+              <td><a href="${ev.url}" target="_blank">${ev.filename}</a></td>
+              <td>${ev.uploadedAt ? fmtShort(ev.uploadedAt) : '-'}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
     </div>
     ` : ''}
 
     ${Array.isArray(row.hearings) && row.hearings.length ? `
     <div class="section">
-      <h3>Hearings (${row.hearings.length})</h3>
+      <div class="section-title">V. Scheduled Hearings (${row.hearings.length})</div>
       ${row.hearings.map((h, idx) => `
-        <div style="margin-bottom: 16px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
-          <div class="kv"><div class="label">Hearing #${idx + 1}:</div><div class="value">${fmt(h.dateTime)}</div></div>
-          <div class="kv"><div class="label">Venue:</div><div class="value">${h.venue || 'Barangay Hall'}</div></div>
-          ${h.notes ? `<div class="kv"><div class="label">Notes:</div><div class="value">${h.notes}</div></div>` : ''}
+        <div class="hearing-box">
+          <h4>Hearing #${idx + 1}</h4>
+          <table class="info-table">
+            <tr>
+              <td>Date & Time:</td>
+              <td><strong>${fmt(h.dateTime)}</strong></td>
+            </tr>
+            <tr>
+              <td>Venue:</td>
+              <td>${h.venue || 'Barangay Hall'}</td>
+            </tr>
+            ${h.notes ? `
+            <tr>
+              <td>Notes:</td>
+              <td>${h.notes}</td>
+            </tr>
+            ` : ''}
+            ${h.createdBy?.name ? `
+            <tr>
+              <td>Scheduled By:</td>
+              <td>${h.createdBy.name}</td>
+            </tr>
+            ` : ''}
+          </table>
         </div>
       `).join('')}
     </div>
@@ -1094,13 +1755,38 @@ module.exports = function mountCases(app) {
 
     ${Array.isArray(row.patawagForms) && row.patawagForms.length ? `
     <div class="section">
-      <h3>Patawag Forms (${row.patawagForms.length})</h3>
+      <div class="section-title">VI. Patawag Forms (${row.patawagForms.length})</div>
       ${row.patawagForms.map((p, idx) => `
-        <div style="margin-bottom: 16px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
-          <div class="kv"><div class="label">Patawag #${idx + 1}:</div><div class="value">${p.scheduleDate ? fmt(p.scheduleDate) : 'No schedule'}</div></div>
-          <div class="kv"><div class="label">Venue:</div><div class="value">${p.venue || 'Barangay Hall'}</div></div>
-          ${p.notes ? `<div class="kv"><div class="label">Notes:</div><div class="value">${p.notes}</div></div>` : ''}
-          ${p.createdAt ? `<div class="kv"><div class="label">Created:</div><div class="value">${fmt(p.createdAt)}</div></div>` : ''}
+        <div class="patawag-box">
+          <h4>Patawag Form #${idx + 1}</h4>
+          <table class="info-table">
+            <tr>
+              <td>Schedule Date:</td>
+              <td><strong>${p.scheduleDate ? fmt(p.scheduleDate) : 'Not Scheduled'}</strong></td>
+            </tr>
+            <tr>
+              <td>Venue:</td>
+              <td>${p.venue || 'Barangay Hall'}</td>
+            </tr>
+            ${p.notes ? `
+            <tr>
+              <td>Notes:</td>
+              <td>${p.notes}</td>
+            </tr>
+            ` : ''}
+            ${p.createdAt ? `
+            <tr>
+              <td>Form Created:</td>
+              <td>${fmt(p.createdAt)}</td>
+            </tr>
+            ` : ''}
+            ${p.createdBy?.name ? `
+            <tr>
+              <td>Created By:</td>
+              <td>${p.createdBy.name}</td>
+            </tr>
+            ` : ''}
+          </table>
         </div>
       `).join('')}
     </div>
@@ -1109,56 +1795,53 @@ module.exports = function mountCases(app) {
     ${row.over45Note ? `
     <div class="section">
       <div class="note-box">
-        <strong>⚠️ 45-Day Notice:</strong><br>
+        <strong>⚠️ IMPORTANT NOTICE - 45-DAY PERIOD</strong>
         ${row.over45Note}
       </div>
     </div>
     ` : ''}
 
     <div class="section">
-      <h3>Case Timeline</h3>
+      <div class="section-title">VII. Case Timeline</div>
       <div class="timeline">
-        <div class="tl-item">
-          <div class="m">Case Created</div>
-          <div class="t">${fmt(row.createdAt)}</div>
+        <div class="timeline-item">
+          <div class="timeline-label">Case Created</div>
+          <div class="timeline-value">${fmt(row.createdAt)}</div>
         </div>
         ${row.ongoingSince ? `
-        <div class="tl-item">
-          <div class="m">Status Changed to Ongoing</div>
-          <div class="t">${fmt(row.ongoingSince)}</div>
+        <div class="timeline-item">
+          <div class="timeline-label">Status Changed to Ongoing</div>
+          <div class="timeline-value">${fmt(row.ongoingSince)}</div>
         </div>
         ` : ''}
         ${row.resolveDate ? `
-        <div class="tl-item">
-          <div class="m">Case Resolved</div>
-          <div class="t">${fmt(row.resolveDate)}</div>
+        <div class="timeline-item">
+          <div class="timeline-label">Case Resolved</div>
+          <div class="timeline-value">${fmt(row.resolveDate)}</div>
         </div>
         ` : ''}
         ${row.cancelDate ? `
-        <div class="tl-item">
-          <div class="m">Case Cancelled</div>
-          <div class="t">${fmt(row.cancelDate)}</div>
-          ${row.cancellationReason ? `<div class="t" style="margin-top: 4px;">Reason: ${row.cancellationReason}</div>` : ''}
+        <div class="timeline-item">
+          <div class="timeline-label">Case Cancelled</div>
+          <div class="timeline-value">${fmt(row.cancelDate)}${row.cancellationReason ? '<br><strong>Reason:</strong> ' + row.cancellationReason : ''}</div>
         </div>
         ` : ''}
-        <div class="tl-item">
-          <div class="m">Last Updated</div>
-          <div class="t">${fmt(row.updatedAt)}</div>
+        <div class="timeline-item">
+          <div class="timeline-label">Last Updated</div>
+          <div class="timeline-value">${fmt(row.updatedAt)}</div>
         </div>
       </div>
     </div>
 
     ${Array.isArray(row.statusHistory) && row.statusHistory.length ? `
     <div class="section">
-      <h3>Status History</h3>
+      <div class="section-title">VIII. Status History</div>
       <div class="timeline">
         ${row.statusHistory.map(sh => `
-          <div class="tl-item">
-            <div class="m">${sh.status || 'Status Change'}</div>
-            <div class="t">
-              ${fmt(sh.at)} 
-              ${sh.by?.name ? ' by ' + sh.by.name : ''}
-              ${sh.note ? '<br><em>' + sh.note + '</em>' : ''}
+          <div class="timeline-item">
+            <div class="timeline-label">${sh.status || 'Status Change'}</div>
+            <div class="timeline-value">
+              ${fmt(sh.at)}${sh.by?.name ? ' by <strong>' + sh.by.name + '</strong>' : ''}${sh.note ? '<br><em style="color: #555; margin-top: 5px; display: block;">Note: ' + sh.note + '</em>' : ''}
             </div>
           </div>
         `).join('')}
@@ -1166,10 +1849,44 @@ module.exports = function mountCases(app) {
     </div>
     ` : ''}
 
-    <div class="section" style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #ecf0f1;">
-      <p style="text-align: center; color: #7f8c8d; font-size: 0.9em;">
-        Report generated on ${new Date().toLocaleString()}<br>
-        Barangay Langkaan II Case Management System
+    <div class="bcn-section">
+      <div class="form-item">
+        <div class="form-label">
+          <span class="form-label-number">Barangay Case No. (BCN):</span>
+        </div>
+        <div class="form-value" style="font-size: 12pt; font-weight: bold; color: #0038a8;">${row.caseId}</div>
+        <div class="form-note">(to be filled by Brgy. Staff)</div>
+      </div>
+    </div>
+
+    <div class="signature-section">
+      <div class="signature-box">
+        <div class="signature-line">
+          <strong>Assisted & Received:</strong>
+        </div>
+        <div style="text-align: center; font-size: 10pt; color: #666; margin-top: 5px;">
+          Barangay Secretary
+        </div>
+      </div>
+      <div class="signature-box">
+        <div class="signature-line">
+          <strong>Punong Barangay:</strong>
+        </div>
+        <div style="text-align: center; font-size: 10pt; color: #666; margin-top: 5px;">
+          Barangay Captain
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p style="font-size: 9pt; color: #666; margin-top: 30px; text-align: center;">
+        Report generated on ${new Date().toLocaleString('en-US', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric', 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        })} | This is an official document generated by the Barangay Langkaan II Case Management System.
       </p>
     </div>
   </body>

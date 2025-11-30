@@ -107,49 +107,139 @@
     }
   }
 
+  // Resident search functionality
+  let searchTimeout = null;
+  let selectedResident = null;
+
+  async function searchResidents(query) {
+    if (!query || query.trim().length < 2) {
+      $id("residentDropdown").classList.add("hidden");
+      return;
+    }
+
+    try {
+      const j = await fetchJSON(`/api/residents/search?q=${encodeURIComponent(query)}`);
+      const residents = j.residents || [];
+      displayResidentDropdown(residents);
+    } catch (e) {
+      console.error("Search error:", e);
+      $id("residentDropdown").classList.add("hidden");
+    }
+  }
+
+  function displayResidentDropdown(residents) {
+    const dropdown = $id("residentDropdown");
+    if (!residents.length) {
+      dropdown.innerHTML = '<div class="px-4 py-3 text-sm text-gray-500">No residents found</div>';
+      dropdown.classList.remove("hidden");
+      return;
+    }
+
+    dropdown.innerHTML = residents.map(r => `
+      <div class="px-4 py-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0" 
+           data-resident-id="${r._id}" 
+           data-resident-name="${(r.name || '').replace(/"/g, '&quot;')}" 
+           data-resident-address="${(r.address || '').replace(/"/g, '&quot;')}"
+           data-resident-id-string="${(r.residentId || '').replace(/"/g, '&quot;')}">
+        <div class="font-semibold text-gray-900">${r.name || '—'}</div>
+        <div class="text-xs text-gray-600 mt-0.5">ID: ${r.residentId || '—'} • ${r.address || 'No address'}</div>
+      </div>
+    `).join('');
+
+    // Add click handlers
+    dropdown.querySelectorAll('[data-resident-id]').forEach(el => {
+      el.addEventListener('click', () => {
+        const residentId = el.getAttribute('data-resident-id');
+        const residentName = el.getAttribute('data-resident-name');
+        const residentAddress = el.getAttribute('data-resident-address');
+        const residentIdString = el.getAttribute('data-resident-id-string');
+        selectResident({
+          _id: residentId,
+          name: residentName,
+          address: residentAddress,
+          residentId: residentIdString
+        });
+      });
+    });
+
+    dropdown.classList.remove("hidden");
+  }
+
+  function selectResident(resident) {
+    selectedResident = resident;
+    $id("selectedResidentId").value = resident._id;
+    $id("residentSearch").value = `${resident.name} (${resident.residentId || 'ID: N/A'})`;
+    $id("requesterName").value = resident.name || "";
+    $id("address").value = resident.address || "";
+    $id("residentDropdown").classList.add("hidden");
+    
+    // Update help text
+    const nameHelp = $id("nameHelp");
+    const addressHelp = $id("addressHelp");
+    if (nameHelp) nameHelp.textContent = "Auto-filled from selected resident";
+    if (addressHelp) addressHelp.textContent = "Auto-filled from selected resident";
+  }
+
   function setupForm() {
     const addBtn = $id("addNewBtn");
     const formModal = $id("formModal");
-    const closeX = $id("closeFormX");
     const cancel = $id("cancelForm");
     const save = $id("saveForm");
     const form = $id("docForm");
     const requesterNameInput = $id("requesterName");
     const addressInput = $id("address");
+    const residentSearchInput = $id("residentSearch");
+
+    // Setup resident search
+    if (residentSearchInput) {
+      on(residentSearchInput, "input", (e) => {
+        const query = e.target.value.trim();
+        if (searchTimeout) clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => searchResidents(query), 300);
+      });
+
+      on(residentSearchInput, "focus", () => {
+        if (residentSearchInput.value.trim().length >= 2) {
+          searchResidents(residentSearchInput.value.trim());
+        }
+      });
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener("click", (e) => {
+      const dropdown = $id("residentDropdown");
+      if (dropdown && !e.target.closest("#residentSearch") && !e.target.closest("#residentDropdown")) {
+        dropdown.classList.add("hidden");
+      }
+    });
 
     const open = () => {
       form.reset();
       $id("docId").value = "";
+      $id("selectedResidentId").value = "";
       $id("formTitle").textContent = "Request New Document";
       const msgEl = $id("msg");
       if (msgEl) msgEl.textContent = "";
       
-      // Auto-populate requester name and address from user profile
-      if (currentUser) {
-        requesterNameInput.value = currentUser.name || "";
-        addressInput.value = currentUser.address || "";
-        
-        // Name is always read-only
-        requesterNameInput.readOnly = true;
-        requesterNameInput.style.backgroundColor = "#f5f5f5";
-        requesterNameInput.style.cursor = "not-allowed";
-        
-        // If address is missing, allow user to enter it
-        const addressHelp = document.getElementById("addressHelp");
-        if (!currentUser.address || currentUser.address.trim() === "") {
-          addressInput.readOnly = false;
-          addressInput.style.backgroundColor = "";
-          addressInput.style.cursor = "";
-          addressInput.required = true;
-          if (addressHelp) addressHelp.textContent = "Please enter your address";
-        } else {
-          // Make address read-only if it exists
-          addressInput.readOnly = true;
-          addressInput.style.backgroundColor = "#f5f5f5";
-          addressInput.style.cursor = "not-allowed";
-          if (addressHelp) addressHelp.textContent = "This field is automatically filled from your profile";
-        }
-      }
+      // Reset resident selection
+      selectedResident = null;
+      residentSearchInput.value = "";
+      requesterNameInput.value = "";
+      addressInput.value = "";
+      
+      // Reset fields to editable state
+      requesterNameInput.readOnly = true;
+      requesterNameInput.style.backgroundColor = "#f5f5f5";
+      requesterNameInput.style.cursor = "not-allowed";
+      addressInput.readOnly = true;
+      addressInput.style.backgroundColor = "#f5f5f5";
+      addressInput.style.cursor = "not-allowed";
+      
+      // Update help text
+      const nameHelp = $id("nameHelp");
+      const addressHelp = $id("addressHelp");
+      if (nameHelp) nameHelp.textContent = "Will be auto-filled when you select a resident";
+      if (addressHelp) addressHelp.textContent = "Will be auto-filled when you select a resident";
       
       // Reset payment fields
       $id("paymentMethod").value = "";
@@ -171,9 +261,8 @@
       addressInput.style.cursor = "";
     };
 
-    on(addBtn, "click", open);
-    on(closeX, "click", close);
-    on(cancel, "click", close);
+    if (addBtn) on(addBtn, "click", open);
+    if (cancel) on(cancel, "click", close);
     // Close modal when clicking outside (on the overlay)
     on(formModal, "click", (e) => {
       if (e.target === formModal) close();
@@ -191,6 +280,13 @@
       e.preventDefault();
       
       const msgEl = $id("msg");
+      const residentId = $id("selectedResidentId").value.trim();
+      
+      if (!residentId) {
+        if (msgEl) msgEl.textContent = "Please select a resident to validate the request.";
+        return;
+      }
+
       const data = {
         typeOfDocument: $id("typeOfDocument").value.trim(),
         numberOfCopies: Math.max(1, parseInt($id("numberOfCopies").value || 1, 10)),
@@ -199,6 +295,7 @@
         purpose: $id("purpose").value.trim(),
         paymentMethod: $id("paymentMethod").value || "",
         paymentStatus: $id("paymentStatus").value || "",
+        residentId: residentId
       };
 
       if (!data.typeOfDocument || !data.requesterName || !data.address || !data.purpose) {
@@ -220,7 +317,9 @@
           if (msgEl) msgEl.textContent = j.message || "Failed to submit request";
         }
       } catch (e) {
-        if (msgEl) msgEl.textContent = e.message || "Failed to submit request";
+        const errorMsg = e.message || "Failed to submit request";
+        if (msgEl) msgEl.textContent = errorMsg;
+        console.error("Submit error:", e);
       }
     });
   }

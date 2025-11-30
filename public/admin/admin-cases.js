@@ -9,6 +9,7 @@
   const typeSel = $('#typeOfCase');
   const fType   = $('#fType');
   const fPriority = $('#fPriority');
+  const fStatus = $('#fStatus');
 
   const notifBtn   = document.getElementById('notifBtn');
   const notifPanel = document.getElementById('notifPanel');
@@ -19,6 +20,7 @@
 
   const drawer  = $('#drawer');
   const dBody   = $('#dBody');
+  const dFooter = $('#dFooter');
   const dClose  = $('#dClose');
   const dCaseId = $('#dCaseId');
   const dStatus = $('#dStatus');
@@ -113,7 +115,42 @@
     }catch{}
   }
 
+  function showLoading() {
+    if (!tblBody) return;
+    
+    // Add loading class to table wrapper
+    const tableWrap = tblBody.closest('.table-wrap');
+    if (tableWrap) {
+      tableWrap.classList.add('table-loading');
+    }
+    
+    // Clear existing rows
+    tblBody.innerHTML = '';
+    
+    // Create 5 skeleton rows (7 columns: Reported By, Case ID, Type, Date Reported, Date of Incident, Status, Actions)
+    const colCount = 7;
+    for (let i = 0; i < 5; i++) {
+      const tr = document.createElement('tr');
+      tr.className = 'table-skeleton';
+      let skeletonCells = '';
+      
+      // Column widths: Reported By (long), Case ID (short), Type (long), Date Reported (long), Date of Incident (long), Status (short), Actions (short)
+      const widths = ['long', 'short', 'long', 'long', 'long', 'short', 'short'];
+      
+      for (let j = 0; j < colCount; j++) {
+        const width = widths[j] || 'long';
+        skeletonCells += `<td><div class="skeleton-bar ${width}"></div></td>`;
+      }
+      
+      tr.innerHTML = skeletonCells;
+      tblBody.appendChild(tr);
+    }
+  }
+
   async function load(){
+    // Show loading state
+    showLoading();
+
     const qs = new URLSearchParams({
       page: state.page,
       limit: state.limit,
@@ -127,10 +164,32 @@
       priority: state.priority
     }).toString();
 
-    const j = await fetchJSON('/api/cases?'+qs);
-    renderRows(j.rows || []);
-    renderPager(j.page, j.totalPages, j.total);
-    refreshSummary();
+    try {
+      // Add small delay for smooth transition (only if data loads too fast)
+      const [j] = await Promise.all([
+        fetchJSON('/api/cases?'+qs),
+        new Promise(resolve => setTimeout(resolve, 150)) // Minimum 150ms for smooth transition
+      ]);
+
+      // Remove loading class
+      const tableWrap = tblBody?.closest('.table-wrap');
+      if (tableWrap) {
+        tableWrap.classList.remove('table-loading');
+      }
+
+      renderRows(j.rows || []);
+      renderPager(j.page, j.totalPages, j.total);
+      refreshSummary();
+    } catch (error) {
+      // Remove loading class on error
+      const tableWrap = tblBody?.closest('.table-wrap');
+      if (tableWrap) {
+        tableWrap.classList.remove('table-loading');
+      }
+      renderRows([]);
+      renderPager(1, 1, 0);
+      console.error('Failed to load cases:', error);
+    }
   }
 
   function renderRows(rows){
@@ -149,9 +208,11 @@
         <td>${fmt(r.dateOfIncident)}</td>
         <td>${badge(r.status)}</td>
         <td class="actions">
-          <button class="btn btn-ghost" data-act="view"   data-id="${r._id}">View</button>
-          ${isAdmin ? `<button class="btn btn-ghost" data-act="status" data-id="${r._id}">Change Status</button>` : ''}
-          ${isAdmin ? `<button class="btn btn-danger" data-act="del"   data-id="${r._id}">Delete</button>` : ''}
+          <div class="table-actions">
+            <button class="table-action-btn view" data-act="view" data-id="${r._id}">View</button>
+            ${isAdmin ? `<button class="table-action-btn edit" data-act="status" data-id="${r._id}">Edit</button>` : ''}
+            ${isAdmin ? `<button class="table-action-btn delete" data-act="del" data-id="${r._id}">Delete</button>` : ''}
+          </div>
         </td>
       `;
       tblBody.appendChild(tr);
@@ -182,6 +243,8 @@
     [...document.querySelectorAll('.chip')].forEach(c=>c.classList.remove('active'));
     chip.classList.add('active');
     state.status = chip.getAttribute('data-status') || '';
+    // Update status dropdown to match
+    if (fStatus) fStatus.value = state.status;
     state.page = 1;
     load();
   });
@@ -194,6 +257,13 @@
     state.mine   = $('#fMine').checked;
     state.type   = fType ? (fType.value || '') : '';
     state.priority = fPriority ? (fPriority.value || '') : '';
+    if (fStatus) {
+      state.status = fStatus.value || '';
+      // Update chips to match
+      [...document.querySelectorAll('.chip')].forEach(c=>c.classList.remove('active'));
+      const chip = document.querySelector(`.chip[data-status="${state.status}"]`);
+      if (chip) chip.classList.add('active');
+    }
     state.page   = 1;
     load();
   }
@@ -216,6 +286,9 @@
   }
   if (fPriority) {
     fPriority.addEventListener('change', applyFilters);
+  }
+  if (fStatus) {
+    fStatus.addEventListener('change', applyFilters);
   }
   $('#btnExport').onclick=()=>{
     const qs = new URLSearchParams({ ...state, exportCsv:'true' }).toString();
@@ -385,15 +458,19 @@
           ` : ''}
         </div>
 
-        <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">
+      `;
+      
+      // Set footer buttons separately
+      if (dFooter) {
+        dFooter.innerHTML = `
           <button class="btn btn-ghost" id="dPrint">Print</button>
           <button class="btn btn-ghost" id="dReport">Full Report</button>
           ${isAdmin ? `<button class="btn btn-ghost" id="dChange">Change Status</button>` : ''}
           ${isAdmin ? `<button class="btn btn-ghost" id="dHearing">Add Hearing</button>` : ''}
           ${isAdmin && r.status === 'Ongoing' ? `<button class="btn btn-ghost" id="dPatawag">Patawag Form</button>` : ''}
           ${isAdmin && r.status === 'Cancelled' ? `<button class="btn btn-ghost" id="dCancelLetter">Cancellation Letter</button>` : ''}
-        </div>
-      `;
+        `;
+      }
 
       const printBtn = document.getElementById('dPrint');
       if (printBtn) {

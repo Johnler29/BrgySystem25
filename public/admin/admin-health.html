@@ -96,43 +96,26 @@
   .health-stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
+    gap: 20px;
     margin-bottom: 24px;
   }
   .health-stat-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 14px;
-    box-shadow: var(--shadow-sm);
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.05);
     position: relative;
-    overflow: hidden;
     transition: all 0.2s ease;
-    border-left: 3px solid var(--brand);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
   }
   .health-stat-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,.08);
+    border-color: #d1d5db;
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   }
-  .health-stat-card.blue { border-left-color: #3498db; }
-  .health-stat-card.dark-blue { border-left-color: #2980b9; }
-  .health-stat-card.light-blue { border-left-color: #5dade2; }
-  .health-stat-card.navy { border-left-color: #1e3a8a; }
-  .health-stat-card.sky { border-left-color: #85c1e9; }
-  .health-stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: var(--brand);
-  }
-  .health-stat-card.blue::before { background: #3498db; }
-  .health-stat-card.dark-blue::before { background: #2980b9; }
-  .health-stat-card.light-blue::before { background: #5dade2; }
-  .health-stat-card.navy::before { background: #1e3a8a; }
-  .health-stat-card.sky::before { background: #85c1e9; }
   
   .health-stat-icon {
     width: 36px;
@@ -142,29 +125,26 @@
     align-items: center;
     justify-content: center;
     font-size: 18px;
-    margin-bottom: 8px;
-    background: rgba(52, 152, 219, 0.1);
+    margin-bottom: 0;
+    background: #f3f4f6;
   }
-  .health-stat-card.blue .health-stat-icon { background: rgba(52, 152, 219, 0.1); }
-  .health-stat-card.dark-blue .health-stat-icon { background: rgba(41, 128, 185, 0.1); }
-  .health-stat-card.light-blue .health-stat-icon { background: rgba(93, 173, 226, 0.1); }
-  .health-stat-card.navy .health-stat-icon { background: rgba(30, 58, 138, 0.1); }
-  .health-stat-card.sky .health-stat-icon { background: rgba(133, 193, 233, 0.1); }
   
   .health-stat-label {
-    font-size: 0.8rem;
-    color: var(--muted);
-    margin: 0 0 8px;
-    font-weight: 500;
+    font-size: 11px;
+    color: #6b7280;
+    margin: 0;
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.8px;
+    line-height: 1.4;
   }
   .health-stat-value {
-    font-size: 1.5rem;
+    font-size: 28px;
     font-weight: 700;
-    color: var(--text);
+    color: #111827;
     margin: 0;
     line-height: 1.2;
+    letter-spacing: -0.3px;
   }
 
   /* Tabs - Clean Design */
@@ -884,27 +864,27 @@
     <div class="content-area">
       <!-- Enhanced Statistics -->
       <div class="health-stats-grid">
-        <div class="health-stat-card blue">
+        <div class="health-stat-card">
           <div class="health-stat-icon">👥</div>
           <p class="health-stat-label">Total Patients</p>
           <h3 class="health-stat-value" id="sTotal">0</h3>
         </div>
-        <div class="health-stat-card dark-blue">
+        <div class="health-stat-card">
           <div class="health-stat-icon">📋</div>
           <p class="health-stat-label">Active Programs</p>
           <h3 class="health-stat-value" id="sActive">0</h3>
         </div>
-        <div class="health-stat-card light-blue">
+        <div class="health-stat-card">
           <div class="health-stat-icon">📅</div>
           <p class="health-stat-label">Scheduled</p>
           <h3 class="health-stat-value" id="sScheduled">0</h3>
         </div>
-        <div class="health-stat-card navy">
+        <div class="health-stat-card">
           <div class="health-stat-icon">✅</div>
           <p class="health-stat-label">Completed</p>
           <h3 class="health-stat-value" id="sCompleted">0</h3>
         </div>
-        <div class="health-stat-card sky">
+        <div class="health-stat-card">
           <div class="health-stat-icon">⚠️</div>
           <p class="health-stat-label">Overdue</p>
           <h3 class="health-stat-value" id="sOverdue">0</h3>

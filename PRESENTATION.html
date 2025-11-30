@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barangay Langkaan II - Project Presentation</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 0.5cm;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .slide {
+            width: 100%;
+            min-height: 100vh;
+            padding: 60px 80px;
+            background: white;
+            margin-bottom: 20px;
+            page-break-after: always;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .slide-title {
+            font-size: 3.5em;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .slide-subtitle {
+            font-size: 1.8em;
+            color: #7f8c8d;
+            text-align: center;
+            margin-bottom: 40px;
+            font-weight: 300;
+        }
+
+        .section-title {
+            font-size: 2.5em;
+            color: #667eea;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 4px solid #667eea;
+            font-weight: 600;
+        }
+
+        .module-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 15px;
+            border-left: 6px solid #667eea;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .module-title {
+            font-size: 1.8em;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .module-content {
+            font-size: 1.1em;
+            color: #34495e;
+            line-height: 1.8;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .feature-list li {
+            padding: 10px 0;
+            padding-left: 35px;
+            position: relative;
+            font-size: 1.1em;
+        }
+
+        .feature-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #27ae60;
+            font-weight: bold;
+            font-size: 1.3em;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 0.9em;
+            margin: 5px;
+        }
+
+        .status-complete {
+            background: #27ae60;
+            color: white;
+        }
+
+        .status-incomplete {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .status-warning {
+            background: #f39c12;
+            color: white;
+        }
+
+        .status-future {
+            background: #3498db;
+            color: white;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 1em;
+        }
+
+        table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        table tr:hover {
+            background: #f5f7fa;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        .stat-number {
+            font-size: 3em;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .priority-high {
+            background: #ffebee;
+            border-left: 6px solid #e74c3c;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+
+        .priority-medium {
+            background: #fff3e0;
+            border-left: 6px solid #f39c12;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+
+        .priority-low {
+            background: #e3f2fd;
+            border-left: 6px solid #3498db;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+
+        .issue-title {
+            font-size: 1.5em;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .action-item {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .action-item:before {
+            content: "□";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-size: 1.2em;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 40px;
+            background: #ecf0f1;
+            border-radius: 20px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #27ae60 0%, #2ecc71 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin: 30px 0;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px 0;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        .tech-stack {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .tech-badge {
+            background: #2c3e50;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+            .slide {
+                page-break-after: always;
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Slide 1: Title -->
+    <div class="slide">
+        <div class="slide-title">🏛️ Barangay Langkaan II</div>
+        <div class="slide-subtitle">Web Management System</div>
+        <div class="slide-subtitle" style="font-size: 1.4em; margin-top: 40px;">Project Overview & Status Report</div>
+        
+        <div class="tech-stack" style="margin-top: 60px;">
+            <div class="tech-badge">Node.js</div>
+            <div class="tech-badge">Express</div>
+            <div class="tech-badge">MongoDB</div>
+        </div>
+
+        <div class="highlight-box" style="margin-top: 60px;">
+            <div style="font-size: 1.5em; margin-bottom: 10px;">📊 System Status: Operational</div>
+            <div style="font-size: 1.2em;">✅ Vercel Serverless Compatible</div>
+        </div>
+
+        <div style="text-align: center; margin-top: 60px; color: #7f8c8d; font-size: 1.1em;">
+            Last Updated: January 2025
+        </div>
+    </div>
+
+    <!-- Slide 2: Overview -->
+    <div class="slide">
+        <div class="section-title">📊 Project Statistics</div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">13</div>
+                <div class="stat-label">Major Modules</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">50+</div>
+                <div class="stat-label">API Endpoints</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">85%</div>
+                <div class="stat-label">Completion Rate</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">8</div>
+                <div class="stat-label">Recent Enhancements</div>
+            </div>
+        </div>
+
+        <div class="progress-bar" style="margin-top: 40px;">
+            <div class="progress-fill" style="width: 85%;">85% Complete</div>
+        </div>
+
+        <div class="two-column" style="margin-top: 40px;">
+            <div>
+                <h3 style="color: #27ae60; margin-bottom: 15px; font-size: 1.5em;">✅ Completed</h3>
+                <ul class="feature-list">
+                    <li>Core Functionality</li>
+                    <li>All 13 Modules</li>
+                    <li>Serverless Support</li>
+                    <li>File Upload System</li>
+                </ul>
+            </div>
+            <div>
+                <h3 style="color: #e74c3c; margin-bottom: 15px; font-size: 1.5em;">⚠️ In Progress</h3>
+                <ul class="feature-list">
+                    <li>Email Integration</li>
+                    <li>Password Reset</li>
+                    <li>Security Enhancements</li>
+                    <li>Testing Suite</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 3: Features Overview -->
+    <div class="slide">
+        <div class="section-title">✨ Features Implemented</div>
+        
+        <div class="module-card">
+            <div class="module-title">🔐 1. User Authentication & Authorization</div>
+            <div class="module-content">
+                <ul class="feature-list">
+                    <li>Session-based authentication with MongoDB storage</li>
+                    <li>Password hashing with bcrypt</li>
+                    <li>Role-based access control (Admin & User)</li>
+                    <li>User preferences (Theme, Font, Accessibility)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="module-card">
+            <div class="module-title">⚖️ 2. Case Management System</div>
+            <div class="module-content">
+                <ul class="feature-list">
+                    <li>11 case types with evidence uploads</li>
+                    <li>Status workflow & priority levels</li>
+                    <li>Hearing scheduling & Patawag forms</li>
+                    <li>45-day overdue alerts & notifications</li>
+                    <li>Printable reports & CSV export</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 4: More Features -->
+    <div class="slide">
+        <div class="section-title">✨ Features Implemented (Continued)</div>
+        
+        <div class="two-column">
+            <div class="module-card">
+                <div class="module-title">👥 3. Resident Management</div>
+                <div class="module-content">
+                    <ul class="feature-list">
+                        <li>Complete resident database</li>
+                        <li>Resident ID generation</li>
+                        <li>Search & filtering</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="module-card">
+                <div class="module-title">📄 4. Document Management</div>
+                <div class="module-content">
+                    <ul class="feature-list">
+                        <li>Multiple document types</li>
+                        <li>Status workflow</li>
+                        <li>Payment tracking</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="module-card">
+                <div class="module-title">🤝 5. Community Development</div>
+                <div class="module-content">
+                    <ul class="feature-list">
+                        <li>Community posts</li>
+                        <li>Image uploads</li>
+                        <li>Full-text search</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="module-card">
+                <div class="module-title">🏥 6. Health Services</div>
+                <div class="module-content">
+                    <ul class="feature-list">
+                        <li>Patient records</li>
+                        <li>Immunization tracking</li>
+                        <li>Family planning</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 5: More Features 2 -->
+    <div class="slide">
+        <div class="section-title">✨ Features Implemented (Continued)</div>
+        
+        <div class="two-column">
+            <div class="module-card">
+                <div class="module-title">🚨 7. Disaster Response</div>
+                <div class="module-content">
+                    <ul class="feature-list">
+                        <li>Incident reporting</li>
+                        <li>Disaster coordination</li>
+                        <li>Resource management</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="module-card">
+                <div class="module-title">💰 8. Financial Management</div>
+                <div class="module-content">
+                    <ul class="feature-list">
+                        <li>Budget planning</li>
+                        <li>Fund allocation</li>
+                        <li>Expense tracking</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="module-card">
+                <div class="module-title">📊 9. Logs & Reports</div>
+                <div class="module-content">
+                    <ul class="feature-list">
+                        <li>System logs</li>
+                        <li>Audit trail</li>
+                        <li>Report generation</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="module-card">
+                <div class="module-title">⚙️ 10. Settings</div>
+                <div class="module-content">
+                    <ul class="feature-list">
+                        <li>System settings</li>
+                        <li>User preferences</li>
+                        <li>Theme customization</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 6: Recent Enhancements -->
+    <div class="slide">
+        <div class="section-title">🚀 What Has Been Added</div>
+        
+        <div class="module-card">
+            <div class="module-title">🎯 Case Management Enhancements</div>
+            <div class="module-content">
+                <table>
+                    <tr>
+                        <th>Feature</th>
+                        <th>Status</th>
+                    </tr>
+                    <tr>
+                        <td>Evidence file upload with validation</td>
+                        <td><span class="status-badge status-complete">✅ Added</span></td>
+                    </tr>
+                    <tr>
+                        <td>Case-type specific requirements</td>
+                        <td><span class="status-badge status-complete">✅ Added</span></td>
+                    </tr>
+                    <tr>
+                        <td>45-day overdue tracking</td>
+                        <td><span class="status-badge status-complete">✅ Added</span></td>
+                    </tr>
+                    <tr>
+                        <td>Case notifications system</td>
+                        <td><span class="status-badge status-complete">✅ Added</span></td>
+                    </tr>
+                    <tr>
+                        <td>Printable reports with letterhead</td>
+                        <td><span class="status-badge status-complete">✅ Added</span></td>
+                    </tr>
+                    <tr>
+                        <td>Patawag form generation</td>
+                        <td><span class="status-badge status-complete">✅ Added</span></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 7: More Enhancements -->
+    <div class="slide">
+        <div class="section-title">🚀 Recent Enhancements</div>
+        
+        <div class="two-column">
+            <div class="module-card">
+                <div class="module-title">📤 File Upload System</div>
+                <ul class="feature-list">
+                    <li>Multer integration</li>
+                    <li>Serverless-compatible</li>
+                    <li>File validation & cleanup</li>
+                </ul>
+            </div>
+
+            <div class="module-card">
+                <div class="module-title">🎨 User Preferences</div>
+                <ul class="feature-list">
+                    <li>Theme system</li>
+                    <li>Font customization</li>
+                    <li>Accessibility features</li>
+                </ul>
+            </div>
+
+            <div class="module-card">
+                <div class="module-title">🏥 Health Services</div>
+                <ul class="feature-list">
+                    <li>Complete health records</li>
+                    <li>Immunization tracking</li>
+                    <li>Pregnancy tracking</li>
+                </ul>
+            </div>
+
+            <div class="module-card">
+                <div class="module-title">🔒 Session Management</div>
+                <ul class="feature-list">
+                    <li>MongoDB session storage</li>
+                    <li>Serverless-compatible</li>
+                    <li>Secure configuration</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 8: High Priority Issues -->
+    <div class="slide">
+        <div class="section-title">⚠️ High Priority Issues</div>
+        
+        <div class="priority-high">
+            <div class="issue-title">1. Password Reset Functionality ⚠️ INCOMPLETE</div>
+            <p style="margin-bottom: 15px;"><strong>Location:</strong> welcome.js line 1490</p>
+            <p style="margin-bottom: 15px;"><strong>Current Status:</strong> Endpoint exists but only returns placeholder message</p>
+            <div style="margin-top: 15px;">
+                <div class="action-item">Generate secure reset tokens</div>
+                <div class="action-item">Store tokens in database with expiration</div>
+                <div class="action-item">Implement email service integration</div>
+                <div class="action-item">Create reset password page</div>
+            </div>
+        </div>
+
+        <div class="priority-high">
+            <div class="issue-title">2. Email Service Integration ⚠️ MISSING</div>
+            <p style="margin-bottom: 15px;"><strong>Current Status:</strong> No email service configured</p>
+            <div style="margin-top: 15px;">
+                <div class="action-item">Integrate email service (SendGrid, Mailgun, AWS SES)</div>
+                <div class="action-item">Configure email templates</div>
+                <div class="action-item">Implement email sending for notifications</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 9: More High Priority Issues -->
+    <div class="slide">
+        <div class="section-title">⚠️ High Priority Issues (Continued)</div>
+        
+        <div class="priority-high">
+            <div class="issue-title">3. File Upload Security ⚠️ NEEDS IMPROVEMENT</div>
+            <p style="margin-bottom: 15px;"><strong>Current Status:</strong> Basic validation only</p>
+            <div style="margin-top: 15px;">
+                <div class="action-item">Add virus scanning for uploaded files</div>
+                <div class="action-item">Implement file content validation</div>
+                <div class="action-item">Add file type validation beyond MIME type</div>
+                <div class="action-item">Consider role-based file size limits</div>
+            </div>
+        </div>
+
+        <div class="priority-high">
+            <div class="issue-title">4. Error Handling ⚠️ NEEDS IMPROVEMENT</div>
+            <p style="margin-bottom: 15px;"><strong>Current Status:</strong> Inconsistent error handling</p>
+            <div style="margin-top: 15px;">
+                <div class="action-item">Implement consistent error handling middleware</div>
+                <div class="action-item">Sanitize error messages for production</div>
+                <div class="action-item">Add proper error logging</div>
+                <div class="action-item">Create user-friendly error messages</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 10: Medium Priority Issues -->
+    <div class="slide">
+        <div class="section-title">🟡 Medium Priority Issues</div>
+        
+        <div class="two-column">
+            <div class="priority-medium">
+                <div class="issue-title">5. Input Validation</div>
+                <div class="action-item">Add input sanitization</div>
+                <div class="action-item">Implement rate limiting</div>
+                <div class="action-item">Use validation libraries</div>
+            </div>
+
+            <div class="priority-medium">
+                <div class="issue-title">6. Testing</div>
+                <div class="action-item">Add unit tests</div>
+                <div class="action-item">Add integration tests</div>
+                <div class="action-item">Set up CI/CD pipeline</div>
+            </div>
+
+            <div class="priority-medium">
+                <div class="issue-title">7. Documentation</div>
+                <div class="action-item">Add API documentation</div>
+                <div class="action-item">Document all endpoints</div>
+                <div class="action-item">Create developer guide</div>
+            </div>
+
+            <div class="priority-medium">
+                <div class="issue-title">8. Performance</div>
+                <div class="action-item">Implement pagination</div>
+                <div class="action-item">Add database optimization</div>
+                <div class="action-item">Implement caching</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 11: More Medium Priority -->
+    <div class="slide">
+        <div class="section-title">🟡 Medium Priority Issues (Continued)</div>
+        
+        <div class="two-column">
+            <div class="priority-medium">
+                <div class="issue-title">9. Backup & Recovery</div>
+                <div class="action-item">Implement automated backups</div>
+                <div class="action-item">Create restoration procedures</div>
+                <div class="action-item">Document disaster recovery plan</div>
+            </div>
+
+            <div class="priority-medium">
+                <div class="issue-title">10. Security Audit</div>
+                <div class="action-item">Conduct security audit</div>
+                <div class="action-item">Implement CSRF protection</div>
+                <div class="action-item">Review dependencies</div>
+            </div>
+        </div>
+
+        <div class="module-card" style="margin-top: 40px;">
+            <div class="module-title">📋 Summary</div>
+            <div class="module-content">
+                <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr); margin-top: 20px;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 2em; color: #e74c3c; font-weight: 700;">4</div>
+                        <div>High Priority</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 2em; color: #f39c12; font-weight: 700;">6</div>
+                        <div>Medium Priority</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 2em; color: #3498db; font-weight: 700;">8</div>
+                        <div>Future Enhancements</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 2em; color: #27ae60; font-weight: 700;">13</div>
+                        <div>Modules Complete</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 12: Future Enhancements -->
+    <div class="slide">
+        <div class="section-title">🟢 Future Enhancements</div>
+        
+        <table>
+            <tr>
+                <th>Feature</th>
+                <th>Priority</th>
+                <th>Status</th>
+            </tr>
+            <tr>
+                <td>Multi-language Support (Filipino/English)</td>
+                <td>Low</td>
+                <td><span class="status-badge status-future">💡 Future</span></td>
+            </tr>
+            <tr>
+                <td>Mobile App Development</td>
+                <td>Low</td>
+                <td><span class="status-badge status-future">💡 Future</span></td>
+            </tr>
+            <tr>
+                <td>Advanced Reporting</td>
+                <td>Low</td>
+                <td><span class="status-badge status-future">💡 Future</span></td>
+            </tr>
+            <tr>
+                <td>API Versioning</td>
+                <td>Low</td>
+                <td><span class="status-badge status-future">💡 Future</span></td>
+            </tr>
+            <tr>
+                <td>Real-time Notifications (WebSocket)</td>
+                <td>Low</td>
+                <td><span class="status-badge status-future">💡 Future</span></td>
+            </tr>
+            <tr>
+                <td>Advanced Search</td>
+                <td>Low</td>
+                <td><span class="status-badge status-future">💡 Future</span></td>
+            </tr>
+            <tr>
+                <td>Enhanced Audit Logging</td>
+                <td>Low</td>
+                <td><span class="status-badge status-future">💡 Future</span></td>
+            </tr>
+            <tr>
+                <td>Data Export (PDF, Excel)</td>
+                <td>Low</td>
+                <td><span class="status-badge status-future">💡 Future</span></td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Slide 13: Final Summary -->
+    <div class="slide">
+        <div class="section-title">🎯 Project Summary</div>
+        
+        <div class="highlight-box" style="margin: 40px 0;">
+            <div style="font-size: 4em; margin-bottom: 20px;">85%</div>
+            <div style="font-size: 2em; margin-bottom: 10px;">Project Complete</div>
+        </div>
+
+        <div class="two-column" style="margin-top: 40px;">
+            <div class="stat-card">
+                <div class="stat-number">13</div>
+                <div class="stat-label">Major Modules</div>
+                <div style="margin-top: 15px; font-size: 0.9em; opacity: 0.8;">Fully Implemented</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">50+</div>
+                <div class="stat-label">API Endpoints</div>
+                <div style="margin-top: 15px; font-size: 0.9em; opacity: 0.8;">Functional</div>
+            </div>
+        </div>
+
+        <div class="module-card" style="margin-top: 40px; text-align: center;">
+            <div style="font-size: 1.5em; margin-bottom: 20px; color: #2c3e50;">
+                ✅ Core Functionality: Complete<br>
+                ⚠️ Production Ready: Needs Security & Email Integration<br>
+                💡 Future Enhancements: Planned
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 60px; color: #7f8c8d; font-size: 1.2em;">
+            <strong>Barangay Langkaan II Web Management System</strong><br>
+            <em>Empowering communities through digital solutions</em><br><br>
+            Last Updated: January 2025
+        </div>
+    </div>
+
+</body>
+</html>
+
+

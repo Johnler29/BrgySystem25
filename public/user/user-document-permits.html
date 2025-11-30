@@ -138,6 +138,18 @@
       <div class="text-[#7f8c8d] mb-2.5" id="msg"></div>
       <form id="docForm" novalidate>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="md:col-span-2">
+            <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Select Resident (for validation) *</label>
+            <div class="relative">
+              <input id="residentSearch" type="text" placeholder="Search by name, resident ID, or contact number..." autocomplete="off" class="w-full px-3 py-2 border border-input rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all text-sm">
+              <div id="residentDropdown" class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto hidden">
+                <!-- Resident options will be populated here -->
+              </div>
+            </div>
+            <p class="text-xs text-[#7f8c8d] mt-1">Search and select a resident to validate the request. This ensures the requester is a registered resident.</p>
+            <input type="hidden" id="selectedResidentId">
+          </div>
+
           <div>
             <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Type of Document *</label>
             <select id="typeOfDocument" required class="w-full px-3 py-2 border border-input rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all text-sm">
@@ -156,12 +168,12 @@
           <div>
             <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Requester's Name *</label>
             <input id="requesterName" type="text" required readonly class="w-full px-3 py-2 border border-input rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed focus:outline-none transition-all text-sm">
-            <p class="text-xs text-[#7f8c8d] mt-1">This field is automatically filled from your profile</p>
+            <p class="text-xs text-[#7f8c8d] mt-1" id="nameHelp">Will be auto-filled when you select a resident</p>
           </div>
           <div>
             <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Requester's Address *</label>
-            <input id="address" type="text" required class="w-full px-3 py-2 border border-input rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all text-sm">
-            <p class="text-xs text-[#7f8c8d] mt-1" id="addressHelp">This field is automatically filled from your profile</p>
+            <input id="address" type="text" required readonly class="w-full px-3 py-2 border border-input rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed focus:outline-none transition-all text-sm">
+            <p class="text-xs text-[#7f8c8d] mt-1" id="addressHelp">Will be auto-filled when you select a resident</p>
           </div>
 
           <div class="md:col-span-2">

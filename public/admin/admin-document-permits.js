@@ -60,6 +60,8 @@
   let VIEW = [];
   let isAdmin = false;
   let currentUser = null;
+  let searchTimeout = null;
+  let selectedResident = null;
 
   /* ---- small render utils ---- */
   const fmt = (d) => (d ? new Date(d).toISOString().slice(0, 10) : "—");
@@ -68,9 +70,50 @@
     return `<span class="badge ${map[s] || "b-info"}">${s || "Pending"}</span>`;
   };
 
+  /* ---- loading skeleton ---- */
+  function showLoading() {
+    const tb = $id("reqTbody");
+    if (!tb) return;
+    
+    // Add loading class to table wrapper
+    const tableWrap = tb.closest('.table-wrap');
+    if (tableWrap) {
+      tableWrap.classList.add('table-loading');
+    }
+    
+    // Clear existing rows
+    tb.innerHTML = '';
+    
+    // Create 5 skeleton rows (8 columns: checkbox, Name, Copies, Type, Date Requested, Date Released, Status, Actions)
+    const colCount = 8;
+    const widths = ['short', 'long', 'short', 'long', 'long', 'long', 'short', 'short'];
+    
+    for (let i = 0; i < 5; i++) {
+      const tr = document.createElement('tr');
+      tr.className = 'table-skeleton';
+      let skeletonCells = '';
+      
+      for (let j = 0; j < colCount; j++) {
+        const width = widths[j] || 'long';
+        skeletonCells += `<td><div class="skeleton-bar ${width}"></div></td>`;
+      }
+      
+      tr.innerHTML = skeletonCells;
+      tb.appendChild(tr);
+    }
+  }
+
   /* ---- table render ---- */
   function renderRows(rows) {
     const tb = $id("reqTbody");
+    if (!tb) return;
+    
+    // Remove loading class
+    const tableWrap = tb.closest('.table-wrap');
+    if (tableWrap) {
+      tableWrap.classList.remove('table-loading');
+    }
+    
     tb.innerHTML = "";
 
     if (!rows.length) {
@@ -140,21 +183,38 @@
 
   /* ---- loading data ---- */
   async function loadDocs() {
+    // Show loading state
+    showLoading();
+
     try {
-      const data = await fetchJSON("/api/documents");
+      // Add small delay for smooth transition (only if data loads too fast)
+      const [data] = await Promise.all([
+        fetchJSON("/api/documents"),
+        new Promise(resolve => setTimeout(resolve, 150)) // Minimum 150ms for smooth transition
+      ]);
+      
       ALL = data.documents || [];
       VIEW = [...ALL];
       renderRows(VIEW);
     } catch (e) {
       console.warn("[loadDocs]", e);
+      
+      // Remove loading class on error
       const tb = $id("reqTbody");
-      tb.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:3rem 1rem;">
-        <div style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;color:#888;">
-          <div style="font-size:3rem;opacity:0.5;">📄</div>
-          <div style="font-weight:500;color:#666;">Unable to load data.</div>
-          <div style="font-size:0.875rem;color:#999;">Please refresh the page or contact support if the issue persists.</div>
-        </div>
-      </td></tr>`;
+      const tableWrap = tb?.closest('.table-wrap');
+      if (tableWrap) {
+        tableWrap.classList.remove('table-loading');
+      }
+      
+      if (tb) {
+        tb.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:3rem 1rem;">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;color:#888;">
+            <div style="font-size:3rem;opacity:0.5;">📄</div>
+            <div style="font-weight:500;color:#666;">Unable to load data.</div>
+            <div style="font-size:0.875rem;color:#999;">Please refresh the page or contact support if the issue persists.</div>
+          </div>
+        </td></tr>`;
+      }
     }
   }
 
@@ -194,6 +254,107 @@
     }
   });
 
+  /* ---- resident search functionality ---- */
+  async function searchResidents(query) {
+    if (!query || query.trim().length < 2) {
+      const dropdown = $id("residentDropdown");
+      if (dropdown) dropdown.style.display = "none";
+      return;
+    }
+
+    try {
+      const j = await fetchJSON(`/api/residents/search?q=${encodeURIComponent(query)}`);
+      const residents = j.residents || [];
+      displayResidentDropdown(residents);
+    } catch (e) {
+      console.error("Search error:", e);
+      const dropdown = $id("residentDropdown");
+      if (dropdown) dropdown.style.display = "none";
+    }
+  }
+
+  function displayResidentDropdown(residents) {
+    const dropdown = $id("residentDropdown");
+    if (!dropdown) return;
+    
+    if (!residents.length) {
+      dropdown.innerHTML = '<div style="padding:12px;font-size:0.875rem;color:#666;">No residents found</div>';
+      dropdown.style.display = "block";
+      return;
+    }
+
+    dropdown.innerHTML = residents.map(r => `
+      <div style="padding:12px;cursor:pointer;border-bottom:1px solid #eee;transition:background 0.2s;" 
+           onmouseover="this.style.background='#f0f7ff'" 
+           onmouseout="this.style.background='white'"
+           data-resident-id="${r._id}" 
+           data-resident-name="${(r.name || '').replace(/"/g, '&quot;')}" 
+           data-resident-address="${(r.address || '').replace(/"/g, '&quot;')}"
+           data-resident-id-string="${(r.residentId || '').replace(/"/g, '&quot;')}">
+        <div style="font-weight:600;color:#333;">${r.name || '—'}</div>
+        <div style="font-size:0.75rem;color:#666;margin-top:2px;">ID: ${r.residentId || '—'} • ${r.address || 'No address'}</div>
+      </div>
+    `).join('');
+
+    // Add click handlers
+    dropdown.querySelectorAll('[data-resident-id]').forEach(el => {
+      el.addEventListener('click', () => {
+        const residentId = el.getAttribute('data-resident-id');
+        const residentName = el.getAttribute('data-resident-name');
+        const residentAddress = el.getAttribute('data-resident-address');
+        const residentIdString = el.getAttribute('data-resident-id-string');
+        selectResident({
+          _id: residentId,
+          name: residentName,
+          address: residentAddress,
+          residentId: residentIdString
+        });
+      });
+    });
+
+    dropdown.style.display = "block";
+  }
+
+  function selectResident(resident) {
+    selectedResident = resident;
+    const residentIdInput = $id("selectedResidentId");
+    const residentSearchInput = $id("residentSearch");
+    const requesterNameInput = $id("requesterName");
+    const addressInput = $id("address");
+    const dropdown = $id("residentDropdown");
+    
+    if (residentIdInput) residentIdInput.value = resident._id;
+    if (residentSearchInput) residentSearchInput.value = `${resident.name} (${resident.residentId || 'ID: N/A'})`;
+    if (requesterNameInput) requesterNameInput.value = resident.name || "";
+    if (addressInput) addressInput.value = resident.address || "";
+    if (dropdown) dropdown.style.display = "none";
+  }
+
+  function setupResidentSearch() {
+    const residentSearchInput = $id("residentSearch");
+    if (!residentSearchInput) return;
+
+    on(residentSearchInput, "input", (e) => {
+      const query = e.target.value.trim();
+      if (searchTimeout) clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => searchResidents(query), 300);
+    });
+
+    on(residentSearchInput, "focus", () => {
+      if (residentSearchInput.value.trim().length >= 2) {
+        searchResidents(residentSearchInput.value.trim());
+      }
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener("click", (e) => {
+      const dropdown = $id("residentDropdown");
+      if (dropdown && !e.target.closest("#residentSearch") && !e.target.closest("#residentDropdown")) {
+        dropdown.style.display = "none";
+      }
+    });
+  }
+
   /* ---- modals ---- */
   const formModal = $id("formModal");
   const statusModal = $id("statusModal");
@@ -207,6 +368,9 @@
     $id("formTitle").textContent = "Document & Permit Issuance";
     docForm.reset();
     $id("docId").value = "";
+    $id("selectedResidentId").value = "";
+    $id("residentSearch").value = "";
+    selectedResident = null;
     showModal(formModal);
   }
 
@@ -222,11 +386,18 @@
     $id("purpose").value = d.purpose || "";
     $id("paymentMethod").value = d.paymentMethod || "";
     $id("paymentStatus").value = d.paymentStatus || "";
+    
+    // Set resident selection if available
+    $id("selectedResidentId").value = d.residentId || "";
+    $id("residentSearch").value = d.residentIdString ? `${d.requesterName} (${d.residentIdString})` : "";
+    selectedResident = d.residentId ? { _id: d.residentId } : null;
+    
     showModal(formModal);
   }
 
   async function saveForm() {
     const id = $id("docId").value;
+    const residentId = $id("selectedResidentId").value.trim();
     const payload = {
       requesterName: $id("requesterName").value.trim(),
       address: $id("address").value.trim(),
@@ -235,6 +406,7 @@
       numberOfCopies: Math.max(1, parseInt($id("numberOfCopies").value || 1, 10)),
       paymentMethod: $id("paymentMethod").value || "",
       paymentStatus: $id("paymentStatus").value || "",
+      ...(residentId ? { residentId: residentId } : {})
     };
     if (!payload.requesterName || !payload.address) return alert("Please fill required fields");
 
@@ -251,9 +423,11 @@
         alert(id ? "Changes saved" : "Request created");
         hideModal(formModal);
         loadDocs();
+      } else {
+        alert(j.message || "Save failed");
       }
-    } catch {
-      alert("Save failed");
+    } catch (e) {
+      alert(e.message || "Save failed");
     }
   }
 
@@ -322,6 +496,9 @@
 
   /* ---- bind once DOM is ready ---- */
   document.addEventListener("DOMContentLoaded", () => {
+    // Setup resident search
+    setupResidentSearch();
+    
     // toolbar
     on($id("addNewBtn"), "click", openFormNew);
 

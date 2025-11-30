@@ -146,15 +146,16 @@
     announcementsSection.classList.remove('hidden');
 
     announcementsSection.innerHTML = activeAnnouncements.map(ann => {
-      const priorityClass = ann.priority === 'HIGH' ? 'high' : ann.priority === 'MEDIUM' ? 'medium' : '';
       return `
-      <div class="announcement-card ${priorityClass}">
+      <div class="announcement-card">
         <div class="announcement-header">
           <div class="announcement-title">${ann.title}</div>
           <div class="announcement-date">${fmtDate(ann.date)}</div>
         </div>
         <div class="announcement-content">${ann.content}</div>
-        <div class="announcement-priority">Priority: ${ann.priority}</div>
+        <div class="announcement-footer">
+          <div class="announcement-priority">Priority: ${ann.priority}</div>
+        </div>
       </div>
     `;
     }).join('');
@@ -176,6 +177,37 @@
     if (popSeniors) popSeniors.textContent = sum.PopulationSeniors || 0;
     if (popMinors) popMinors.textContent = sum.PopulationMinors || 0;
     if (popPets) popPets.textContent = sum.PopulationPets || 0;
+    
+    // Update alert banner based on critical incidents
+    updateAlertBanner(sum);
+  }
+
+  // Update alert banner based on critical incidents
+  function updateAlertBanner(summary) {
+    const alertBanner = $('#alertBanner');
+    const alertTitle = $('#alertTitle');
+    const alertMessage = $('#alertMessage');
+    
+    if (!alertBanner || !alertTitle || !alertMessage) return;
+    
+    const criticalCount = summary.Critical || 0;
+    const ongoingCount = summary.Ongoing || 0;
+    
+    if (criticalCount > 0) {
+      alertBanner.classList.remove('hidden');
+      alertTitle.textContent = `🚨 ${criticalCount} Critical ${criticalCount === 1 ? 'Incident' : 'Incidents'} Active`;
+      alertMessage.textContent = `Immediate attention required. ${ongoingCount > 0 ? `${ongoingCount} ongoing ${ongoingCount === 1 ? 'incident' : 'incidents'} also need monitoring.` : 'Please review and take appropriate action.'}`;
+      alertBanner.style.borderLeft = '4px solid #e74c3c';
+      alertBanner.style.background = '#fff5f5';
+    } else if (ongoingCount > 0) {
+      alertBanner.classList.remove('hidden');
+      alertTitle.textContent = `⚠️ ${ongoingCount} Ongoing ${ongoingCount === 1 ? 'Incident' : 'Incidents'}`;
+      alertMessage.textContent = 'Active incidents are being monitored. Stay alert for updates.';
+      alertBanner.style.borderLeft = '4px solid #f39c12';
+      alertBanner.style.background = '#fffbf0';
+    } else {
+      alertBanner.classList.add('hidden');
+    }
   }
 
   async function refreshSummary(){
@@ -479,13 +511,31 @@
           cells = '<td colspan="6">No data</td>';
       }
       
+        // Check ownership for edit/delete permissions
+        let canEditDelete = isAdmin;
+        if (!canEditDelete && user) {
+          // For incidents, check reportedBy.username
+          if (currentTab === 'incidents') {
+            const reporterUsername = typeof r.reportedBy === 'object' 
+              ? (r.reportedBy.username || '').toLowerCase()
+              : '';
+            canEditDelete = reporterUsername === (user.username || '').toLowerCase();
+          } else {
+            // For other tabs, check createdBy
+            const createdBy = typeof r.createdBy === 'object' 
+              ? (r.createdBy.username || r.createdBy._id || r.createdBy.id || '')
+              : (r.createdBy || '');
+            canEditDelete = createdBy === (user._id || user.id || user.username || '');
+          }
+        }
+        
         tr.innerHTML = `
           ${cells}
           <td class="t-actions">
             <div class="table-actions">
               <button class="table-action-btn view" data-act="view" data-id="${r._id}">View</button>
-              ${isAdmin || (r.createdBy === (user._id || user.id)) ? '<button class="table-action-btn edit" data-act="edit" data-id="' + r._id + '">Edit</button>' : ''}
-              ${isAdmin || (r.createdBy === (user._id || user.id)) ? '<button class="table-action-btn delete" data-act="del" data-id="' + r._id + '">Delete</button>' : ''}
+              ${canEditDelete ? '<button class="table-action-btn edit" data-act="edit" data-id="' + r._id + '">Edit</button>' : ''}
+              ${canEditDelete ? '<button class="table-action-btn delete" data-act="del" data-id="' + r._id + '">Delete</button>' : ''}
             </div>
           </td>
         `;
@@ -591,6 +641,17 @@
       };
     }
 
+    // Search on Enter key
+    const searchInput = $('#fQ');
+    if (searchInput) {
+      searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          if (btnFilter) btnFilter.click();
+        }
+      });
+    }
+
     const btnExport = $('#btnExport');
     if (btnExport) {
       btnExport.onclick = () => {
@@ -622,9 +683,18 @@
 
     const btnPreparedness = $('#btnPreparedness');
     if (btnPreparedness) {
-      btnPreparedness.onclick = () => {
+      btnPreparedness.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        // Switch to preparedness tab (this will call load() internally)
         switchTab('preparedness');
-        load();
+        // Scroll to the tabs section to make it visible after a short delay
+        setTimeout(() => {
+          const tabsElement = $('#tabs');
+          if (tabsElement) {
+            tabsElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
       };
     }
 
@@ -636,6 +706,21 @@
           modalEl.classList.remove('open');
           modalEl.classList.add('hidden');
         }
+        // Clear edit ID and reset form
+        if (frm) {
+          frm.reset();
+          if (frm.dataset.editId) {
+            delete frm.dataset.editId;
+          }
+          // Reset title
+          const config = tabConfigs[currentTab];
+          const dlgTitle = $('#dlgTitle');
+          if (dlgTitle && config) {
+            dlgTitle.textContent = 'Add ' + config.title;
+          }
+        }
+        const msgEl = $('#msg');
+        if (msgEl) msgEl.textContent = '';
       };
     }
 
@@ -669,8 +754,15 @@
 
         try {
           const config = tabConfigs[currentTab];
-          const response = await fetch(config.apiEndpoint, {
-            method: 'POST',
+          const editId = frm.dataset.editId;
+          const isEdit = !!editId;
+          
+          // Only incidents tab supports edit for now
+          const method = (isEdit && currentTab === 'incidents') ? 'PUT' : 'POST';
+          const url = (isEdit && currentTab === 'incidents') ? `${config.apiEndpoint}/${editId}` : config.apiEndpoint;
+          
+          const response = await fetch(url, {
+            method: method,
             body: formData
           });
           const result = await response.json();
@@ -680,6 +772,17 @@
             if (modalEl) {
               modalEl.classList.remove('open');
               modalEl.classList.add('hidden');
+            }
+            // Clear edit ID
+            if (frm.dataset.editId) {
+              delete frm.dataset.editId;
+            }
+            // Reset form
+            frm.reset();
+            // Update title back to "Add"
+            const dlgTitle = $('#dlgTitle');
+            if (dlgTitle && config) {
+              dlgTitle.textContent = 'Add ' + config.title;
             }
             load();
             const msgEl = $('#msg');
@@ -705,29 +808,49 @@
     }
     
     formEl.reset();
+    // Clear edit ID when opening for new record
+    if (formEl.dataset.editId) {
+      delete formEl.dataset.editId;
+    }
     const msgEl = $('#msg');
     if (msgEl) msgEl.textContent = '';
     
-    if (quickType === 'emergency') {
-      switchTab('incidents');
-      setTimeout(() => {
-        const priorityField = formEl.querySelector('[name="priority"]');
-        if (priorityField) priorityField.value = 'HIGH';
-      }, 100);
-    } else if (quickType === 'incident') {
-      switchTab('incidents');
+    // Determine which tab to switch to
+    let targetTab = currentTab;
+    if (quickType === 'emergency' || quickType === 'incident') {
+      targetTab = 'incidents';
     } else if (quickType === 'coordination') {
-      switchTab('coordination');
+      targetTab = 'coordination';
     }
     
-    const config = tabConfigs[currentTab];
-    const dlgTitle = $('#dlgTitle');
-    if (dlgTitle) dlgTitle.textContent = 'Add ' + config.title;
-    updateFormContent();
+    // Switch tab if needed (this will call updateFormContent internally)
+    if (targetTab !== currentTab) {
+      switchTab(targetTab);
+    } else {
+      // If not switching tabs, just update form content
+      updateFormContent();
+    }
     
-    // Ensure modal is visible
-    modalEl.classList.remove('hidden');
-    modalEl.classList.add('open');
+    const config = tabConfigs[targetTab];
+    const dlgTitle = $('#dlgTitle');
+    if (dlgTitle && config) {
+      dlgTitle.textContent = 'Add ' + config.title;
+    }
+    
+    // Wait a bit for form content to update (especially if tab was switched)
+    setTimeout(() => {
+      // Set emergency priority if this is an emergency report
+      if (quickType === 'emergency') {
+        const priorityField = formEl.querySelector('[name="priority"]');
+        if (priorityField) {
+          priorityField.value = 'HIGH';
+        }
+      }
+      
+      // Ensure modal is visible
+      modalEl.classList.remove('hidden');
+      modalEl.classList.add('open');
+    }, 200); // Delay to ensure form content is fully updated after tab switch
   }
 
 
@@ -740,8 +863,53 @@
     const act = btn.getAttribute('data-act');
 
     if (act === 'view') {
-      const record = getSampleDataForTab(currentTab).rows.find(r => r._id === id);
-      if (record) showRecordDetails(record);
+      // Fetch record from API
+      try {
+        const config = tabConfigs[currentTab];
+        if (!config || !config.apiEndpoint) {
+          // Fallback to sample data if no API endpoint
+          const record = getSampleDataForTab(currentTab).rows.find(r => r._id === id);
+          if (record) showRecordDetails(record);
+          return;
+        }
+        
+        const response = await fetch(`${config.apiEndpoint}/${id}`, {
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          // Fallback to sample data on error
+          const record = getSampleDataForTab(currentTab).rows.find(r => r._id === id);
+          if (record) {
+            showRecordDetails(record);
+          } else {
+            alert('Failed to load record details.');
+          }
+          return;
+        }
+        
+        const result = await response.json();
+        if (result.ok && result.row) {
+          showRecordDetails(result.row);
+        } else {
+          // Fallback to sample data
+          const record = getSampleDataForTab(currentTab).rows.find(r => r._id === id);
+          if (record) {
+            showRecordDetails(record);
+          } else {
+            alert('Record not found.');
+          }
+        }
+      } catch (error) {
+        console.error('View error:', error);
+        // Fallback to sample data
+        const record = getSampleDataForTab(currentTab).rows.find(r => r._id === id);
+        if (record) {
+          showRecordDetails(record);
+        } else {
+          alert('Error loading record: ' + error.message);
+        }
+      }
     }
 
     if (act === 'edit') {
@@ -752,21 +920,197 @@
           return;
         }
       }
-      alert('Edit functionality will be implemented with the backend API');
+      
+      // Load record for editing
+      try {
+        const config = tabConfigs[currentTab];
+        if (!config || !config.apiEndpoint) {
+          alert('Cannot edit: No API endpoint configured.');
+          return;
+        }
+        
+        // Only incidents tab has edit support for now
+        if (currentTab !== 'incidents') {
+          alert('Edit functionality is currently only available for Incident Reports.');
+          return;
+        }
+        
+        const response = await fetch(`${config.apiEndpoint}/${id}`, {
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          alert('Failed to load record for editing.');
+          return;
+        }
+        
+        const result = await response.json();
+        if (!result.ok || !result.row) {
+          alert('Record not found.');
+          return;
+        }
+        
+        const record = result.row;
+        
+        // Store record ID for update BEFORE updating form content
+        frm.dataset.editId = id;
+        $('#dlgTitle').textContent = 'Edit ' + (config.title || 'Record');
+        
+        // First, update form content to generate the form HTML
+        updateFormContent();
+        
+        // Then populate form with record data AFTER form is generated
+        setTimeout(() => {
+          frm.reset();
+          
+          // Field name mapping for cases where DB field names differ from form field names
+          const fieldNameMap = {
+            'incidentDate': 'incidentDate',
+            'dateTime': 'incidentDate',
+            'peopleAffected': 'affectedCount'
+          };
+          
+          Object.keys(record).forEach(key => {
+            // Check if there's a mapped field name
+            const formFieldName = fieldNameMap[key] || key;
+            let field = frm.querySelector(`[name="${formFieldName}"]`);
+            
+            // If not found, try the original key
+            if (!field) {
+              field = frm.querySelector(`[name="${key}"]`);
+            }
+            
+            if (field) {
+              if (field.type === 'date') {
+                const dateValue = record[key];
+                if (dateValue) {
+                  const d = new Date(dateValue);
+                  if (!isNaN(d.getTime())) {
+                    field.value = d.toISOString().split('T')[0];
+                  }
+                }
+              } else if (field.type === 'datetime-local') {
+                const dateValue = record[key];
+                if (dateValue) {
+                  const d = new Date(dateValue);
+                  if (!isNaN(d.getTime())) {
+                    // Format for datetime-local: YYYY-MM-DDTHH:mm
+                    const year = d.getFullYear();
+                    const month = String(d.getMonth() + 1).padStart(2, '0');
+                    const day = String(d.getDate()).padStart(2, '0');
+                    const hours = String(d.getHours()).padStart(2, '0');
+                    const minutes = String(d.getMinutes()).padStart(2, '0');
+                    field.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+                  }
+                }
+              } else if (field.tagName === 'SELECT') {
+                // For select dropdowns
+                const value = String(record[key] || '').trim();
+                field.value = value;
+                // If value doesn't match, try to find by text
+                if (!field.value && value) {
+                  const options = Array.from(field.options);
+                  const match = options.find(opt => 
+                    opt.text.toLowerCase().includes(value.toLowerCase()) ||
+                    opt.value.toLowerCase() === value.toLowerCase()
+                  );
+                  if (match) field.value = match.value;
+                }
+              } else if (field.type === 'checkbox') {
+                field.checked = !!record[key];
+              } else {
+                field.value = record[key] || '';
+              }
+            }
+          });
+          
+          // Handle special case for hasPlan select
+          const hasPlanSelect = frm.querySelector('#hasPlanSelect');
+          const planRow = frm.querySelector('#planUploadRow');
+          if (hasPlanSelect) {
+            hasPlanSelect.value = record.hasPreparednessPlan ? 'Yes' : 'No';
+            if (planRow) {
+              if (record.hasPreparednessPlan) {
+                planRow.classList.remove('hidden');
+              } else {
+                planRow.classList.add('hidden');
+              }
+            }
+          }
+          
+        }, 100); // Small delay to ensure DOM is ready
+        
+        // Open modal
+        const modalEl = $('#modal');
+        if (modalEl) {
+          modalEl.classList.remove('hidden');
+          modalEl.classList.add('open');
+        }
+      } catch (error) {
+        console.error('Edit error:', error);
+        alert('Error loading record: ' + error.message);
+      }
     }
 
     if (act === 'del') {
-      if (!isAdmin) {
-        const record = getSampleDataForTab(currentTab).rows.find(r => r._id === id);
-        if (record && record.createdBy !== (user._id || user.id)) {
-          alert('You can only delete records that you created.');
+      if (!confirm('Delete this record? This action cannot be undone.')) return;
+      
+      // Delete record via API
+      try {
+        const config = tabConfigs[currentTab];
+        if (!config || !config.apiEndpoint) {
+          alert('Cannot delete: No API endpoint configured.');
           return;
         }
+        
+        // Only incidents tab has delete support for now
+        if (currentTab !== 'incidents') {
+          alert('Delete functionality is currently only available for Incident Reports.');
+          return;
+        }
+        
+        // Check permission by fetching the record first (for non-admin users)
+        if (!isAdmin) {
+          const checkResponse = await fetch(`${config.apiEndpoint}/${id}`, {
+            credentials: 'include'
+          });
+          
+          if (checkResponse.ok) {
+            const checkResult = await checkResponse.json();
+            if (checkResult.ok && checkResult.row) {
+              const record = checkResult.row;
+              const reporterUsername = record.reportedBy?.username || '';
+              if (reporterUsername !== (user.username || '').toLowerCase()) {
+                alert('You can only delete records that you created.');
+                return;
+              }
+            }
+          }
+        }
+        
+        const response = await fetch(`${config.apiEndpoint}/${id}`, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          const result = await response.json().catch(() => ({}));
+          alert(result.message || 'Failed to delete record.');
+          return;
+        }
+        
+        const result = await response.json();
+        if (result.ok) {
+          alert('Record deleted successfully.');
+          load();
+          refreshSummary();
+        } else {
+          alert(result.message || 'Failed to delete record.');
+        }
+      } catch (error) {
+        console.error('Delete error:', error);
+        alert('Error deleting record: ' + error.message);
       }
-      
-      if (!confirm('Delete this record? This action cannot be undone.')) return;
-      alert('Delete functionality will be implemented with the backend API');
-      load();
     }
   });
 
@@ -788,9 +1132,24 @@
     dStatus.className = 'badge ' + (statusMap[status] || 'bg-pending');
     dStatus.textContent = status;
 
-    const ownershipInfo = record.reportedBy ? `
-      <div class="grid grid-cols-[140px_1fr] gap-2 mb-2"><div class="text-sm text-[#7f8c8d]">Reported By</div><div class="font-semibold text-[#2c3e50]"><strong>${record.reportedBy}</strong></div></div>
-      <div class="grid grid-cols-[140px_1fr] gap-2 mb-2"><div class="text-sm text-[#7f8c8d]">Can Edit/Delete</div><div class="text-[#2c3e50]">${isAdmin || record.createdBy === (user._id || user.id) ? 'Yes' : 'No'}</div></div>
+    // Handle reportedBy - can be object or string
+    const reportedByName = typeof record.reportedBy === 'object' 
+      ? (record.reportedBy.name || record.reportedBy.username || '')
+      : (record.reportedBy || record.reporterName || '');
+    const reportedByUsername = typeof record.reportedBy === 'object' 
+      ? (record.reportedBy.username || '')
+      : '';
+    
+    // Check if user can edit/delete
+    const canEditDelete = isAdmin || 
+      (reportedByUsername && reportedByUsername.toLowerCase() === (user.username || '').toLowerCase()) ||
+      (record.createdBy && (record.createdBy === (user._id || user.id) || 
+       (typeof record.createdBy === 'object' && record.createdBy.username && 
+        record.createdBy.username.toLowerCase() === (user.username || '').toLowerCase())));
+    
+    const ownershipInfo = reportedByName ? `
+      <div class="grid grid-cols-[140px_1fr] gap-2 mb-2"><div class="text-sm text-[#7f8c8d]">Reported By</div><div class="font-semibold text-[#2c3e50]"><strong>${reportedByName}</strong></div></div>
+      <div class="grid grid-cols-[140px_1fr] gap-2 mb-2"><div class="text-sm text-[#7f8c8d]">Can Edit/Delete</div><div class="text-[#2c3e50]">${canEditDelete ? 'Yes' : 'No'}</div></div>
       <hr class="my-3 border-none border-t border-[#ecf0f1]">
     ` : '';
 
@@ -814,13 +1173,20 @@
   function getRecordDetailsHTML(record) {
     switch(currentTab) {
       case 'incidents':
+        const peopleAffected = record.peopleAffected || 
+          (record.affectedCount ? `${record.affectedCount} ${record.affectedCount === 1 ? 'person' : 'people'}` : 'N/A');
+        const incidentDate = record.incidentDate || record.dateTime;
+        const typeDisplay = record.type + (record.type === 'Others' && record.typeOther ? ` - ${record.typeOther}` : '');
         return `
-          <div class="grid grid-cols-[140px_1fr] gap-2 mb-2"><div class="text-sm text-[#7f8c8d]">Type</div><div class="text-[#2c3e50]">${record.type}</div></div>
-          <div class="grid grid-cols-[140px_1fr] gap-2 mb-2"><div class="text-sm text-[#7f8c8d]">Location</div><div class="text-[#2c3e50]">${record.location}</div></div>
-          <div class="grid grid-cols-[140px_1fr] gap-2 mb-2"><div class="text-sm text-[#7f8c8d]">Date</div><div class="text-[#2c3e50]">${fmt(record.incidentDate)}</div></div>
-          <div class="grid grid-cols-[140px_1fr] gap-2 mb-2"><div class="text-sm text-[#7f8c8d]">People Affected</div><div class="text-[#2c3e50]">${record.peopleAffected}</div></div>
-          <div class="grid grid-cols-[140px_1fr] gap-2 mb-2"><div class="text-sm text-[#7f8c8d]">Priority</div><div class="text-[#2c3e50]"><span class="${record.priority?.toLowerCase() === 'high' ? 'text-[#e74c3c] font-bold' : record.priority?.toLowerCase() === 'medium' ? 'text-[#f39c12] font-semibold' : 'text-[#3498db]'}">${record.priority}</span></div></div>
+          <div class="grid grid-cols-[140px_1fr] gap-2 mb-2"><div class="text-sm text-[#7f8c8d]">Type</div><div class="text-[#2c3e50]">${typeDisplay || 'N/A'}</div></div>
+          <div class="grid grid-cols-[140px_1fr] gap-2 mb-2"><div class="text-sm text-[#7f8c8d]">Location</div><div class="text-[#2c3e50]">${record.location || 'N/A'}</div></div>
+          <div class="grid grid-cols-[140px_1fr] gap-2 mb-2"><div class="text-sm text-[#7f8c8d]">Date</div><div class="text-[#2c3e50]">${fmt(incidentDate)}</div></div>
+          <div class="grid grid-cols-[140px_1fr] gap-2 mb-2"><div class="text-sm text-[#7f8c8d]">People Affected</div><div class="text-[#2c3e50]">${peopleAffected}</div></div>
+          <div class="grid grid-cols-[140px_1fr] gap-2 mb-2"><div class="text-sm text-[#7f8c8d]">Priority</div><div class="text-[#2c3e50]"><span class="${record.priority?.toLowerCase() === 'high' || record.priority === 'HIGH' ? 'text-[#e74c3c] font-bold' : record.priority?.toLowerCase() === 'medium' || record.priority === 'MEDIUM' ? 'text-[#f39c12] font-semibold' : 'text-[#3498db]'}">${record.priority || 'Medium'}</span></div></div>
           <div class="grid grid-cols-[140px_1fr] gap-2 mb-2"><div class="text-sm text-[#7f8c8d]">Description</div><div class="text-[#2c3e50]">${record.description || 'N/A'}</div></div>
+          ${record.casualties !== undefined ? `<div class="grid grid-cols-[140px_1fr] gap-2 mb-2"><div class="text-sm text-[#7f8c8d]">Casualties</div><div class="text-[#2c3e50]">${record.casualties || 0}</div></div>` : ''}
+          ${record.injuries !== undefined ? `<div class="grid grid-cols-[140px_1fr] gap-2 mb-2"><div class="text-sm text-[#7f8c8d]">Injuries</div><div class="text-[#2c3e50]">${record.injuries || 0}</div></div>` : ''}
+          ${record.responseTimeMinutes !== undefined && record.responseTimeMinutes !== null ? `<div class="grid grid-cols-[140px_1fr] gap-2 mb-2"><div class="text-sm text-[#7f8c8d]">Response Time</div><div class="text-[#2c3e50]">${record.responseTimeMinutes} minutes</div></div>` : ''}
         `;
       case 'coordination':
         return `
