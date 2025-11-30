@@ -107,20 +107,8 @@
       'Resolved': 'bg-resolved',
       'Administered': 'bg-administered'
     };
-    const icons = {
-      'Active': '✓',
-      'Completed': '✓',
-      'Scheduled': '📅',
-      'Pending': '⏳',
-      'Ongoing': '🔄',
-      'Due': '⏰',
-      'Overdue': '⚠️',
-      'Resolved': '✓',
-      'Administered': '💉'
-    };
-    const cls = map[s] || 'bg-ghost-btn text-primary-btn';
-    const icon = icons[s] || '';
-    return `<span class="px-3 py-1.5 rounded-full text-xs font-bold ${cls}" style="display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">${icon} ${s}</span>`;
+    const cls = map[s] || 'bg-pending';
+    return `<span class="badge ${cls}" style="padding: 4px 8px; border-radius: 14px; font-size: 12px; font-weight: 700; display: inline-block;">${s}</span>`;
   };
   const fmt = d => d ? new Date(d).toLocaleString() : '';
 
@@ -232,10 +220,8 @@
 
     isLoading = true;
     
-    // Show loading state (optional - you can add a spinner here)
-    if (tableBody) {
-      tableBody.innerHTML = '<tr><td colspan="100%" style="text-align: center; padding: 2rem; color: var(--muted);">Loading...</td></tr>';
-    }
+    // Show loading skeleton
+    showLoading();
 
     const params = {
       page: state.page, 
@@ -254,15 +240,23 @@
     const qs = new URLSearchParams(params).toString();
 
     try {
-      const response = await fetch(`${config.apiEndpoint}?${qs}`, {
-        credentials: 'include' // Ensure session cookies are sent
-      });
+      // Add small delay for smooth transition (only if data loads too fast)
+      const [response] = await Promise.all([
+        fetch(`${config.apiEndpoint}?${qs}`, {
+          credentials: 'include' // Ensure session cookies are sent
+        }),
+        new Promise(resolve => setTimeout(resolve, 150)) // Minimum 150ms for smooth transition
+      ]);
       
       // Check HTTP status first
       if (!response.ok) {
         console.error(`HTTP ${response.status} error from`, config.apiEndpoint);
         const text = await response.text().catch(() => 'Unable to read response');
         console.error('Response:', text.substring(0, 200));
+        const tableWrap = tableBody?.closest('.health-table-wrap');
+        if (tableWrap) {
+          tableWrap.classList.remove('table-loading');
+        }
         renderRows([]);
         renderPager(1, 1, 0);
         isLoading = false;
@@ -276,6 +270,10 @@
         console.error('Non-JSON response from', config.apiEndpoint);
         const text = await response.text();
         console.error('Response:', text.substring(0, 200));
+        const tableWrap = tableBody?.closest('.health-table-wrap');
+        if (tableWrap) {
+          tableWrap.classList.remove('table-loading');
+        }
         renderRows([]);
         renderPager(1, 1, 0);
         isLoading = false;
@@ -295,12 +293,21 @@
       } else {
         // If API returns error, show empty table instead of sample data
         console.warn('API returned error:', j.message || 'Unknown error', j);
+        const tableWrap = tableBody?.closest('.health-table-wrap');
+        if (tableWrap) {
+          tableWrap.classList.remove('table-loading');
+        }
         renderRows([]);
         renderPager(1, 1, 0);
         isLoading = false;
       }
     } catch (error) {
       console.error('Error loading data:', error);
+      // Remove loading class on error
+      const tableWrap = tableBody?.closest('.health-table-wrap');
+      if (tableWrap) {
+        tableWrap.classList.remove('table-loading');
+      }
       // Show empty table on error instead of sample data
       renderRows([]);
       renderPager(1, 1, 0);
@@ -313,8 +320,45 @@
     }, 100);
   }
 
+  // Show loading skeleton
+  function showLoading() {
+    if (!tableBody) return;
+    const config = tabConfigs[currentTab];
+    if (!config) return;
+    
+    const colCount = config.headers.length + 1; // +1 for Actions column
+    tableBody.innerHTML = '';
+    
+    // Add loading class to table wrapper
+    const tableWrap = tableBody.closest('.health-table-wrap');
+    if (tableWrap) {
+      tableWrap.classList.add('table-loading');
+    }
+    
+    // Create 5 skeleton rows
+    for (let i = 0; i < 5; i++) {
+      const tr = document.createElement('tr');
+      tr.className = 'table-skeleton';
+      let skeletonCells = '';
+      
+      for (let j = 0; j < colCount; j++) {
+        const width = j === 0 ? 'short' : j === colCount - 1 ? 'short' : 'long';
+        skeletonCells += `<td><div class="skeleton-bar ${width}"></div></td>`;
+      }
+      
+      tr.innerHTML = skeletonCells;
+      tableBody.appendChild(tr);
+    }
+  }
+
   // Sample data with user filtering
   function showSampleData() {
+    // Remove loading class
+    const tableWrap = tableBody?.closest('.health-table-wrap');
+    if (tableWrap) {
+      tableWrap.classList.remove('table-loading');
+    }
+    
     const sampleData = getSampleDataForTab(currentTab);
     
     let filteredRows = sampleData.rows;
@@ -387,182 +431,196 @@
   }
 
   function renderRows(rows){
-    if (!tableBody) return; // Safety check
+    if (!tableBody) return;
     
-    // Clear existing rows
-    tableBody.innerHTML = '';
-    
-    // Debug logging
-    console.log(`[renderRows] Rendering ${rows?.length || 0} rows for tab: ${currentTab}`, rows);
-    
-    // If no rows, show empty message
-    if (!rows || rows.length === 0) {
-      const tr = document.createElement('tr');
-      const colCount = tableHead ? tableHead.querySelectorAll('th').length : 1;
-      tr.innerHTML = `<td colspan="${colCount}" style="text-align: center; padding: 2rem; color: var(--muted);">No records found.</td>`;
-      tableBody.appendChild(tr);
-      return;
+    // Remove loading class
+    const tableWrap = tableBody.closest('.health-table-wrap');
+    if (tableWrap) {
+      tableWrap.classList.remove('table-loading');
     }
     
-    rows.forEach(r => {
-      const tr = document.createElement('tr');
-      let cells = '';
+    // Clear existing rows with fade out
+    tableBody.style.opacity = '0';
+    tableBody.style.transition = 'opacity 0.2s ease';
+    
+    // Use requestAnimationFrame for smooth transition
+    requestAnimationFrame(() => {
+      tableBody.innerHTML = '';
       
-      switch(currentTab) {
-        case 'patient-data':
-          cells = `
-            <td class="px-3 py-3 text-sm">${r.coordinator || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.program || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.type || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.location || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${fmt(r.createdAt)}</td>
-            <td class="px-3 py-3 text-sm">${badge(r.status || 'Pending')}</td>
-          `;
-          break;
-        case 'family-planning':
-          cells = `
-            <td class="px-3 py-3 text-sm">${r.lastName && r.givenName ? r.lastName + ', ' + r.givenName : 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.age || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.address || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.clientType || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.fpMethod || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.dateOfBirth ? new Date(r.dateOfBirth).toLocaleDateString() : 'N/A'}</td>
-          `;
-          break;
-        case 'post-partum':
-          cells = `
-            <td class="px-3 py-3 text-sm">${r.motherName || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.address || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.ageOfMother || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${fmt(r.deliveryDateTime)}</td>
-            <td class="px-3 py-3 text-sm">${r.placeOfDelivery || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.gender || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${badge(r.tetanusStatus || 'Pending')}</td>
-          `;
-          break;
-        case 'child-immunization':
-          cells = `
-            <td class="px-3 py-3 text-sm">${r.childName || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.birthday ? new Date(r.birthday).toLocaleDateString() : 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.age || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.bcgDate ? '✓' : '—'}</td>
-            <td class="px-3 py-3 text-sm">${r.hepBBirthDate ? '✓' : '—'}</td>
-            <td class="px-3 py-3 text-sm">${r.pentavalent1Date ? '✓' : '—'}</td>
-            <td class="px-3 py-3 text-sm">${r.opv1Date ? '✓' : '—'}</td>
-            <td class="px-3 py-3 text-sm">${r.mmr1Date ? '✓' : '—'}</td>
-          `;
-          break;
-        case 'individual-treatment':
-          cells = `
-            <td class="px-3 py-3 text-sm">${r.patientName || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${fmt(r.consultationDate)}</td>
-            <td class="px-3 py-3 text-sm">${r.age || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.address || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.historyOfIllness || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${badge(r.status || 'Pending')}</td>
-          `;
-          break;
-        case 'patient-data-record':
-          cells = `
-            <td class="px-3 py-3 text-sm">${(r.surname && r.givenName) ? (r.surname + ', ' + r.givenName + ' ' + (r.middleName || '')).trim() : 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.age || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.gender || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.barangay || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.contactNumber || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${badge(r.status || 'Pending')}</td>
-          `;
-          break;
-        case 'pregnancy-tracking':
-          cells = `
-            <td class="px-3 py-3 text-sm">${r.name || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.completeAddress || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.age || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.lmp ? new Date(r.lmp).toLocaleDateString() : 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.edd ? new Date(r.edd).toLocaleDateString() : 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.prenatalConsultation || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.healthFacility || 'N/A'}</td>
-          `;
-          break;
-        case 'pre-natal':
-          cells = `
-            <td class="px-3 py-3 text-sm">${r.patientName || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.age || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.address || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.visitDate ? new Date(r.visitDate).toLocaleString() : 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.trimester || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.midwifeName || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.bloodPressure || 'N/A'}</td>
-          `;
-          break;
-        case 'medicine-list':
-          cells = `
-            <td class="px-3 py-3 text-sm">${r.name || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.category || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${typeof r.stock === 'number' ? r.stock : '0'}</td>
-            <td class="px-3 py-3 text-sm">${typeof r.minStock === 'number' ? r.minStock : '0'}</td>
-            <td class="px-3 py-3 text-sm">${typeof r.maxStock === 'number' ? r.maxStock : '0'}</td>
-            <td class="px-3 py-3 text-sm">${badge(r.status || 'Active')}</td>
-          `;
-          break;
-        case 'midwives':
-          cells = `
-            <td class="px-3 py-3 text-sm">${r.name || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.contactNumber || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.details || 'N/A'}</td>
-          `;
-          break;
-        case 'schedules':
-          const typeMap = {
-            'prenatal': { icon: '🤰', label: 'Pre-natal', color: '#8e44ad' },
-            'infant': { icon: '👶', label: 'Infant', color: '#e67e22' },
-            'health': { icon: '🏥', label: 'Health', color: '#27ae60' },
-            'general': { icon: '👤', label: 'General', color: '#2980b9' }
-          };
-          const typeInfo = typeMap[(r.type || '').toLowerCase()] || { icon: '📋', label: (r.type || '').toString(), color: '#7f8c8d' };
-          const formatDate = (date) => {
-            if (!date) return 'N/A';
-            const d = new Date(date);
-            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-          };
-          const formatTime = (date) => {
-            if (!date) return 'N/A';
-            const d = new Date(date);
-            return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-          };
-          cells = `
-            <td>
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 1.2rem;">${typeInfo.icon}</span>
-                <span style="font-weight: 600; color: ${typeInfo.color}; text-transform: capitalize;">${typeInfo.label}</span>
-              </div>
-            </td>
-            <td style="font-weight: 500;">${r.residentName || 'N/A'}</td>
-            <td>
-              <div style="display: flex; flex-direction: column; gap: 2px;">
-                <span style="font-weight: 600; color: #2c3e50;">${formatDate(r.preferredDate)}</span>
-                <span style="font-size: 0.85rem; color: #7f8c8d;">${formatTime(r.preferredDate)}</span>
-              </div>
-            </td>
-            <td style="font-weight: 500; color: #3498db;">${r.preferredTime || 'N/A'}</td>
-            <td>${badge(r.status || 'Pending')}</td>
-          `;
-          break;
-        default:
-          cells = '<td colspan="7">No data</td>';
+      // If no rows, show empty message
+      if (!rows || rows.length === 0) {
+        const tr = document.createElement('tr');
+        const colCount = tableHead ? tableHead.querySelectorAll('th').length : 1;
+        tr.innerHTML = `<td colspan="${colCount}" style="text-align: center; padding: 40px 20px; color: var(--muted);">No records found.</td>`;
+        tableBody.appendChild(tr);
+        tableBody.style.opacity = '1';
+        return;
       }
       
-      tr.className = '';
-      tr.innerHTML = `
-        ${cells}
-        <td>
-          <div class="action-buttons">
-            <button class="action-btn action-btn-view" data-act="view" data-id="${r._id}">👁️ View</button>
-            ${isAdmin || (user && r.createdBy === (user._id || user.id)) ? '<button class="action-btn action-btn-edit" data-act="edit" data-id="' + r._id + '">✏️ Edit</button>' : ''}
-            ${isAdmin || (user && r.createdBy === (user._id || user.id)) ? '<button class="action-btn action-btn-delete" data-act="del" data-id="' + r._id + '">🗑️ Delete</button>' : ''}
-          </div>
-        </td>
-      `;
-      tableBody.appendChild(tr);
+      rows.forEach((r, index) => {
+        const tr = document.createElement('tr');
+        let cells = '';
+        
+        switch(currentTab) {
+          case 'patient-data':
+            cells = `
+              <td>${r.coordinator || 'N/A'}</td>
+              <td>${r.program || 'N/A'}</td>
+              <td>${r.type || 'N/A'}</td>
+              <td>${r.location || 'N/A'}</td>
+              <td>${fmt(r.createdAt)}</td>
+              <td>${badge(r.status || 'Pending')}</td>
+            `;
+            break;
+          case 'family-planning':
+            cells = `
+              <td>${r.lastName && r.givenName ? r.lastName + ', ' + r.givenName : 'N/A'}</td>
+              <td>${r.age || 'N/A'}</td>
+              <td>${r.address || 'N/A'}</td>
+              <td>${r.clientType || 'N/A'}</td>
+              <td>${r.fpMethod || 'N/A'}</td>
+              <td>${r.dateOfBirth ? new Date(r.dateOfBirth).toLocaleDateString() : 'N/A'}</td>
+            `;
+            break;
+          case 'post-partum':
+            cells = `
+              <td>${r.motherName || 'N/A'}</td>
+              <td>${r.address || 'N/A'}</td>
+              <td>${r.ageOfMother || 'N/A'}</td>
+              <td>${fmt(r.deliveryDateTime)}</td>
+              <td>${r.placeOfDelivery || 'N/A'}</td>
+              <td>${r.gender || 'N/A'}</td>
+              <td>${badge(r.tetanusStatus || 'Pending')}</td>
+            `;
+            break;
+          case 'child-immunization':
+            cells = `
+              <td>${r.childName || 'N/A'}</td>
+              <td>${r.birthday ? new Date(r.birthday).toLocaleDateString() : 'N/A'}</td>
+              <td>${r.age || 'N/A'}</td>
+              <td>${r.bcgDate ? '✓' : '—'}</td>
+              <td>${r.hepBBirthDate ? '✓' : '—'}</td>
+              <td>${r.pentavalent1Date ? '✓' : '—'}</td>
+              <td>${r.opv1Date ? '✓' : '—'}</td>
+              <td>${r.mmr1Date ? '✓' : '—'}</td>
+            `;
+            break;
+          case 'individual-treatment':
+            cells = `
+              <td>${r.patientName || 'N/A'}</td>
+              <td>${fmt(r.consultationDate)}</td>
+              <td>${r.age || 'N/A'}</td>
+              <td>${r.address || 'N/A'}</td>
+              <td>${r.historyOfIllness || 'N/A'}</td>
+              <td>${badge(r.status || 'Pending')}</td>
+            `;
+            break;
+          case 'patient-data-record':
+            cells = `
+              <td>${(r.surname && r.givenName) ? (r.surname + ', ' + r.givenName + ' ' + (r.middleName || '')).trim() : 'N/A'}</td>
+              <td>${r.age || 'N/A'}</td>
+              <td>${r.gender || 'N/A'}</td>
+              <td>${r.barangay || 'N/A'}</td>
+              <td>${r.contactNumber || 'N/A'}</td>
+              <td>${badge(r.status || 'Pending')}</td>
+            `;
+            break;
+          case 'pregnancy-tracking':
+            cells = `
+              <td>${r.name || 'N/A'}</td>
+              <td>${r.completeAddress || 'N/A'}</td>
+              <td>${r.age || 'N/A'}</td>
+              <td>${r.lmp ? new Date(r.lmp).toLocaleDateString() : 'N/A'}</td>
+              <td>${r.edd ? new Date(r.edd).toLocaleDateString() : 'N/A'}</td>
+              <td>${r.prenatalConsultation || 'N/A'}</td>
+              <td>${r.healthFacility || 'N/A'}</td>
+            `;
+            break;
+          case 'pre-natal':
+            cells = `
+              <td>${r.patientName || 'N/A'}</td>
+              <td>${r.age || 'N/A'}</td>
+              <td>${r.address || 'N/A'}</td>
+              <td>${r.visitDate ? new Date(r.visitDate).toLocaleString() : 'N/A'}</td>
+              <td>${r.trimester || 'N/A'}</td>
+              <td>${r.midwifeName || 'N/A'}</td>
+              <td>${r.bloodPressure || 'N/A'}</td>
+            `;
+            break;
+          case 'medicine-list':
+            cells = `
+              <td>${r.name || 'N/A'}</td>
+              <td>${r.category || 'N/A'}</td>
+              <td>${typeof r.stock === 'number' ? r.stock : '0'}</td>
+              <td>${typeof r.minStock === 'number' ? r.minStock : '0'}</td>
+              <td>${typeof r.maxStock === 'number' ? r.maxStock : '0'}</td>
+              <td>${badge(r.status || 'Active')}</td>
+            `;
+            break;
+          case 'midwives':
+            cells = `
+              <td>${r.name || 'N/A'}</td>
+              <td>${r.contactNumber || 'N/A'}</td>
+              <td>${r.details || 'N/A'}</td>
+            `;
+            break;
+          case 'schedules':
+            const typeMap = {
+              'prenatal': { icon: '🤰', label: 'Pre-natal', color: '#8e44ad' },
+              'infant': { icon: '👶', label: 'Infant', color: '#e67e22' },
+              'health': { icon: '🏥', label: 'Health', color: '#27ae60' },
+              'general': { icon: '👤', label: 'General', color: '#2980b9' }
+            };
+            const typeInfo = typeMap[(r.type || '').toLowerCase()] || { icon: '📋', label: (r.type || '').toString(), color: '#7f8c8d' };
+            const formatDate = (date) => {
+              if (!date) return 'N/A';
+              const d = new Date(date);
+              return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            };
+            const formatTime = (date) => {
+              if (!date) return 'N/A';
+              const d = new Date(date);
+              return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            };
+            cells = `
+              <td>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="font-size: 1.2rem;">${typeInfo.icon}</span>
+                  <span style="font-weight: 600; color: ${typeInfo.color}; text-transform: capitalize;">${typeInfo.label}</span>
+                </div>
+              </td>
+              <td style="font-weight: 500;">${r.residentName || 'N/A'}</td>
+              <td>
+                <div style="display: flex; flex-direction: column; gap: 2px;">
+                  <span style="font-weight: 600; color: #2c3e50;">${formatDate(r.preferredDate)}</span>
+                  <span style="font-size: 0.85rem; color: #7f8c8d;">${formatTime(r.preferredDate)}</span>
+                </div>
+              </td>
+              <td style="font-weight: 500; color: #3498db;">${r.preferredTime || 'N/A'}</td>
+              <td>${badge(r.status || 'Pending')}</td>
+            `;
+            break;
+          default:
+            cells = '<td colspan="7">No data</td>';
+        }
+        
+        tr.innerHTML = `
+          ${cells}
+          <td class="t-actions">
+            <div class="table-actions">
+              <button class="table-action-btn view" data-act="view" data-id="${r._id}">View</button>
+              ${isAdmin || (user && r.createdBy === (user._id || user.id)) ? '<button class="table-action-btn edit" data-act="edit" data-id="' + r._id + '">Edit</button>' : ''}
+              ${isAdmin || (user && r.createdBy === (user._id || user.id)) ? '<button class="table-action-btn delete" data-act="del" data-id="' + r._id + '">Delete</button>' : ''}
+            </div>
+          </td>
+        `;
+        tableBody.appendChild(tr);
+      });
+      
+      // Fade in the new content smoothly
+      requestAnimationFrame(() => {
+        tableBody.style.opacity = '1';
+      });
     });
   }
 
@@ -1005,7 +1063,7 @@
       'Administered': 'bg-administered'
     };
     const status = record.status || 'Active';
-    dStatus.className = 'px-2 py-1 rounded-2xl text-xs font-bold ml-2 ' + (statusMap[status] || 'bg-ghost-btn text-primary-btn');
+    dStatus.className = 'badge ' + (statusMap[status] || 'bg-pending');
     dStatus.textContent = status;
 
     // Build details HTML based on record type
@@ -1147,17 +1205,17 @@
     dBody.innerHTML = detailsHTML || '<p>No details available.</p>';
 
     drawer.classList.remove('hidden');
-    drawer.classList.add('block');
   }
 
   dClose.onclick = () => {
-    drawer.classList.remove('block');
     drawer.classList.add('hidden');
   };
-  drawer.querySelector('.overlay').onclick = () => {
-    drawer.classList.remove('block');
-    drawer.classList.add('hidden');
-  };
+  const overlay = drawer.querySelector('.drawer-backdrop');
+  if (overlay) {
+    overlay.onclick = () => {
+      drawer.classList.add('hidden');
+    };
+  }
 
   // Initialize - ensure initUser completes before loading data
   (async () => {

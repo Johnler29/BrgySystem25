@@ -292,14 +292,26 @@
 
   $('#btnSave').onclick = async () => {
     const fd = new FormData(frm);
-    const body = Object.fromEntries(fd.entries());
-    if (!body.type || !body.location || !body.description || !body.reporterName || !body.contact) {
+
+    // Basic required validation (excluding optional file)
+    const required = ['type','location','description','reporterName','contact'];
+    let hasError = false;
+    required.forEach(name => {
+      const v = (fd.get(name) || '').toString().trim();
+      if (!v) hasError = true;
+    });
+    if (hasError) {
       msg.textContent = 'Please fill all required fields.';
       return;
     }
+
     try{
-      const j = await fetchJSON('/api/disaster/incidents', { method:'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
-      if(!j.ok){ msg.textContent=j.message || 'Failed to submit report.'; return; }
+      const res = await fetch('/api/disaster/incidents', { method:'POST', body: fd });
+      const j = await res.json().catch(()=>({}));
+      if(!res.ok || !j.ok){
+        msg.textContent = j.message || 'Failed to submit report.';
+        return;
+      }
       modal.classList.remove('flex');
       modal.classList.add('hidden');
       load();
@@ -355,5 +367,51 @@
   refreshSummary();
   loadAlerts();
   load();
+
+  // Dynamic fields: Others + plan upload + disaster-prone areas
+  (function wireDynamic(){
+    const typeSel = document.getElementById('uTypeSelect');
+    const typeOtherRow = document.getElementById('uTypeOtherRow');
+    const hasPlan = document.getElementById('uHasPlan');
+    const planRow = document.getElementById('uPlanRow');
+    const locInput = document.getElementById('uLocation');
+
+    if (typeSel && typeOtherRow) {
+      typeSel.addEventListener('change', () => {
+        if (typeSel.value === 'Others') {
+          typeOtherRow.classList.remove('hidden');
+        } else {
+          typeOtherRow.classList.add('hidden');
+        }
+      });
+    }
+
+    if (hasPlan && planRow) {
+      hasPlan.addEventListener('change', () => {
+        if (hasPlan.value === 'Yes') {
+          planRow.classList.remove('hidden');
+        } else {
+          planRow.classList.add('hidden');
+          const f = planRow.querySelector('input[type="file"]');
+          if (f) f.value = '';
+        }
+      });
+    }
+
+    if (locInput) {
+      fetchJSON('/api/disaster/areas?riskLevel=High').then(j => {
+        if (!j.ok || !Array.isArray(j.items) || !j.items.length) return;
+        const listId = 'userDisasterAreas';
+        let dl = document.getElementById(listId);
+        if (!dl) {
+          dl = document.createElement('datalist');
+          dl.id = listId;
+          document.body.appendChild(dl);
+        }
+        dl.innerHTML = j.items.map(a => `<option value="${a.area || ''}">${(a.area || '')} (${a.riskLevel || 'Risk'})</option>`).join('');
+        locInput.setAttribute('list', listId);
+      }).catch(()=>{});
+    }
+  })();
 })();
 

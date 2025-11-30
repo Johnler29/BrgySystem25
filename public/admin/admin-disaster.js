@@ -75,10 +75,13 @@
       'Critical': 'bg-critical',
       'Completed': 'bg-completed',
       'Upcoming': 'bg-upcoming',
-      'Monitoring': 'bg-monitoring'
+      'Monitoring': 'bg-monitoring',
+      'Active': 'bg-ongoing',
+      'Available': 'bg-resolved',
+      'Reported': 'bg-reported'
     };
-    const cls = map[s] || 'bg-ghost-btn text-primary-btn';
-    return `<span class="px-2 py-1 rounded-2xl text-xs font-bold ${cls}">${s}</span>`;
+    const cls = map[s] || 'bg-pending';
+    return `<span class="badge ${cls}" style="padding: 4px 8px; border-radius: 14px; font-size: 12px; font-weight: 700; display: inline-block;">${s}</span>`;
   };
   const fmt = d => d ? new Date(d).toLocaleString() : '';
   const fmtDate = d => d ? new Date(d).toLocaleDateString() : '';
@@ -142,16 +145,19 @@
     }
     announcementsSection.classList.remove('hidden');
 
-    announcementsSection.innerHTML = activeAnnouncements.map(ann => `
-      <div class="bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white rounded-2xl p-5 mb-5 shadow-[0_4px_12px_rgba(102,126,234,0.3)]">
-        <div class="flex justify-between items-start mb-3">
-          <div class="text-lg font-bold">${ann.title}</div>
-          <div class="text-xs opacity-90">${fmtDate(ann.date)}</div>
+    announcementsSection.innerHTML = activeAnnouncements.map(ann => {
+      const priorityClass = ann.priority === 'HIGH' ? 'high' : ann.priority === 'MEDIUM' ? 'medium' : '';
+      return `
+      <div class="announcement-card ${priorityClass}">
+        <div class="announcement-header">
+          <div class="announcement-title">${ann.title}</div>
+          <div class="announcement-date">${fmtDate(ann.date)}</div>
         </div>
-        <div class="text-sm leading-relaxed opacity-95 mb-2">${ann.content}</div>
-        <div class="inline-block px-3 py-1 rounded-xl text-[11px] font-bold bg-white/20 mt-2">Priority: ${ann.priority}</div>
+        <div class="announcement-content">${ann.content}</div>
+        <div class="announcement-priority">Priority: ${ann.priority}</div>
       </div>
-    `).join('');
+    `;
+    }).join('');
   }
 
   // Summary statistics
@@ -162,6 +168,14 @@
     $('#sResolved').textContent = sum.Resolved || 0;
     $('#sAffected').textContent = sum.Affected || 0;
     $('#sTeams').textContent = sum.Teams || 0;
+    const popTotal = $('#popTotal');
+    const popSeniors = $('#popSeniors');
+    const popMinors = $('#popMinors');
+    const popPets = $('#popPets');
+    if (popTotal) popTotal.textContent = sum.PopulationTotal || 0;
+    if (popSeniors) popSeniors.textContent = sum.PopulationSeniors || 0;
+    if (popMinors) popMinors.textContent = sum.PopulationMinors || 0;
+    if (popPets) popPets.textContent = sum.PopulationPets || 0;
   }
 
   async function refreshSummary(){
@@ -177,19 +191,17 @@
   function switchTab(tabName) {
     currentTab = tabName;
     
-    $$('.tab').forEach(t => {
-      t.classList.remove('active', 'text-[#e74c3c]', 'border-[#e74c3c]', 'font-semibold');
-      t.classList.add('text-[#7f8c8d]', 'border-transparent');
+    $$('.disaster-tab').forEach(t => {
+      t.classList.remove('active');
     });
-    const activeTab = $(`.tab[data-tab="${tabName}"]`);
+    const activeTab = $(`.disaster-tab[data-tab="${tabName}"]`);
     if (activeTab) {
-      activeTab.classList.add('active', 'text-[#e74c3c]', 'border-[#e74c3c]', 'font-semibold');
-      activeTab.classList.remove('text-[#7f8c8d]', 'border-transparent');
+      activeTab.classList.add('active');
     }
     
     const config = tabConfigs[tabName];
     if (config) {
-      tableHead.innerHTML = `<tr>${config.headers.map(h => `<th class="sticky top-0 bg-[#f8f9fa] border-b border-[#ecf0f1] px-3 py-3 text-left text-xs text-[#7f8c8d] font-semibold select-none cursor-pointer hover:text-[#3498db] transition-colors">${h}</th>`).join('')}<th class="sticky top-0 bg-[#f8f9fa] border-b border-[#ecf0f1] px-3 py-3 text-left text-xs text-[#7f8c8d] font-semibold w-[180px]">Actions</th></tr>`;
+      tableHead.innerHTML = `<tr>${config.headers.map(h => `<th>${h}</th>`).join('')}<th style="min-width: 180px;">Actions</th></tr>`;
       $('#dlgTitle').textContent = `Add ${config.title}`;
       state.page = 1;
       load();
@@ -197,10 +209,44 @@
     }
   }
 
+  // Show loading skeleton
+  function showLoading() {
+    if (!tableBody) return;
+    const config = tabConfigs[currentTab];
+    if (!config) return;
+    
+    const colCount = config.headers.length + 1; // +1 for Actions column
+    tableBody.innerHTML = '';
+    
+    // Add loading class to table wrapper
+    const tableWrap = tableBody.closest('.disaster-table-wrap');
+    if (tableWrap) {
+      tableWrap.classList.add('table-loading');
+    }
+    
+    // Create 5 skeleton rows
+    for (let i = 0; i < 5; i++) {
+      const tr = document.createElement('tr');
+      tr.className = 'table-skeleton';
+      let skeletonCells = '';
+      
+      for (let j = 0; j < colCount; j++) {
+        const width = j === 0 ? 'short' : j === colCount - 1 ? 'short' : 'long';
+        skeletonCells += `<td><div class="skeleton-bar ${width}"></div></td>`;
+      }
+      
+      tr.innerHTML = skeletonCells;
+      tableBody.appendChild(tr);
+    }
+  }
+
   // Data loading with role-based filtering
   async function load(){
     const config = tabConfigs[currentTab];
     if (!config) return;
+
+    // Show loading state
+    showLoading();
 
     const params = {
       page: state.page, 
@@ -213,15 +259,26 @@
       sort: state.sort
     };
     
-    if (!isAdmin) {
+    if (!isAdmin && user && (user._id || user.id)) {
       params.userId = user._id || user.id;
     }
 
     const qs = new URLSearchParams(params).toString();
 
     try {
-      const response = await fetch(`${config.apiEndpoint}?${qs}`);
+      // Add small delay for smooth transition (only if data loads too fast)
+      const [response] = await Promise.all([
+        fetch(`${config.apiEndpoint}?${qs}`),
+        new Promise(resolve => setTimeout(resolve, 150)) // Minimum 150ms for smooth transition
+      ]);
+      
       const j = await response.json();
+      
+      // Remove loading class
+      const tableWrap = tableBody?.closest('.disaster-table-wrap');
+      if (tableWrap) {
+        tableWrap.classList.remove('table-loading');
+      }
       
       if (j.ok) {
         renderRows(j.rows || []);
@@ -230,6 +287,11 @@
         showSampleData();
       }
     } catch (error) {
+      // Remove loading class on error
+      const tableWrap = tableBody?.closest('.disaster-table-wrap');
+      if (tableWrap) {
+        tableWrap.classList.remove('table-loading');
+      }
       showSampleData();
     }
 
@@ -238,6 +300,12 @@
 
   // Sample data with user filtering
   function showSampleData() {
+    // Remove loading class
+    const tableWrap = tableBody?.closest('.disaster-table-wrap');
+    if (tableWrap) {
+      tableWrap.classList.remove('table-loading');
+    }
+    
     const sampleData = getSampleDataForTab(currentTab);
     
     let filteredRows = sampleData.rows;
@@ -319,85 +387,115 @@
   }
 
   function renderRows(rows){
-    tableBody.innerHTML = '';
+    if (!tableBody) return;
     
-    rows.forEach(r => {
+    // Clear existing rows with fade out
+    tableBody.style.opacity = '0';
+    tableBody.style.transition = 'opacity 0.2s ease';
+    
+    // Use requestAnimationFrame for smooth transition
+    requestAnimationFrame(() => {
+      tableBody.innerHTML = '';
+      
+      if (!rows || rows.length === 0) {
+        const config = tabConfigs[currentTab];
+        const colCount = config ? config.headers.length + 1 : 6;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td colspan="${colCount}" style="text-align: center; padding: 40px 20px; color: var(--muted);">No records found.</td>`;
+        tableBody.appendChild(tr);
+        tableBody.style.opacity = '1';
+        return;
+      }
+      
+      rows.forEach((r, index) => {
       const tr = document.createElement('tr');
       let cells = '';
       
       switch(currentTab) {
         case 'incidents':
+          const priorityClass = r.priority?.toLowerCase() === 'high' || r.priority === 'HIGH' ? 'priority-high' : 
+                               r.priority?.toLowerCase() === 'medium' || r.priority === 'MEDIUM' ? 'priority-medium' : 'priority-low';
           cells = `
-            <td class="px-3 py-3 text-sm">${fmt(r.incidentDate)}</td>
-            <td class="px-3 py-3 text-sm">${r.type || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.location || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.peopleAffected || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm"><span class="${r.priority?.toLowerCase() === 'high' || r.priority === 'HIGH' ? 'text-[#e74c3c] font-bold' : r.priority?.toLowerCase() === 'medium' || r.priority === 'MEDIUM' ? 'text-[#f39c12] font-semibold' : 'text-[#3498db]'}">${r.priority || 'LOW'}</span></td>
-            <td class="px-3 py-3 text-sm">${badge(r.status || 'Pending')}</td>
+            <td>${fmt(r.incidentDate)}</td>
+            <td>${r.type || 'N/A'}</td>
+            <td>${r.location || 'N/A'}</td>
+            <td>${r.peopleAffected || 'N/A'}</td>
+            <td><span class="${priorityClass}">${r.priority || 'LOW'}</span></td>
+            <td>${badge(r.status || 'Pending')}</td>
           `;
           break;
         case 'coordination':
           cells = `
-            <td class="px-3 py-3 text-sm">${fmt(r.coordinationDate)}</td>
-            <td class="px-3 py-3 text-sm">${r.agency || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.actionTaken || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.resourcesDeployed || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${badge(r.status || 'Pending')}</td>
+            <td>${fmt(r.coordinationDate)}</td>
+            <td>${r.agency || 'N/A'}</td>
+            <td>${r.actionTaken || 'N/A'}</td>
+            <td>${r.resourcesDeployed || 'N/A'}</td>
+            <td>${badge(r.status || 'Pending')}</td>
           `;
           break;
         case 'monitoring':
+          const riskClass = r.riskLevel?.toLowerCase() === 'high' ? 'priority-high' : 
+                           r.riskLevel?.toLowerCase() === 'medium' ? 'priority-medium' : 'priority-low';
           cells = `
-            <td class="px-3 py-3 text-sm">${r.area || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm"><span class="${r.riskLevel?.toLowerCase() === 'high' ? 'text-[#e74c3c] font-bold' : r.riskLevel?.toLowerCase() === 'medium' ? 'text-[#f39c12] font-semibold' : 'text-[#3498db]'}">${r.riskLevel || 'Low'}</span></td>
-            <td class="px-3 py-3 text-sm">${r.population || 0}</td>
-            <td class="px-3 py-3 text-sm">${fmtDate(r.lastAssessed)}</td>
-            <td class="px-3 py-3 text-sm">${r.vulnerabilities || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${badge(r.status || 'Monitoring')}</td>
+            <td>${r.area || 'N/A'}</td>
+            <td><span class="${riskClass}">${r.riskLevel || 'Low'}</span></td>
+            <td>${r.population || 0}</td>
+            <td>${fmtDate(r.lastAssessed)}</td>
+            <td>${r.vulnerabilities || 'N/A'}</td>
+            <td>${badge(r.status || 'Monitoring')}</td>
           `;
           break;
         case 'preparedness':
           cells = `
-            <td class="px-3 py-3 text-sm">${r.planName || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.disasterType || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${fmtDate(r.lastUpdated)}</td>
-            <td class="px-3 py-3 text-sm">${r.coordinator || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.drillSchedule || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${badge(r.status || 'Pending')}</td>
+            <td>${r.planName || 'N/A'}</td>
+            <td>${r.disasterType || 'N/A'}</td>
+            <td>${fmtDate(r.lastUpdated)}</td>
+            <td>${r.coordinator || 'N/A'}</td>
+            <td>${r.drillSchedule || 'N/A'}</td>
+            <td>${badge(r.status || 'Pending')}</td>
           `;
           break;
         case 'contacts':
           cells = `
-            <td class="px-3 py-3 text-sm">${r.agency || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.contactPerson || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.phone || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.email || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.type || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${badge(r.status || 'Active')}</td>
+            <td>${r.agency || 'N/A'}</td>
+            <td>${r.contactPerson || 'N/A'}</td>
+            <td>${r.phone || 'N/A'}</td>
+            <td>${r.email || 'N/A'}</td>
+            <td>${r.type || 'N/A'}</td>
+            <td>${badge(r.status || 'Active')}</td>
           `;
           break;
         case 'resources':
           cells = `
-            <td class="px-3 py-3 text-sm">${r.itemName || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.category || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.quantity || 0}</td>
-            <td class="px-3 py-3 text-sm">${r.location || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${r.condition || 'N/A'}</td>
-            <td class="px-3 py-3 text-sm">${badge(r.status || 'Available')}</td>
+            <td>${r.itemName || 'N/A'}</td>
+            <td>${r.category || 'N/A'}</td>
+            <td>${r.quantity || 0}</td>
+            <td>${r.location || 'N/A'}</td>
+            <td>${r.condition || 'N/A'}</td>
+            <td>${badge(r.status || 'Available')}</td>
           `;
           break;
         default:
           cells = '<td colspan="6">No data</td>';
       }
       
-      tr.innerHTML = `
-        ${cells}
-        <td class="actions">
-          <button class="btn btn-ghost" data-act="view" data-id="${r._id}">View</button>
-          ${isAdmin || (r.createdBy === (user._id || user.id)) ? '<button class="btn btn-ghost" data-act="edit" data-id="' + r._id + '">Edit</button>' : ''}
-          ${isAdmin || (r.createdBy === (user._id || user.id)) ? '<button class="btn btn-danger" data-act="del" data-id="' + r._id + '">Delete</button>' : ''}
-        </td>
-      `;
-      tableBody.appendChild(tr);
+        tr.innerHTML = `
+          ${cells}
+          <td class="t-actions">
+            <div class="table-actions">
+              <button class="table-action-btn view" data-act="view" data-id="${r._id}">View</button>
+              ${isAdmin || (r.createdBy === (user._id || user.id)) ? '<button class="table-action-btn edit" data-act="edit" data-id="' + r._id + '">Edit</button>' : ''}
+              ${isAdmin || (r.createdBy === (user._id || user.id)) ? '<button class="table-action-btn delete" data-act="del" data-id="' + r._id + '">Delete</button>' : ''}
+            </div>
+          </td>
+        `;
+        tableBody.appendChild(tr);
+      });
+      
+      // Fade in the new content smoothly
+      requestAnimationFrame(() => {
+        tableBody.style.opacity = '1';
+      });
     });
   }
 
@@ -437,9 +535,24 @@
     mk('Next', () => { if(state.page < totalPages){ state.page++; load(); }}, page >= totalPages);
   }
 
+  // ---- Disaster‑prone areas (for selects / suggestions) ----
+  async function loadDisasterAreas() {
+    try {
+      const res = await fetch('/api/disaster/areas?riskLevel=High');
+      const j = await res.json();
+      if (!j.ok || !Array.isArray(j.items)) return [];
+      return j.items;
+    } catch {
+      return [];
+    }
+  }
+
   // Form content generation
   function updateFormContent() {
     formContent.innerHTML = getFormHTML(currentTab);
+    // after injecting fields, apply date min restrictions & dynamic behaviours
+    applyDateGuards();
+    wireDynamicFields();
   }
 
   function getFormHTML(tab) {
@@ -454,43 +567,153 @@
     return forms[tab] || '<p>Form not available</p>';
   }
 
-  // Event Listeners
-  tabs.addEventListener('click', (e) => {
-    const tab = e.target.closest('.tab');
-    if (!tab) return;
-    const tabName = tab.getAttribute('data-tab');
-    if (tabName) switchTab(tabName);
-  });
+  // Event Listeners - setup after DOM is ready
+  function setupEventListeners() {
+    if (tabs) {
+      tabs.addEventListener('click', (e) => {
+        const tab = e.target.closest('.disaster-tab');
+        if (!tab) return;
+        const tabName = tab.getAttribute('data-tab');
+        if (tabName) switchTab(tabName);
+      });
+    }
 
-  $('#btnFilter').onclick = () => {
-    state.from = $('#fFrom').value || '';
-    state.to = $('#fTo').value || '';
-    state.q = $('#fQ').value.trim();
-    state.status = $('#fStatus').value || '';
-    state.type = $('#fType').value || '';
-    state.page = 1;
-    load();
-  };
+    const btnFilter = $('#btnFilter');
+    if (btnFilter) {
+      btnFilter.onclick = () => {
+        state.from = $('#fFrom')?.value || '';
+        state.to = $('#fTo')?.value || '';
+        state.q = $('#fQ')?.value?.trim() || '';
+        state.status = $('#fStatus')?.value || '';
+        state.type = $('#fType')?.value || '';
+        state.page = 1;
+        load();
+      };
+    }
 
-  $('#btnExport').onclick = () => {
-    const config = tabConfigs[currentTab];
-    const qs = new URLSearchParams({ ...state, exportCsv: 'true' }).toString();
-    window.location = config.apiEndpoint + '?' + qs;
-  };
+    const btnExport = $('#btnExport');
+    if (btnExport) {
+      btnExport.onclick = () => {
+        const config = tabConfigs[currentTab];
+        const qs = new URLSearchParams({ ...state, exportCsv: 'true' }).toString();
+        window.location = config.apiEndpoint + '?' + qs;
+      };
+    }
 
-  $('#btnAdd').onclick = () => openModal();
-  $('#btnEmergency').onclick = () => openModal('emergency');
-  $('#btnIncident').onclick = () => openModal('incident');
-  $('#btnCoordination').onclick = () => openModal('coordination');
+    const btnAdd = $('#btnAdd');
+    if (btnAdd) {
+      btnAdd.onclick = () => openModal();
+    }
+
+    const btnEmergency = $('#btnEmergency');
+    if (btnEmergency) {
+      btnEmergency.onclick = () => openModal('emergency');
+    }
+
+    const btnIncident = $('#btnIncident');
+    if (btnIncident) {
+      btnIncident.onclick = () => openModal('incident');
+    }
+
+    const btnCoordination = $('#btnCoordination');
+    if (btnCoordination) {
+      btnCoordination.onclick = () => openModal('coordination');
+    }
+
+    const btnPreparedness = $('#btnPreparedness');
+    if (btnPreparedness) {
+      btnPreparedness.onclick = () => {
+        switchTab('preparedness');
+        load();
+      };
+    }
+
+    const btnCancel = $('#btnCancel');
+    if (btnCancel) {
+      btnCancel.onclick = () => {
+        const modalEl = $('#modal');
+        if (modalEl) {
+          modalEl.classList.remove('open');
+          modalEl.classList.add('hidden');
+        }
+      };
+    }
+
+    const btnSave = $('#btnSave');
+    if (btnSave) {
+      btnSave.onclick = async () => {
+        if (!frm) return;
+        const formData = new FormData(frm);
+
+        if (user) {
+          formData.set('createdBy', user._id || user.id || '');
+          formData.set('reportedBy', user.name || user.username || '');
+        }
+
+        let hasError = false;
+        const requiredFields = frm.querySelectorAll('input[required], select[required], textarea[required]');
+        requiredFields.forEach(field => {
+          const v = (field.type === 'file') ? (field.files && field.files.length ? 'ok' : '') : (formData.get(field.name) || '').toString().trim();
+          if (!v) {
+            hasError = true;
+            field.style.borderColor = '#e74c3c';
+          } else {
+            field.style.borderColor = '#dfe6e9';
+          }
+        });
+
+        if (hasError) {
+          if (msg) msg.textContent = 'Please fill all required fields.';
+          return;
+        }
+
+        try {
+          const config = tabConfigs[currentTab];
+          const response = await fetch(config.apiEndpoint, {
+            method: 'POST',
+            body: formData
+          });
+          const result = await response.json();
+
+          if (response.ok && result.ok) {
+            const modalEl = $('#modal');
+            if (modalEl) {
+              modalEl.classList.remove('open');
+              modalEl.classList.add('hidden');
+            }
+            load();
+            const msgEl = $('#msg');
+            if (msgEl) msgEl.textContent = '';
+          } else {
+            const msgEl = $('#msg');
+            if (msgEl) msgEl.textContent = result.message || 'Failed to save record.';
+          }
+        } catch (error) {
+          console.error('Save error:', error);
+          if (msg) msg.textContent = 'Failed to save record. Please try again.';
+        }
+      };
+    }
+  }
 
   function openModal(quickType) {
-    frm.reset();
-    msg.textContent = '';
+    const modalEl = $('#modal');
+    const formEl = $('#frm');
+    if (!modalEl || !formEl) {
+      console.error('Modal or form element not found');
+      return;
+    }
+    
+    formEl.reset();
+    const msgEl = $('#msg');
+    if (msgEl) msgEl.textContent = '';
     
     if (quickType === 'emergency') {
       switchTab('incidents');
-      const priorityField = frm.querySelector('[name="priority"]');
-      if (priorityField) priorityField.value = 'HIGH';
+      setTimeout(() => {
+        const priorityField = formEl.querySelector('[name="priority"]');
+        if (priorityField) priorityField.value = 'HIGH';
+      }, 100);
     } else if (quickType === 'incident') {
       switchTab('incidents');
     } else if (quickType === 'coordination') {
@@ -498,70 +721,15 @@
     }
     
     const config = tabConfigs[currentTab];
-    $('#dlgTitle').textContent = 'Add ' + config.title;
+    const dlgTitle = $('#dlgTitle');
+    if (dlgTitle) dlgTitle.textContent = 'Add ' + config.title;
     updateFormContent();
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
+    
+    // Ensure modal is visible
+    modalEl.classList.remove('hidden');
+    modalEl.classList.add('open');
   }
 
-  $('#btnCancel').onclick = () => {
-    modal.classList.remove('flex');
-    modal.classList.add('hidden');
-  };
-
-  $('#btnSave').onclick = async () => {
-    const formData = new FormData(frm);
-    const body = Object.fromEntries(formData.entries());
-    
-    body.createdBy = user._id || user.id;
-    body.reportedBy = user.name || user.username;
-    
-    const requiredFields = $('input[required], select[required], textarea[required]');
-    let hasError = false;
-    
-    requiredFields.forEach(field => {
-      if (!body[field.name] || body[field.name].trim() === '') {
-        hasError = true;
-        field.style.borderColor = '#e74c3c';
-      } else {
-        field.classList.remove('border-[#e74c3c]');
-        field.classList.add('border-input');
-      }
-    });
-    
-    if (hasError) {
-      msg.textContent = 'Please fill all required fields.';
-      return;
-    }
-
-    try {
-      const config = tabConfigs[currentTab];
-      const response = await fetch(config.apiEndpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-      
-      const result = await response.json();
-      
-      if (response.ok && result.ok) {
-        modal.classList.remove('flex');
-        modal.classList.add('hidden');
-        load();
-        msg.textContent = '';
-      } else {
-        msg.textContent = result.message || 'Failed to save record.';
-      }
-    } catch (error) {
-      msg.textContent = 'Record saved successfully! ' + (!isAdmin ? '(You can only edit/delete your own records)' : '');
-      setTimeout(() => {
-        modal.classList.remove('flex');
-        modal.classList.add('hidden');
-        load();
-        msg.textContent = '';
-      }, 2000);
-    }
-  };
 
   // Table actions with role-based permissions
   tableBody.addEventListener('click', async (e) => {
@@ -611,10 +779,13 @@
       'Critical': 'bg-critical',
       'Completed': 'bg-completed',
       'Upcoming': 'bg-upcoming',
-      'Monitoring': 'bg-monitoring'
+      'Monitoring': 'bg-monitoring',
+      'Reported': 'bg-reported',
+      'Active': 'bg-ongoing',
+      'Available': 'bg-resolved'
     };
     const status = record.status || 'Pending';
-    dStatus.className = 'px-2 py-1 rounded-2xl text-xs font-bold ' + (statusMap[status] || 'bg-ghost-btn text-primary-btn');
+    dStatus.className = 'badge ' + (statusMap[status] || 'bg-pending');
     dStatus.textContent = status;
 
     const ownershipInfo = record.reportedBy ? `
@@ -626,7 +797,6 @@
     dBody.innerHTML = ownershipInfo + getRecordDetailsHTML(record);
 
     drawer.classList.remove('hidden');
-    drawer.classList.add('block');
   }
 
   function getRecordTitle(record) {
@@ -703,20 +873,41 @@
     }
   }
 
-  dClose.onclick = () => {
-    drawer.classList.remove('block');
-    drawer.classList.add('hidden');
-  };
-  drawer.querySelector('.overlay').onclick = () => {
-    drawer.classList.remove('block');
-    drawer.classList.add('hidden');
-  };
-
   // Initialize
-  initUser();
-  renderAnnouncements();
-  switchTab('incidents');
-  refreshSummary();
+  async function init() {
+    await initUser();
+    setupEventListeners();
+    
+    // Setup drawer close handlers with null checks (after DOM is ready)
+    if (dClose) {
+      dClose.onclick = () => {
+        if (drawer) {
+          drawer.classList.add('hidden');
+        }
+      };
+    }
+    
+    // Setup overlay click handler (the backdrop)
+    if (drawer) {
+      const overlay = drawer.querySelector('.drawer-backdrop');
+      if (overlay) {
+        overlay.onclick = () => {
+          drawer.classList.add('hidden');
+        };
+      }
+    }
+    
+    renderAnnouncements();
+    switchTab('incidents');
+    refreshSummary();
+  }
+
+  // Wait for DOM to be ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 
   // Form HTML functions
   function getIncidentForm() {
@@ -735,15 +926,21 @@
             <option value="Medical">Medical Emergency</option>
             <option value="Power Outage">Power Outage</option>
             <option value="Chemical Spill">Chemical Spill</option>
-            <option value="Other">Other</option>
+            <option value="Others">Others</option>
           </select></div>
-          <div><label>Date & Time *</label><input type="datetime-local" name="incidentDate" required></div>
-          <div class="full"><label>Location *</label><input name="location" required placeholder="Specific address or landmark"></div>
+          <div class="full"><label>If Others, please specify</label><input name="typeOther" placeholder="Please specify the incident type"></div>
+          <div><label>Date & Time *</label><input type="datetime-local" name="incidentDate" required data-future-only="true"></div>
+          <div class="full">
+            <label>Location *</label>
+            <input name="location" required placeholder="Specific address or landmark">
+            <small class="text-xs text-[#7f8c8d] block mt-1">Tip: choose from nearby disaster-prone areas to auto-fill.</small>
+          </div>
           <div><label>Number of People Affected *</label><input type="number" name="affectedCount" required min="0"></div>
           <div><label>Priority Level *</label><select name="priority" required>
             <option value="LOW">Low</option>
             <option value="MEDIUM">Medium</option>
             <option value="HIGH">High</option>
+            <option value="Critical">Critical</option>
           </select></div>
           <div class="full"><label>Description *</label><textarea name="description" required rows="4" placeholder="Detailed description of the incident..."></textarea></div>
           <div><label>Casualties</label><input type="number" name="casualties" min="0"></div>
@@ -753,6 +950,16 @@
             <option value="Ongoing">Ongoing</option>
             <option value="Resolved">Resolved</option>
           </select></div>
+          <div class="full"><label>Do you have a disaster preparedness plan?</label>
+            <select name="hasPlan" id="hasPlanSelect">
+              <option value="No">No</option>
+              <option value="Yes">Yes</option>
+            </select>
+          </div>
+          <div class="full hidden" id="planUploadRow">
+            <label>Upload Preparedness Plan (PDF/Doc/Image)</label>
+            <input type="file" name="planFile" accept=".pdf,.doc,.docx,image/*">
+          </div>
         </div>
       </div>
     `;
@@ -921,10 +1128,52 @@
     `;
   }
 
-  // Preparedness Plan quick action
-  $('#btnPreparedness').onclick = () => {
-    switchTab('preparedness');
-    load();
-  };
+  // Dynamic behaviours: min dates, plan upload toggle, disaster areas helper
+  function applyDateGuards() {
+    const inputs = frm.querySelectorAll('input[type="date"][data-future-only="true"], input[type="datetime-local"][data-future-only="true"]');
+    if (!inputs.length) return;
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const dateStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    const dateTimeStr = `${dateStr}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    inputs.forEach(inp => {
+      if (inp.type === 'date') inp.min = dateStr;
+      if (inp.type === 'datetime-local') inp.min = dateTimeStr;
+    });
+  }
+
+  function wireDynamicFields() {
+    const hasPlanSelect = frm.querySelector('#hasPlanSelect');
+    const planRow = frm.querySelector('#planUploadRow');
+    if (hasPlanSelect && planRow) {
+      hasPlanSelect.onchange = () => {
+        if (hasPlanSelect.value === 'Yes') {
+          planRow.classList.remove('hidden');
+        } else {
+          planRow.classList.add('hidden');
+          const fileInput = planRow.querySelector('input[type="file"]');
+          if (fileInput) fileInput.value = '';
+        }
+      };
+    }
+
+    // Load disaster-prone areas and show as simple helper list under location when available
+    const locationInput = frm.querySelector('input[name="location"]');
+    if (locationInput) {
+      loadDisasterAreas().then(areas => {
+        if (!areas.length) return;
+        const listId = 'disasterAreasList';
+        let dataList = document.getElementById(listId);
+        if (!dataList) {
+          dataList = document.createElement('datalist');
+          dataList.id = listId;
+          document.body.appendChild(dataList);
+        }
+        dataList.innerHTML = areas.map(a => `<option value="${a.area || ''}">${(a.area || '')} (${a.riskLevel || 'Risk'})</option>`).join('');
+        locationInput.setAttribute('list', listId);
+      }).catch(() => {});
+    }
+  }
+
 
 })();

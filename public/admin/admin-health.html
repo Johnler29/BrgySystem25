@@ -46,51 +46,50 @@
   .text-primary-btn { color: #2c3e50; }
   .border-input { border-color: #dfe6e9; }
 
-  /* Enhanced Status Badges - Blue & Dark Blue */
+  /* Status Badges - Pill Design (matching cases page) */
+  .badge {
+    padding: 4px 8px;
+    border-radius: 14px;
+    font-size: 12px;
+    font-weight: 700;
+    display: inline-block;
+    border: none;
+  }
   .bg-active { 
-    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-    color: #1565c0;
-    border: 1px solid #64b5f6;
+    background: #eaf4ff;
+    color: #1b73c7;
   }
   .bg-completed { 
-    background: linear-gradient(135deg, #c5d5f5 0%, #a3b8e8 100%);
-    color: #1e40af;
-    border: 1px solid #3b82f6;
+    background: #e9f9ef;
+    color: #239b56;
   }
   .bg-scheduled { 
-    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-    color: #1565c0;
-    border: 1px solid #64b5f6;
+    background: #eaf4ff;
+    color: #1b73c7;
   }
   .bg-pending { 
-    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-    color: #1e40af;
-    border: 1px solid #60a5fa;
+    background: #fff4e5;
+    color: #b9770e;
   }
   .bg-ongoing { 
-    background: linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%);
-    color: #0277bd;
-    border: 1px solid #4fc3f7;
+    background: #eaf4ff;
+    color: #1b73c7;
   }
   .bg-due { 
-    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-    color: #1e40af;
-    border: 1px solid #60a5fa;
+    background: #fff4e5;
+    color: #b9770e;
   }
   .bg-overdue { 
-    background: linear-gradient(135deg, #c5d5f5 0%, #a3b8e8 100%);
-    color: #1e3a8a;
-    border: 1px solid #3b82f6;
+    background: #fdecea;
+    color: #c0392b;
   }
   .bg-resolved { 
-    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-    color: #1565c0;
-    border: 1px solid #64b5f6;
+    background: #e9f9ef;
+    color: #239b56;
   }
   .bg-administered { 
-    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-    color: #1565c0;
-    border: 1px solid #64b5f6;
+    background: #e9f9ef;
+    color: #239b56;
   }
 
   /* Enhanced Statistics Cards */
@@ -103,48 +102,54 @@
   .health-stat-card {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border-radius: var(--radius);
+    padding: 14px;
+    box-shadow: var(--shadow-sm);
     position: relative;
     overflow: hidden;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
+    border-left: 3px solid var(--brand);
   }
   .health-stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   }
+  .health-stat-card.blue { border-left-color: #3498db; }
+  .health-stat-card.dark-blue { border-left-color: #2980b9; }
+  .health-stat-card.light-blue { border-left-color: #5dade2; }
+  .health-stat-card.navy { border-left-color: #1e3a8a; }
+  .health-stat-card.sky { border-left-color: #85c1e9; }
   .health-stat-card::before {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, var(--brand), var(--success));
+    height: 3px;
+    background: var(--brand);
   }
-  .health-stat-card.blue::before { background: linear-gradient(90deg, #3498db, #2980b9); }
-  .health-stat-card.dark-blue::before { background: linear-gradient(90deg, #2980b9, #1e3a8a); }
-  .health-stat-card.light-blue::before { background: linear-gradient(90deg, #5dade2, #3498db); }
-  .health-stat-card.navy::before { background: linear-gradient(90deg, #1e3a8a, #1e40af); }
-  .health-stat-card.sky::before { background: linear-gradient(90deg, #85c1e9, #5dade2); }
+  .health-stat-card.blue::before { background: #3498db; }
+  .health-stat-card.dark-blue::before { background: #2980b9; }
+  .health-stat-card.light-blue::before { background: #5dade2; }
+  .health-stat-card.navy::before { background: #1e3a8a; }
+  .health-stat-card.sky::before { background: #85c1e9; }
   
   .health-stat-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
-    margin-bottom: 12px;
-    background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(46, 204, 113, 0.1));
+    font-size: 18px;
+    margin-bottom: 8px;
+    background: rgba(52, 152, 219, 0.1);
   }
-  .health-stat-card.blue .health-stat-icon { background: linear-gradient(135deg, rgba(52, 152, 219, 0.15), rgba(52, 152, 219, 0.05)); }
-  .health-stat-card.dark-blue .health-stat-icon { background: linear-gradient(135deg, rgba(41, 128, 185, 0.15), rgba(41, 128, 185, 0.05)); }
-  .health-stat-card.light-blue .health-stat-icon { background: linear-gradient(135deg, rgba(93, 173, 226, 0.15), rgba(93, 173, 226, 0.05)); }
-  .health-stat-card.navy .health-stat-icon { background: linear-gradient(135deg, rgba(30, 58, 138, 0.15), rgba(30, 58, 138, 0.05)); }
-  .health-stat-card.sky .health-stat-icon { background: linear-gradient(135deg, rgba(133, 193, 233, 0.15), rgba(133, 193, 233, 0.05)); }
+  .health-stat-card.blue .health-stat-icon { background: rgba(52, 152, 219, 0.1); }
+  .health-stat-card.dark-blue .health-stat-icon { background: rgba(41, 128, 185, 0.1); }
+  .health-stat-card.light-blue .health-stat-icon { background: rgba(93, 173, 226, 0.1); }
+  .health-stat-card.navy .health-stat-icon { background: rgba(30, 58, 138, 0.1); }
+  .health-stat-card.sky .health-stat-icon { background: rgba(133, 193, 233, 0.1); }
   
   .health-stat-label {
     font-size: 0.8rem;
@@ -155,26 +160,21 @@
     letter-spacing: 0.5px;
   }
   .health-stat-value {
-    font-size: 2rem;
+    font-size: 1.5rem;
     font-weight: 700;
     color: var(--text);
     margin: 0;
     line-height: 1.2;
   }
 
-  /* Enhanced Tabs */
+  /* Tabs - Clean Design */
   .health-tabs {
     display: flex;
-    border-bottom: 3px solid #e9ecef;
-    margin-bottom: 24px;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 16px;
     flex-wrap: wrap;
     overflow-x: auto;
-    gap: 6px;
-    padding-bottom: 2px;
-    background: linear-gradient(to bottom, #fafbfc 0%, transparent 100%);
-    padding-top: 8px;
-    padding-left: 4px;
-    padding-right: 4px;
+    gap: 4px;
   }
   .health-tabs::-webkit-scrollbar {
     height: 6px;
@@ -191,91 +191,68 @@
     background: #95a5a6;
   }
   .health-tab {
-    padding: 14px 24px;
+    padding: 10px 16px;
     cursor: pointer;
-    border-bottom: 4px solid transparent;
-    color: #7f8c8d;
-    font-size: 0.9rem;
+    border-bottom: 3px solid transparent;
+    color: var(--muted);
+    font-size: 0.85rem;
     white-space: nowrap;
     font-weight: 600;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    margin-bottom: -3px;
-    border-radius: 12px 12px 0 0;
-    background: transparent;
-  }
-  .health-tab::before {
-    content: '';
-    position: absolute;
-    bottom: -3px;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: transparent;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
+    margin-bottom: -2px;
   }
   .health-tab:hover {
-    color: #3498db;
-    background: rgba(52, 152, 219, 0.08);
-    transform: translateY(-2px);
+    color: var(--brand);
+    background: rgba(52, 152, 219, 0.05);
   }
   .health-tab.active {
-    color: #2563eb;
-    background: linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%);
-    border-bottom-color: #2563eb;
+    color: var(--brand);
+    border-bottom-color: var(--brand);
     font-weight: 700;
-    box-shadow: 0 -2px 8px rgba(37, 99, 235, 0.15);
-  }
-  .health-tab.active::before {
-    background: linear-gradient(90deg, #3498db 0%, #2980b9 100%);
-    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
   }
 
-  /* Enhanced Toolbar */
+  /* Toolbar - Compact */
   .health-toolbar {
     display: flex;
-    gap: 12px;
+    gap: 8px;
     flex-wrap: wrap;
     align-items: center;
-    margin-bottom: 24px;
-    padding: 20px;
-    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    border: 1px solid #e9ecef;
-    border-radius: 16px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    margin-bottom: 16px;
+    padding: 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
   }
   .health-toolbar input,
   .health-toolbar select {
-    padding: 12px 16px;
-    border: 2px solid #e9ecef;
-    border-radius: 12px;
-    background: #ffffff;
-    font-size: 0.9rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #fff;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
   }
   .health-toolbar input:focus,
   .health-toolbar select:focus {
     outline: none;
-    border-color: #3498db;
-    box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1), 0 2px 8px rgba(52, 152, 219, 0.15);
-    transform: translateY(-1px);
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
   }
   .health-toolbar input {
-    min-width: 220px;
+    min-width: 200px;
   }
   .health-toolbar select {
     min-width: 150px;
   }
 
-  /* Enhanced Calendar */
+  /* Calendar - Clean Design */
   .health-calendar {
-    margin-top: 32px;
-    padding: 28px;
-    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    border: 1px solid #e9ecef;
-    border-radius: 20px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    margin-top: 24px;
+    padding: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
   }
   .health-calendar-header {
     display: flex;
@@ -347,10 +324,10 @@
     position: relative;
   }
   .health-calendar-cell:hover {
-    background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);
+    background: #f0f7ff;
     border-color: #3498db;
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(52, 152, 219, 0.15);
   }
   .health-calendar-cell--muted {
     background: #f8f9fa;
@@ -391,10 +368,9 @@
     font-weight: 500;
   }
   .health-calendar-cell.today {
-    background: linear-gradient(135deg, rgba(52, 152, 219, 0.15) 0%, rgba(41, 128, 185, 0.15) 100%);
+    background: rgba(52, 152, 219, 0.1);
     border-color: #3498db;
-    border-width: 3px;
-    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
+    border-width: 2px;
   }
   .health-calendar-cell.today .health-calendar-day {
     color: #2980b9;
@@ -461,241 +437,364 @@
     min-height: 80px; 
   }
 
-  /* Enhanced Buttons */
+  /* Buttons - Clean Design */
   .btn-health-primary {
-    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    background: var(--brand);
     color: #fff;
-    padding: 14px 28px;
-    border-radius: 12px;
-    border: none;
-    font-weight: 700;
-    font-size: 0.95rem;
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: 1px solid var(--brand);
+    font-weight: 600;
+    font-size: 0.85rem;
     cursor: pointer;
-    box-shadow: 0 4px 16px rgba(52, 152, 219, 0.35), 0 2px 4px rgba(52, 152, 219, 0.2);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 3px rgba(52, 152, 219, 0.2);
+    transition: all 0.2s ease;
+  }
+  .btn-health-primary:hover {
+    background: #2980b9;
+    border-color: #2980b9;
+    box-shadow: 0 2px 6px rgba(52, 152, 219, 0.3);
+    transform: translateY(-1px);
+  }
+  .btn-health-primary:active {
+    background: #21618c;
+    transform: translateY(0);
+  }
+  .btn-health-secondary {
+    background: #fff;
+    color: var(--text);
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .btn-health-secondary:hover {
+    background: #f8f9fa;
+    border-color: var(--brand);
+    color: var(--brand);
+    transform: translateY(-1px);
+  }
+
+  /* Table - Clean Design */
+  .health-table-wrap {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+  .health-table-wrap .health-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--surface);
+  }
+  .health-table-wrap .health-table thead {
+    background: #f8f9fa;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .health-table-wrap .health-table thead th {
+    background: #f8f9fa;
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+    position: relative;
+  }
+  .health-table-wrap .health-table thead th:first-child {
+    padding-left: 20px;
+  }
+  .health-table-wrap .health-table thead th:last-child {
+    padding-right: 20px;
+  }
+  .health-table-wrap .health-table tbody tr {
+    transition: all 0.2s ease;
+    background: #fff;
+    border-bottom: 1px solid #f1f3f5;
+    animation: fadeInRow 0.3s ease both;
+  }
+  @keyframes fadeInRow {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .health-table-wrap .health-table tbody tr:nth-child(1) { animation-delay: 0.02s; }
+  .health-table-wrap .health-table tbody tr:nth-child(2) { animation-delay: 0.04s; }
+  .health-table-wrap .health-table tbody tr:nth-child(3) { animation-delay: 0.06s; }
+  .health-table-wrap .health-table tbody tr:nth-child(4) { animation-delay: 0.08s; }
+  .health-table-wrap .health-table tbody tr:nth-child(5) { animation-delay: 0.10s; }
+  .health-table-wrap .health-table tbody tr:nth-child(6) { animation-delay: 0.12s; }
+  .health-table-wrap .health-table tbody tr:nth-child(7) { animation-delay: 0.14s; }
+  .health-table-wrap .health-table tbody tr:nth-child(8) { animation-delay: 0.16s; }
+  .health-table-wrap .health-table tbody tr:nth-child(9) { animation-delay: 0.18s; }
+  .health-table-wrap .health-table tbody tr:nth-child(10) { animation-delay: 0.20s; }
+  .health-table-wrap .health-table tbody tr:nth-child(even) {
+    background: #fafbfc;
+  }
+  .health-table-wrap .health-table tbody tr:hover {
+    background: #f0f7ff;
+    box-shadow: 0 1px 4px rgba(52, 152, 219, 0.06);
+  }
+  .health-table-wrap .health-table tbody tr:last-child {
+    border-bottom: none;
+  }
+  .health-table-wrap .health-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  .health-table-wrap .health-table tbody td {
+    padding: 12px 16px;
+    font-size: 0.85rem;
+    color: var(--text);
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f3f5;
+  }
+  .health-table-wrap .health-table tbody td:first-child {
+    padding-left: 20px;
+  }
+  .health-table-wrap .health-table tbody td:last-child {
+    padding-right: 20px;
+  }
+  
+  /* Empty State */
+  .health-table-wrap .health-table tbody tr:only-child td[colspan] {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+    font-size: 0.9rem;
+    background: #fafbfc;
+    border: none;
+  }
+  .health-table-wrap .health-table tbody tr:only-child td[colspan]:before {
+    content: '📋';
+    display: block;
+    font-size: 2rem;
+    margin-bottom: 8px;
+    opacity: 0.5;
+  }
+  
+  /* Loading Skeleton */
+  .table-skeleton {
+    display: table-row;
+    animation: fadeInRow 0.2s ease both;
+  }
+  .table-skeleton td {
+    padding: 12px 16px;
+    position: relative;
+    overflow: hidden;
+    vertical-align: middle;
+  }
+  .table-skeleton td:first-child {
+    padding-left: 20px;
+  }
+  .table-skeleton td:last-child {
+    padding-right: 20px;
+  }
+  .skeleton-bar {
+    height: 14px;
+    background: #e9ecef;
+    border-radius: 4px;
+    width: 80%;
     position: relative;
     overflow: hidden;
   }
-  .btn-health-primary::before {
+  .skeleton-bar::after {
     content: '';
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-    transition: left 0.5s;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent);
+    animation: shimmer 1.5s infinite;
   }
-  .btn-health-primary:hover::before {
-    left: 100%;
+  @keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
   }
-  .btn-health-primary:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 24px rgba(52, 152, 219, 0.45), 0 4px 8px rgba(52, 152, 219, 0.3);
+  .skeleton-bar.short {
+    width: 50%;
   }
-  .btn-health-primary:active {
-    transform: translateY(-1px);
-  }
-  .btn-health-secondary {
-    background: #ffffff;
-    color: #2c3e50;
-    padding: 12px 24px;
-    border-radius: 12px;
-    border: 2px solid #e9ecef;
-    font-weight: 600;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  }
-  .btn-health-secondary:hover {
-    background: #f8f9fa;
-    border-color: #3498db;
-    color: #3498db;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
-  }
-
-  /* Enhanced Table */
-  .health-table-wrap {
-    background: var(--surface);
-    border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-    overflow: hidden;
-    border: 1px solid var(--border);
-    margin-bottom: 20px;
-  }
-  .health-table {
+  .skeleton-bar.long {
     width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
   }
-  .health-table thead th {
-    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-    padding: 16px 20px;
-    text-align: left;
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: #2c3e50;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border-bottom: 3px solid #e9ecef;
-    position: sticky;
+  .table-loading {
+    position: relative;
+  }
+  .table-loading::after {
+    content: '';
+    position: absolute;
     top: 0;
-    z-index: 10;
-    white-space: nowrap;
-  }
-  .health-table thead th:first-child {
-    padding-left: 24px;
-  }
-  .health-table thead th:last-child {
-    padding-right: 24px;
-  }
-  .health-table tbody td {
-    padding: 18px 20px;
-    border-bottom: 1px solid #f1f3f5;
-    font-size: 0.9rem;
-    color: var(--text);
-    vertical-align: middle;
-  }
-  .health-table tbody td:first-child {
-    padding-left: 24px;
-  }
-  .health-table tbody td:last-child {
-    padding-right: 24px;
-  }
-  .health-table tbody tr {
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    background: #ffffff;
-  }
-  .health-table tbody tr:nth-child(even) {
-    background: #fafbfc;
-  }
-  .health-table tbody tr:hover {
-    background: linear-gradient(90deg, #f0f7ff 0%, #ffffff 100%);
-    transform: scale(1.001);
-    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.1);
-  }
-  .health-table tbody tr:last-child td {
-    border-bottom: none;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.7);
+    pointer-events: none;
+    z-index: 1;
   }
   
-  /* Enhanced Action Buttons */
-  .health-table .action-buttons {
+  /* Table Action Buttons */
+  .table-actions {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     align-items: center;
   }
-  .health-table .action-btn {
-    padding: 6px 14px;
-    border-radius: 8px;
-    border: none;
+  .table-action-btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text);
     font-size: 0.8rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    text-decoration: none;
+    white-space: nowrap;
   }
-  .health-table .action-btn-view {
-    background: #e3f2fd;
-    color: #1976d2;
-  }
-  .health-table .action-btn-view:hover {
-    background: #bbdefb;
+  .table-action-btn:hover {
     transform: translateY(-1px);
-    box-shadow: 0 2px 6px rgba(25, 118, 210, 0.3);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   }
-  .health-table .action-btn-edit {
-    background: #fff3e0;
-    color: #f57c00;
+  .table-action-btn.view:hover,
+  .table-action-btn.edit:hover {
+    background: #f0f7ff;
+    border-color: var(--brand);
+    color: var(--brand);
   }
-  .health-table .action-btn-edit:hover {
-    background: #ffe0b2;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 6px rgba(245, 124, 0, 0.3);
+  .table-action-btn.delete {
+    background: var(--danger);
+    color: #fff;
+    border-color: var(--danger);
   }
-  .health-table .action-btn-delete {
-    background: #ffebee;
-    color: #d32f2f;
-  }
-  .health-table .action-btn-delete:hover {
-    background: #ffcdd2;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 6px rgba(211, 47, 47, 0.3);
+  .table-action-btn.delete:hover {
+    background: #c0392b;
+    border-color: #c0392b;
   }
 
-  /* Enhanced Dashboard Card */
+  /* Dashboard Card - Compact */
   .dashboard-card {
     background: var(--surface);
-    border-radius: 20px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-    border: 1px solid #e9ecef;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
     overflow: hidden;
   }
   .dashboard-card-header {
-    padding: 24px 28px;
-    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    border-bottom: 2px solid #e9ecef;
+    padding: 14px 18px;
+    background: #f8fafb;
+    border-bottom: 1px solid var(--border);
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
   .dashboard-card-header h3 {
     margin: 0;
-    font-size: 1.4rem;
+    font-size: 1rem;
     font-weight: 700;
-    color: #2c3e50;
-    letter-spacing: -0.5px;
+    color: var(--text);
   }
   .dashboard-card-content {
-    padding: 28px;
+    padding: 16px;
   }
 
-  /* Enhanced Pagination */
+  /* Pagination - Clean Design */
   .pager {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 20px 0;
-    margin-top: 20px;
-    border-top: 2px solid #f1f3f5;
+    gap: 6px;
+    padding: 12px 0;
+    margin-top: 16px;
+    justify-content: flex-end;
   }
   .pager > div {
     font-weight: 600;
-    color: #2c3e50;
-    font-size: 0.9rem;
+    color: var(--text);
+    font-size: 0.85rem;
+    margin-right: 8px;
   }
   .pager button {
-    padding: 10px 18px;
-    border-radius: 10px;
-    border: 2px solid #e9ecef;
-    background: #ffffff;
-    color: #2c3e50;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text);
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: all 0.2s ease;
   }
   .pager button:hover:not(:disabled) {
-    background: #f8f9fa;
-    border-color: #3498db;
-    color: #3498db;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.2);
+    background: #f0f7ff;
+    border-color: var(--brand);
+    color: var(--brand);
+    transform: translateY(-1px);
   }
   .pager button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
-  .pager button.bg-success-btn {
-    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-    color: #ffffff;
-    border-color: #3498db;
-    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+  .pager button.active {
+    background: var(--brand);
+    color: #fff;
+    border-color: var(--brand);
+  }
+
+  /* Details Drawer */
+  #drawer {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: none;
+  }
+  #drawer:not(.hidden) {
+    display: flex;
+    align-items: stretch;
+    justify-content: flex-end;
+  }
+  #drawer .drawer-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.25);
+  }
+  #drawer .drawer-content {
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    max-width: 520px;
+    background: var(--surface);
+    box-shadow: -10px 0 30px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+  }
+  #drawer .drawer-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    background: #f8f9fa;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  #drawer .drawer-body {
+    padding: 20px;
+    overflow: auto;
+    flex: 1;
   }
 
   /* Responsive */
@@ -901,14 +1000,17 @@
 </div>
 
 <!-- Details Drawer -->
-<div class="fixed inset-0 hidden z-[1000]" id="drawer">
-  <div class="overlay absolute inset-0 bg-black/25"></div>
-  <div class="absolute right-0 top-0 h-full w-full md:w-[520px] bg-white shadow-[-10px_0_30px_rgba(0,0,0,0.2)] flex flex-col">
-    <header class="px-5 py-4 border-b border-[#ecf0f1] bg-[#f8f9fa] flex justify-between items-center">
-      <div class="flex items-center gap-2"><strong id="dRecordId" class="text-[#2c3e50]">Record</strong> <span id="dStatus" class="px-2 py-1 rounded-2xl text-xs font-bold bg-active ml-2">Active</span></div>
-      <button class="btn-health-secondary" id="dClose">Close</button>
+<div id="drawer" class="hidden">
+  <div class="drawer-backdrop" onclick="document.getElementById('drawer').classList.add('hidden');"></div>
+  <div class="drawer-content">
+    <header class="drawer-header">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <strong id="dRecordId" style="color: var(--text);">Record</strong>
+        <span id="dStatus" class="badge bg-active" style="margin-left: 8px;">Active</span>
+      </div>
+      <button class="btn-health-secondary" id="dClose" style="padding: 8px 16px;">Close</button>
     </header>
-    <div class="p-5 overflow-auto flex-1" id="dBody"></div>
+    <div class="drawer-body" id="dBody"></div>
   </div>
 </div>
 

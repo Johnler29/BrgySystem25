@@ -230,19 +230,23 @@
         <div class="form-grid">
           <div class="full">
             <label>Emergency Type *</label>
-            <select name="type" required>
+            <select name="type" required id="uTypeSelect">
               <option value="">Select type</option>
               <option value="Fire">Fire</option>
               <option value="Flood">Flood</option>
               <option value="Earthquake">Earthquake</option>
               <option value="Medical">Medical Emergency</option>
               <option value="Accident">Accident</option>
-              <option value="Other">Other</option>
+              <option value="Others">Others</option>
             </select>
+          </div>
+          <div class="full hidden" id="uTypeOtherRow">
+            <label>If Others, please specify</label>
+            <input name="typeOther" placeholder="Please specify the emergency type">
           </div>
           <div class="full">
             <label>Location *</label>
-            <input name="location" required placeholder="Address or landmark">
+            <input name="location" required id="uLocation" placeholder="Address or landmark (you can choose a monitored area)">
           </div>
           <div class="full">
             <label>Description *</label>
@@ -255,6 +259,29 @@
           <div>
             <label>Contact Number *</label>
             <input name="contact" required type="tel">
+          </div>
+          <div class="full">
+            <label>Do you have a disaster preparedness plan?</label>
+            <select name="hasPlan" id="uHasPlan">
+              <option value="No">No</option>
+              <option value="Yes">Yes</option>
+            </select>
+          </div>
+          <div class="full hidden" id="uPlanRow">
+            <label>Upload Preparedness Plan (PDF/Doc/Image)</label>
+            <input type="file" name="planFile" accept=".pdf,.doc,.docx,image/*">
+          </div>
+          <div>
+            <label>Estimated People Affected</label>
+            <input type="number" name="affectedCount" min="0">
+          </div>
+          <div>
+            <label>Casualties</label>
+            <input type="number" name="casualties" min="0">
+          </div>
+          <div>
+            <label>Injured</label>
+            <input type="number" name="injuries" min="0">
           </div>
         </div>
       </form>

@@ -36,75 +36,800 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/base.css">
-
-  <style>
-  /* Disaster module color tokens / badges */
-  .bg-primary-btn { background-color: #3498db; }
-  .bg-success-btn { background-color: #27ae60; }
-  .bg-ghost-btn { background-color: #ecf0f1; }
-  .bg-danger-btn { background-color: #e74c3c; }
-  .bg-warning-btn { background-color: #f39c12; }
-  .text-primary-btn { color: #2c3e50; }
-  .border-input { border-color: #dfe6e9; }
-
-  .bg-pending { background-color: #fff4e5; color: #b9770e; }
-  .bg-ongoing { background-color: #eaf4ff; color: #1b73c7; }
-  .bg-resolved { background-color: #e9f9ef; color: #239b56; }
-  .bg-critical { background-color: #fdecea; color: #c0392b; }
-  .bg-completed { background-color: #e9f9ef; color: #239b56; }
-  .bg-upcoming { background-color: #eaf4ff; color: #1b73c7; }
-  .bg-monitoring { background-color: #fff4e5; color: #b9770e; }
-
-  /* Utility to mirror Tailwind's hidden class for this page */
-  .hidden { display: none !important; }
-
-  /* Quick actions layout */
-  .quick-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin: 18px 0;
+<style>
+  /* Status Badges - Pill Design (matching cases page) */
+  .bg-pending { 
+    background: #fff4e5;
+    color: #b9770e;
   }
-  .qa-btn {
+  .bg-ongoing { 
+    background: #eaf4ff;
+    color: #1b73c7;
+  }
+  .bg-resolved { 
+    background: #e9f9ef;
+    color: #239b56;
+  }
+  .bg-critical { 
+    background: #fdecea;
+    color: #c0392b;
+  }
+  .bg-completed { 
+    background: #e9f9ef;
+    color: #239b56;
+  }
+  .bg-upcoming { 
+    background: #eaf4ff;
+    color: #1b73c7;
+  }
+  .bg-monitoring { 
+    background: #fff4e5;
+    color: #b9770e;
+  }
+  .bg-reported {
+    background: #fff4e5;
+    color: #b9770e;
+  }
+
+  /* Compact Statistics Cards */
+  .disaster-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .disaster-stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    box-shadow: var(--shadow-sm);
+    border-left: 3px solid var(--brand);
+    transition: all 0.2s ease;
+  }
+  .disaster-stat-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .disaster-stat-card.red { border-left-color: var(--danger); }
+  .disaster-stat-card.orange { border-left-color: var(--warn); }
+  .disaster-stat-card.blue { border-left-color: var(--brand); }
+  .disaster-stat-card.green { border-left-color: var(--success); }
+  .disaster-stat-card.indigo { border-left-color: #2980b9; }
+  .disaster-stat-card.purple { border-left-color: #9b59b6; }
+  .disaster-stat-card.pink { border-left-color: #e91e63; }
+  
+  .disaster-stat-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    margin-bottom: 8px;
+    background: rgba(52, 152, 219, 0.1);
+  }
+  .disaster-stat-card.red .disaster-stat-icon { background: rgba(231, 76, 60, 0.1); }
+  .disaster-stat-card.orange .disaster-stat-icon { background: rgba(243, 156, 18, 0.1); }
+  .disaster-stat-card.blue .disaster-stat-icon { background: rgba(52, 152, 219, 0.1); }
+  .disaster-stat-card.green .disaster-stat-icon { background: rgba(39, 174, 96, 0.1); }
+  .disaster-stat-card.indigo .disaster-stat-icon { background: rgba(41, 128, 185, 0.1); }
+  .disaster-stat-card.purple .disaster-stat-icon { background: rgba(155, 89, 182, 0.1); }
+  .disaster-stat-card.pink .disaster-stat-icon { background: rgba(233, 30, 99, 0.1); }
+  
+  .disaster-stat-label {
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin: 0 0 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .disaster-stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  /* Compact Quick Action Buttons */
+  .quick-action-btn {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     padding: 10px 16px;
-    border-radius: 12px;
-    border: 0;
-    font-size: 0.9rem;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
     color: #fff;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  }
+  .quick-action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+  .quick-action-btn.emergency {
+    background: var(--danger);
+    border-color: var(--danger);
+  }
+  .quick-action-btn.emergency:hover {
+    background: #c0392b;
+  }
+  .quick-action-btn.incident {
+    background: var(--warn);
+    border-color: var(--warn);
+  }
+  .quick-action-btn.incident:hover {
+    background: #e67e22;
+  }
+  .quick-action-btn.coordination {
+    background: var(--brand);
+    border-color: var(--brand);
+  }
+  .quick-action-btn.coordination:hover {
+    background: #2980b9;
+  }
+  .quick-action-btn.preparedness {
+    background: var(--success);
+    border-color: var(--success);
+  }
+  .quick-action-btn.preparedness:hover {
+    background: #229954;
   }
 
-  /* Forms reused from admin-disaster.js form builders */
-  .form-section { margin-bottom: 18px; }
-  .form-section h4 { margin: 0 0 10px; font-size: 0.98rem; }
+  /* Compact Alert Banner */
+  .alert-banner {
+    background: var(--brand);
+    color: #fff;
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: start;
+    gap: 12px;
+    box-shadow: var(--shadow-sm);
+  }
+  .alert-banner.hidden {
+    display: none;
+  }
+
+  /* Compact Announcement Cards - NO GRADIENTS */
+  .announcement-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--brand);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+  }
+  .announcement-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .announcement-card.high {
+    border-left-color: var(--danger);
+  }
+  .announcement-card.medium {
+    border-left-color: var(--warn);
+  }
+  .announcement-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 8px;
+  }
+  .announcement-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0;
+  }
+  .announcement-date {
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+  .announcement-content {
+    font-size: 0.85rem;
+    color: var(--text);
+    line-height: 1.5;
+    margin-bottom: 8px;
+  }
+  .announcement-priority {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    background: var(--bg);
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+
+  /* Tabs - Clean Design */
+  .disaster-tabs {
+    display: flex;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    overflow-x: auto;
+    gap: 4px;
+  }
+  .disaster-tab {
+    padding: 10px 16px;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    color: var(--muted);
+    font-size: 0.85rem;
+    white-space: nowrap;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    margin-bottom: -2px;
+  }
+  .disaster-tab:hover {
+    color: var(--brand);
+    background: rgba(52, 152, 219, 0.05);
+  }
+  .disaster-tab.active {
+    color: var(--brand);
+    border-bottom-color: var(--brand);
+    font-weight: 700;
+  }
+
+  /* Toolbar - Compact */
+  .disaster-toolbar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 16px;
+    padding: 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .disaster-toolbar input,
+  .disaster-toolbar select {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #fff;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+  }
+  .disaster-toolbar input:focus,
+  .disaster-toolbar select:focus {
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+  }
+  .disaster-toolbar .search-wrapper {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+  }
+  .disaster-toolbar .search-wrapper input {
+    padding-left: 32px;
+    width: 100%;
+  }
+  .disaster-toolbar .search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    pointer-events: none;
+  }
+
+  /* Buttons */
+  .btn-disaster-primary {
+    background: var(--brand);
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: 1px solid var(--brand);
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(52, 152, 219, 0.2);
+    transition: all 0.2s ease;
+  }
+  .btn-disaster-primary:hover {
+    background: #2980b9;
+    border-color: #2980b9;
+    box-shadow: 0 2px 6px rgba(52, 152, 219, 0.3);
+    transform: translateY(-1px);
+  }
+  .btn-disaster-secondary {
+    background: #fff;
+    color: var(--text);
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .btn-disaster-secondary:hover {
+    background: #f8f9fa;
+    border-color: var(--brand);
+    color: var(--brand);
+    transform: translateY(-1px);
+  }
+
+  /* Dashboard Card - Compact */
+  .dashboard-card-disaster {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .dashboard-card-header-disaster {
+    padding: 14px 18px;
+    background: #f8fafb;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .dashboard-card-header-disaster h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .dashboard-card-content-disaster {
+    padding: 16px;
+  }
+
+  /* Table - Clean Design */
+  .disaster-table-wrap {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    overflow-x: auto;
+    border: 1px solid var(--border);
+  }
+  .disaster-table-wrap .table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--surface);
+  }
+  .disaster-table-wrap .table thead {
+    background: #f8f9fa;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .disaster-table-wrap .table thead th {
+    background: #f8f9fa;
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+    position: relative;
+  }
+  .disaster-table-wrap .table thead th:first-child {
+    padding-left: 20px;
+  }
+  .disaster-table-wrap .table thead th:last-child {
+    padding-right: 20px;
+  }
+  .disaster-table-wrap .table tbody tr {
+    transition: all 0.2s ease;
+    background: #fff;
+    border-bottom: 1px solid #f1f3f5;
+    animation: fadeInRow 0.3s ease both;
+  }
+  @keyframes fadeInRow {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .disaster-table-wrap .table tbody tr:nth-child(1) { animation-delay: 0.02s; }
+  .disaster-table-wrap .table tbody tr:nth-child(2) { animation-delay: 0.04s; }
+  .disaster-table-wrap .table tbody tr:nth-child(3) { animation-delay: 0.06s; }
+  .disaster-table-wrap .table tbody tr:nth-child(4) { animation-delay: 0.08s; }
+  .disaster-table-wrap .table tbody tr:nth-child(5) { animation-delay: 0.10s; }
+  .disaster-table-wrap .table tbody tr:nth-child(6) { animation-delay: 0.12s; }
+  .disaster-table-wrap .table tbody tr:nth-child(7) { animation-delay: 0.14s; }
+  .disaster-table-wrap .table tbody tr:nth-child(8) { animation-delay: 0.16s; }
+  .disaster-table-wrap .table tbody tr:nth-child(9) { animation-delay: 0.18s; }
+  .disaster-table-wrap .table tbody tr:nth-child(10) { animation-delay: 0.20s; }
+  .disaster-table-wrap .table tbody tr:nth-child(even) {
+    background: #fafbfc;
+  }
+  .disaster-table-wrap .table tbody tr:hover {
+    background: #f0f7ff;
+    box-shadow: 0 1px 3px rgba(52, 152, 219, 0.08);
+  }
+  .disaster-table-wrap .table tbody tr:last-child {
+    border-bottom: none;
+  }
+  .disaster-table-wrap .table tbody td {
+    padding: 12px 16px;
+    font-size: 0.85rem;
+    color: var(--text);
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f3f5;
+  }
+  .disaster-table-wrap .table tbody td:first-child {
+    padding-left: 20px;
+  }
+  .disaster-table-wrap .table tbody td:last-child {
+    padding-right: 20px;
+  }
+  .disaster-table-wrap .table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  
+  /* Loading Skeleton */
+  .table-skeleton {
+    display: table-row;
+    animation: fadeInRow 0.2s ease both;
+  }
+  .table-skeleton td {
+    padding: 12px 16px;
+    position: relative;
+    overflow: hidden;
+    vertical-align: middle;
+  }
+  .table-skeleton td:first-child {
+    padding-left: 20px;
+  }
+  .table-skeleton td:last-child {
+    padding-right: 20px;
+  }
+  .skeleton-bar {
+    height: 14px;
+    background: #e9ecef;
+    border-radius: 4px;
+    width: 80%;
+    position: relative;
+    overflow: hidden;
+  }
+  .skeleton-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent);
+    animation: shimmer 1.5s infinite;
+  }
+  @keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+  }
+  .skeleton-bar.short {
+    width: 50%;
+  }
+  .skeleton-bar.long {
+    width: 100%;
+  }
+  .table-loading {
+    position: relative;
+  }
+  .table-loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.7);
+    pointer-events: none;
+    z-index: 1;
+  }
+  
+  /* Empty State */
+  .disaster-table-wrap .table tbody tr:only-child td[colspan] {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+    font-size: 0.9rem;
+    background: #fafbfc;
+    border: none;
+    animation: fadeInRow 0.3s ease both;
+  }
+  .disaster-table-wrap .table tbody tr:only-child td[colspan]:before {
+    content: '📋';
+    display: block;
+    font-size: 2rem;
+    margin-bottom: 8px;
+    opacity: 0.5;
+  }
+  
+  /* Table Action Buttons */
+  .table-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .table-action-btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+  .table-action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .table-action-btn.view:hover,
+  .table-action-btn.edit:hover {
+    background: #f0f7ff;
+    border-color: var(--brand);
+    color: var(--brand);
+  }
+  .table-action-btn.delete {
+    background: var(--danger);
+    color: #fff;
+    border-color: var(--danger);
+  }
+  .table-action-btn.delete:hover {
+    background: #c0392b;
+    border-color: #c0392b;
+  }
+  
+  /* Status Badge Base Styles - Pill Design */
+  .badge {
+    padding: 4px 8px;
+    border-radius: 14px;
+    font-size: 12px;
+    font-weight: 700;
+    display: inline-block;
+    border: none;
+  }
+  
+  /* Priority Labels */
+  .priority-high {
+    color: var(--danger);
+    font-weight: 700;
+  }
+  .priority-medium {
+    color: var(--warn);
+    font-weight: 600;
+  }
+  .priority-low {
+    color: var(--brand);
+    font-weight: 500;
+  }
+
+  /* Pagination */
+  .pager-disaster {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 0;
+    margin-top: 16px;
+    justify-content: flex-end;
+  }
+  .pager-disaster > div {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 0.85rem;
+    margin-right: 8px;
+  }
+  .pager-disaster button {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text);
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .pager-disaster button:hover:not(:disabled) {
+    background: #f0f7ff;
+    border-color: var(--brand);
+    color: var(--brand);
+    transform: translateY(-1px);
+  }
+  .pager-disaster button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .pager-disaster button.active {
+    background: var(--brand);
+    color: #fff;
+    border-color: var(--brand);
+  }
+
+  /* Modal */
+  .modal-disaster {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 1000;
+    overflow-y: auto;
+  }
+  .modal-disaster.open {
+    display: flex;
+  }
+  .modal-disaster .modal-content {
+    width: 100%;
+    max-width: 700px;
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    margin: auto;
+    border: 1px solid var(--border);
+  }
+  .modal-disaster .modal-header {
+    padding: 14px 18px;
+    background: #f8fafb;
+    border-bottom: 1px solid var(--border);
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--text);
+  }
+  .modal-disaster .modal-body {
+    padding: 18px;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+  }
+  .modal-disaster .modal-footer {
+    padding: 14px 18px;
+    background: #f8f9fa;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  /* Form Styles */
+  .form-section { 
+    margin-bottom: 16px; 
+  }
+  .form-section h4 { 
+    margin: 0 0 10px; 
+    font-size: 0.95rem; 
+    color: var(--text);
+    font-weight: 600;
+  }
   .form-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
   }
-  .form-grid .full { grid-column: 1 / -1; }
-  .form-grid label { display:block; font-size:0.88rem; margin-bottom:4px; color:#34495e; }
+  .form-grid .full { 
+    grid-column: 1 / -1; 
+  }
+  .form-grid label { 
+    display: block; 
+    font-size: 0.85rem; 
+    margin-bottom: 6px; 
+    color: var(--text);
+    font-weight: 500;
+  }
   .form-grid input,
   .form-grid select,
   .form-grid textarea {
-    width:100%;
-    padding:8px 10px;
-    border-radius:10px;
-    border:1px solid #dfe6e9;
-    font-size:0.9rem;
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+    background: #fff;
   }
-  .form-grid textarea { resize: vertical; min-height: 70px; }
+  .form-grid input:focus,
+  .form-grid select:focus,
+  .form-grid textarea:focus {
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+  }
+  .form-grid textarea { 
+    resize: vertical; 
+    min-height: 70px; 
+  }
+
+  /* Details Drawer */
+  #drawer {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: none;
+  }
+  #drawer:not(.hidden) {
+    display: flex;
+    align-items: stretch;
+    justify-content: flex-end;
+  }
+  #drawer .drawer-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.25);
+  }
+  #drawer .drawer-content {
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    max-width: 520px;
+    background: var(--surface);
+    box-shadow: -10px 0 30px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+  }
+  #drawer .drawer-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    background: #f8f9fa;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  #drawer .drawer-body {
+    padding: 20px;
+    overflow: auto;
+    flex: 1;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .disaster-stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .disaster-toolbar {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .disaster-toolbar input,
+    .disaster-toolbar select {
+      width: 100%;
+    }
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+    .dashboard-card-header-disaster {
+      flex-direction: column;
+      gap: 12px;
+      align-items: flex-start;
+    }
+  }
 </style>
 </head>
 
 <script defer src="/base-header.js"></script>
 <script defer src="/base.js"></script>
 
-<body>
+<body class="font-inter">
 <div class="dashboard-container">
   <!-- Sidebar -->
   <nav class="sidebar" id="sidebar">
@@ -155,14 +880,14 @@
     </header>
 
     <div class="content-area">
-      <p class="muted" style="margin-bottom:12px;">Real-time overview of disaster incidents, coordination, and preparedness.</p>
+      <p class="muted" style="margin-bottom:14px;">Real-time overview of disaster incidents, coordination, and preparedness.</p>
 
       <!-- Alert Banner -->
-      <div id="alertBanner" class="hidden" style="background:linear-gradient(90deg,#3498db,#2980b9);color:#fff;padding:14px 16px;border-radius:14px;margin-bottom:18px;display:flex;align-items:flex-start;gap:10px;box-shadow:0 4px 12px rgba(52,152,219,0.3);">
-        <div style="font-size:1.8rem;line-height:1;">🚨</div>
-        <div style="flex:1;">
-          <div id="alertTitle" style="font-weight:700;margin-bottom:4px;">Emergency Alert</div>
-          <div id="alertMessage" style="font-size:0.9rem;opacity:.95;">No active alerts at this time.</div>
+      <div id="alertBanner" class="alert-banner hidden">
+        <div style="font-size: 1.5rem; line-height: 1;">🚨</div>
+        <div style="flex: 1;">
+          <div id="alertTitle" style="font-weight: 700; margin-bottom: 4px;">Emergency Alert</div>
+          <div id="alertMessage" style="font-size: 0.85rem; opacity: 0.95;">No active alerts at this time.</div>
         </div>
       </div>
 
@@ -170,75 +895,104 @@
       <div id="announcementsSection" class="hidden"></div>
 
       <!-- Quick Actions -->
-      <div class="quick-actions">
-        <button class="qa-btn" style="background:linear-gradient(90deg,#e74c3c,#c0392b);box-shadow:0 4px 12px rgba(231,76,60,0.3);" id="btnEmergency">🚨 Report Emergency</button>
-        <button class="qa-btn" style="background:linear-gradient(90deg,#f39c12,#e67e22);" id="btnIncident">⚠️ Log Incident</button>
-        <button class="qa-btn" style="background:linear-gradient(90deg,#3498db,#2980b9);" id="btnCoordination">📞 Request Coordination</button>
-        <button class="qa-btn" style="background:linear-gradient(90deg,#27ae60,#229954);" id="btnPreparedness">📋 View Plans</button>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;">
+        <button class="quick-action-btn emergency" id="btnEmergency">🚨 Report Emergency</button>
+        <button class="quick-action-btn incident" id="btnIncident">⚠️ Log Incident</button>
+        <button class="quick-action-btn coordination" id="btnCoordination">📞 Request Coordination</button>
+        <button class="quick-action-btn preparedness" id="btnPreparedness">📋 View Plans</button>
       </div>
 
       <!-- Statistics -->
-      <div class="stats-grid" style="margin-bottom:20px;">
-        <div class="stat-card">
-          <h4 class="muted" style="font-size:0.78rem;margin:0 0 4px;">Total Incidents</h4>
-          <h3 id="sTotal">0</h3>
+      <div class="disaster-stats-grid">
+        <div class="disaster-stat-card blue">
+          <div class="disaster-stat-icon">📊</div>
+          <p class="disaster-stat-label">Total Incidents</p>
+          <h3 class="disaster-stat-value" id="sTotal">0</h3>
         </div>
-        <div class="stat-card red">
-          <h4 class="muted" style="font-size:0.78rem;margin:0 0 4px;">Critical</h4>
-          <h3 id="sCritical">0</h3>
+        <div class="disaster-stat-card red">
+          <div class="disaster-stat-icon">🚨</div>
+          <p class="disaster-stat-label">Critical</p>
+          <h3 class="disaster-stat-value" id="sCritical">0</h3>
         </div>
-        <div class="stat-card amber">
-          <h4 class="muted" style="font-size:0.78rem;margin:0 0 4px;">Ongoing</h4>
-          <h3 id="sOngoing">0</h3>
+        <div class="disaster-stat-card orange">
+          <div class="disaster-stat-icon">⏳</div>
+          <p class="disaster-stat-label">Ongoing</p>
+          <h3 class="disaster-stat-value" id="sOngoing">0</h3>
         </div>
-        <div class="stat-card green">
-          <h4 class="muted" style="font-size:0.78rem;margin:0 0 4px;">Resolved</h4>
-          <h3 id="sResolved">0</h3>
+        <div class="disaster-stat-card green">
+          <div class="disaster-stat-icon">✅</div>
+          <p class="disaster-stat-label">Resolved</p>
+          <h3 class="disaster-stat-value" id="sResolved">0</h3>
         </div>
-        <div class="stat-card">
-          <h4 class="muted" style="font-size:0.78rem;margin:0 0 4px;">Affected Residents</h4>
-          <h3 id="sAffected">0</h3>
+        <div class="disaster-stat-card blue">
+          <div class="disaster-stat-icon">👥</div>
+          <p class="disaster-stat-label">Affected Residents</p>
+          <h3 class="disaster-stat-value" id="sAffected">0</h3>
         </div>
-        <div class="stat-card">
-          <h4 class="muted" style="font-size:0.78rem;margin:0 0 4px;">Response Teams</h4>
-          <h3 id="sTeams">0</h3>
+        <div class="disaster-stat-card indigo">
+          <div class="disaster-stat-icon">👷</div>
+          <p class="disaster-stat-label">Response Teams</p>
+          <h3 class="disaster-stat-value" id="sTeams">0</h3>
+        </div>
+      </div>
+
+      <!-- Population Summary -->
+      <div class="disaster-stats-grid">
+        <div class="disaster-stat-card blue">
+          <div class="disaster-stat-icon">👪</div>
+          <p class="disaster-stat-label">Total Population</p>
+          <h3 class="disaster-stat-value" id="popTotal">0</h3>
+        </div>
+        <div class="disaster-stat-card indigo">
+          <div class="disaster-stat-icon">👴</div>
+          <p class="disaster-stat-label">Seniors (60+)</p>
+          <h3 class="disaster-stat-value" id="popSeniors">0</h3>
+        </div>
+        <div class="disaster-stat-card purple">
+          <div class="disaster-stat-icon">👶</div>
+          <p class="disaster-stat-label">Minors (&lt;18)</p>
+          <h3 class="disaster-stat-value" id="popMinors">0</h3>
+        </div>
+        <div class="disaster-stat-card pink">
+          <div class="disaster-stat-icon">🐾</div>
+          <p class="disaster-stat-label">Household Pets</p>
+          <h3 class="disaster-stat-value" id="popPets">0</h3>
         </div>
       </div>
 
       <!-- Main Card -->
-      <div class="dashboard-card">
-        <div class="dashboard-card-header">
+      <div class="dashboard-card-disaster">
+        <div class="dashboard-card-header-disaster">
           <h3>Emergency Management Dashboard</h3>
-          <button class="btn btn-primary" id="btnAdd">+ New Record</button>
+          <button class="btn-disaster-primary" id="btnAdd">+ New Record</button>
         </div>
-        <div class="dashboard-card-content">
+        <div class="dashboard-card-content-disaster">
           <!-- Tabs -->
-          <div id="tabs" class="flex border-b border-[#ecf0f1] mb-5 flex-wrap overflow-x-auto" style="gap:4px;">
-            <div class="tab active px-4 py-3 cursor-pointer border-b-2 border-transparent text-[#7f8c8d] text-sm whitespace-nowrap hover:text-[#e74c3c] transition-colors" data-tab="incidents">Incident Reports</div>
-            <div class="tab px-4 py-3 cursor-pointer border-b-2 border-transparent text-[#7f8c8d] text-sm whitespace-nowrap hover:text-[#e74c3c] transition-colors" data-tab="coordination">Response & Coordination</div>
-            <div class="tab px-4 py-3 cursor-pointer border-b-2 border-transparent text-[#7f8c8d] text-sm whitespace-nowrap hover:text-[#e74c3c] transition-colors" data-tab="monitoring">Area Monitoring</div>
-            <div class="tab px-4 py-3 cursor-pointer border-b-2 border-transparent text-[#7f8c8d] text-sm whitespace-nowrap hover:text-[#e74c3c] transition-colors" data-tab="preparedness">Preparedness Plans</div>
-            <div class="tab px-4 py-3 cursor-pointer border-b-2 border-transparent text-[#7f8c8d] text-sm whitespace-nowrap hover:text-[#e74c3c] transition-colors" data-tab="contacts">Emergency Contacts</div>
-            <div class="tab px-4 py-3 cursor-pointer border-b-2 border-transparent text-[#7f8c8d] text-sm whitespace-nowrap hover:text-[#e74c3c] transition-colors" data-tab="resources">Resources & Equipment</div>
+          <div id="tabs" class="disaster-tabs">
+            <div class="disaster-tab active" data-tab="incidents">Incident Reports</div>
+            <div class="disaster-tab" data-tab="coordination">Response & Coordination</div>
+            <div class="disaster-tab" data-tab="monitoring">Area Monitoring</div>
+            <div class="disaster-tab" data-tab="preparedness">Preparedness Plans</div>
+            <div class="disaster-tab" data-tab="contacts">Emergency Contacts</div>
+            <div class="disaster-tab" data-tab="resources">Resources & Equipment</div>
           </div>
 
           <!-- Toolbar -->
-          <div class="toolbar">
-            <div class="toolbar-left">
-              <div class="search">
-                <input id="fQ" placeholder="Search incidents, locations...">
-                <span class="icon">🔍</span>
-              </div>
-              <input id="fFrom" type="date">
-              <input id="fTo" type="date">
-              <select id="fStatus">
+          <div class="disaster-toolbar">
+            <div class="search-wrapper">
+              <input id="fQ" placeholder="Search incidents, locations..." type="search">
+              <span class="search-icon">🔍</span>
+            </div>
+            <input id="fFrom" type="date">
+            <input id="fTo" type="date">
+            <select id="fStatus">
               <option value="">All Status</option>
               <option value="Critical">Critical</option>
               <option value="Ongoing">Ongoing</option>
               <option value="Resolved">Resolved</option>
               <option value="Monitoring">Monitoring</option>
             </select>
-              <select id="fType">
+            <select id="fType">
               <option value="">All Types</option>
               <option value="Fire">Fire</option>
               <option value="Flood">Flood</option>
@@ -246,23 +1000,20 @@
               <option value="Accident">Accident</option>
               <option value="Medical">Medical Emergency</option>
             </select>
-            </div>
-            <div class="toolbar-right">
-              <button class="btn" id="btnFilter">Apply</button>
-              <button class="btn" id="btnExport">Export CSV</button>
-            </div>
+            <button class="btn-disaster-secondary" id="btnFilter">Apply Filter</button>
+            <button class="btn-disaster-secondary" id="btnExport">Export CSV</button>
           </div>
 
           <!-- Table -->
-          <div class="table-wrap">
+          <div class="disaster-table-wrap">
             <table class="table" id="tbl">
-                <thead id="tableHead"></thead>
+              <thead id="tableHead"></thead>
               <tbody id="tableBody"></tbody>
-              </table>
+            </table>
           </div>
 
           <!-- Pagination -->
-          <div class="pager" id="pager"></div>
+          <div class="pager-disaster" id="pager"></div>
         </div>
       </div>
     </div>
@@ -270,31 +1021,34 @@
 </div>
 
 <!-- Add/Edit Modal -->
-<div class="modal" id="modal">
-  <div class="sheet">
-    <header class="sheet-head" id="dlgTitle">Add Record</header>
-    <div class="sheet-body">
-      <div class="muted" id="msg" style="margin-bottom:10px;font-size:0.9rem;"></div>
+<div class="modal-disaster hidden" id="modal">
+  <div class="modal-content">
+    <header class="modal-header" id="dlgTitle">Add Record</header>
+    <div class="modal-body">
+      <div style="color: var(--muted); margin-bottom: 14px; font-size: 0.85rem;" id="msg"></div>
       <form id="frm" novalidate>
         <div id="formContent"></div>
       </form>
     </div>
-    <footer class="sheet-foot">
-      <button class="btn" id="btnCancel">Cancel</button>
-      <button class="btn btn-primary" id="btnSave">Save Record</button>
+    <footer class="modal-footer">
+      <button class="btn-disaster-secondary" id="btnCancel">Cancel</button>
+      <button class="btn-disaster-primary" id="btnSave">Save Record</button>
     </footer>
   </div>
 </div>
 
 <!-- Details Drawer -->
-<div id="drawer" style="display:none;">
-  <div class="overlay" style="position:fixed;inset:0;background:rgba(0,0,0,.25);"></div>
-  <div style="position:fixed;right:0;top:0;height:100%;width:min(520px,100%);background:#fff;box-shadow:-10px 0 30px rgba(0,0,0,0.2);display:flex;flex-direction:column;">
-    <header class="px-5 py-4 border-b border-[#ecf0f1] bg-[#f8f9fa] flex justify-between items-center">
-      <div class="flex items-center gap-2"><strong id="dRecordId" class="text-[#2c3e50]">Record</strong> <span id="dStatus" class="px-2 py-1 rounded-2xl text-xs font-bold bg-pending ml-2">Pending</span></div>
-      <button class="px-4 py-2.5 rounded-lg border-none cursor-pointer bg-ghost-btn text-primary-btn font-medium hover:opacity-90 transition-opacity" id="dClose">Close</button>
+<div id="drawer" class="hidden">
+  <div class="drawer-backdrop" onclick="document.getElementById('drawer').classList.add('hidden');"></div>
+  <div class="drawer-content">
+    <header class="drawer-header">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <strong id="dRecordId" style="color: var(--text);">Record</strong>
+        <span id="dStatus" class="badge bg-pending" style="margin-left: 8px; padding: 4px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 700;">Pending</span>
+      </div>
+      <button class="btn-disaster-secondary" id="dClose" style="padding: 8px 16px;">Close</button>
     </header>
-    <div class="p-5 overflow-auto flex-1" id="dBody"></div>
+    <div class="drawer-body" id="dBody"></div>
   </div>
 </div>
 

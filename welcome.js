@@ -1702,6 +1702,15 @@ try {
   console.error('❌ Failed to mount health router:', err.message);
 }
 
+// Disaster & Emergency Response module
+try {
+  const disasterRouter = require('./routes/disaster')(withDb, requireAuth, requireAdmin);
+  app.use(disasterRouter);
+  console.log('✅ Disaster router mounted successfully');
+} catch (err) {
+  console.error('❌ Failed to mount disaster router:', err.message);
+}
+
 // and ensure uploads are served if not already:
 // In serverless environments, use /tmp/uploads, otherwise use regular uploads folder
 const fs = require('fs');
