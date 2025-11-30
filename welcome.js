@@ -280,7 +280,25 @@ function requireAuth(req, res, next) {
   return res.redirect('/login');
 }
 function requireAdmin(req, res, next) {
-  if (req.session.user?.role === 'admin') return next();
+  if (!req.session.user) {
+    // Check if this is an API request
+    if (req.path.startsWith('/api/')) {
+      return res.status(401).json({ ok: false, message: 'Authentication required' });
+    }
+    return res.redirect('/login');
+  }
+  
+  const isAdmin = /^(admin)$/i.test(req.session.user?.role||'') || 
+                  req.session.user?.isAdmin===true || 
+                  req.session.user?.type==='admin' || 
+                  req.session.user?.accountType==='admin';
+  
+  if (isAdmin) return next();
+  
+  // For API routes, return JSON
+  if (req.path.startsWith('/api/')) {
+    return res.status(403).json({ ok: false, message: 'Access denied. Admin only.' });
+  }
   return res.status(403).send('Access denied. Admin only.');
 }
 
@@ -1370,7 +1388,8 @@ app.post('/api/login', async (req, res) => {
       name: hard.name,
       username: hard.username.toLowerCase(),
       role: hard.role,
-      verified: hard.role !== 'pending'
+      verified: hard.role !== 'pending',
+      address: hard.address || ''
     };
     req.session.cookie.maxAge = rememberSelected(remember)
       ? (30 * 24 * 60 * 60 * 1000)
@@ -1525,6 +1544,7 @@ app.get('/api/documents', requireAuth, async (req, res) => {
 
 // Create a new document request
 app.post('/api/documents/add', requireAuth, async (req, res) => {
+  const user = req.session.user;
   const {
     requesterName, address, typeOfDocument,
     purpose = '', numberOfCopies = 1,
@@ -1537,6 +1557,7 @@ app.post('/api/documents/add', requireAuth, async (req, res) => {
 
   const doc = {
     requesterName: String(requesterName).trim(),
+    requesterUsername: user?.username?.toLowerCase() || '',
     address: String(address).trim(),
     typeOfDocument: String(typeOfDocument).trim(),
     purpose: String(purpose || '').trim(),
@@ -1549,6 +1570,56 @@ app.post('/api/documents/add', requireAuth, async (req, res) => {
 
   await withDb(async (db) => db.collection('documents').insertOne(doc));
   res.json({ ok: true });
+});
+
+// Update document status (admin-only) - MUST come before /api/documents/:id routes
+app.post('/api/documents/update-status/:id', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const id = req.params.id;
+    const { status, dateReleased } = req.body || {};
+    
+    console.log('[update-status] Request received:', { id, status, dateReleased, user: req.session.user?.username });
+
+    if (!id) {
+      return res.status(400).json({ ok: false, message: 'Document ID is required' });
+    }
+
+    if (!status) {
+      return res.status(400).json({ ok: false, message: 'Status is required' });
+    }
+
+    // Validate ObjectId format
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ ok: false, message: 'Invalid document ID format' });
+    }
+
+    const update = { status: String(status).trim() };
+    if (dateReleased) {
+      const date = new Date(dateReleased);
+      if (isNaN(date.getTime())) {
+        return res.status(400).json({ ok: false, message: 'Invalid date format' });
+      }
+      update.dateReleased = date;
+    } else if (status === 'Released') {
+      update.dateReleased = new Date();
+    }
+
+    const result = await withDb(async (db) => {
+      return await db.collection('documents').updateOne(
+        { _id: new ObjectId(id) },
+        { $set: update }
+      );
+    });
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ ok: false, message: 'Document not found' });
+    }
+
+    res.json({ ok: true, message: 'Status updated successfully' });
+  } catch (error) {
+    console.error('Error updating document status:', error);
+    res.status(500).json({ ok: false, message: error.message || 'Failed to update status' });
+  }
 });
 
 // Edit existing document (admin-only)

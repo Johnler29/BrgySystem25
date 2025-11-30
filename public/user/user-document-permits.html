@@ -21,6 +21,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/base.css">
+  <style>
+    .bg-primary-btn { background-color: #3498db; }
+    .bg-ghost-btn { background-color: #ecf0f1; }
+    .text-primary-btn { color: #2c3e50; }
+    .border-input { border-color: #dfe6e9; }
+  </style>
 </head>
 
 <script defer src="/base-header.js"></script>
@@ -79,7 +85,7 @@
           <div>
             <strong class="font-semibold block mb-1">Resident Portal</strong>
             <p class="text-sm m-0 leading-relaxed opacity-95">View and request your documents here. Only your requests are visible.</p>
-          </div>
+      </div>
         </div>
       </div>
 
@@ -104,18 +110,18 @@
         <div class="overflow-x-auto">
           <table class="w-full" id="docsTable">
             <thead class="bg-gray-50">
-              <tr>
+            <tr>
                 <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider border-b border-gray-200">Type of Document</th>
                 <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider border-b border-gray-200">Number of Copies</th>
                 <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider border-b border-gray-200">Date Requested</th>
                 <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider border-b border-gray-200">Date Released</th>
                 <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider border-b border-gray-200">Status</th>
-              </tr>
-            </thead>
+            </tr>
+          </thead>
             <tbody id="reqTbody" class="divide-y divide-gray-100 [&_tr:hover]:bg-blue-50/50 transition-colors">
-              <!-- rows injected by user-document-permits.js -->
-            </tbody>
-          </table>
+            <!-- rows injected by user-document-permits.js -->
+          </tbody>
+        </table>
         </div>
       </div>
 
@@ -125,21 +131,16 @@
 </div>
 
 <!-- Add/Edit Modal -->
-<div class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center p-5 z-50 animate-fadeIn" id="formModal" aria-hidden="true">
-  <div class="w-full max-w-[640px] bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all animate-slideUp">
-    <!-- Modal Header -->
-    <div class="bg-[#3498db] px-6 py-5 flex justify-between items-center">
-      <h3 id="formTitle" class="text-xl font-bold text-white m-0">Request Document</h3>
-      <button class="w-8 h-8 rounded-lg bg-white/20 hover:bg-white/30 text-white font-semibold transition-colors flex items-center justify-center" id="closeFormX">✕</button>
-    </div>
-    
-    <!-- Modal Body -->
-    <div class="p-6 bg-gray-50">
-      <form id="docForm" class="space-y-5">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+<div class="fixed inset-0 bg-black/25 hidden items-center justify-center p-4 z-50 overflow-y-auto" id="formModal" aria-hidden="true">
+  <div class="w-full max-w-[700px] bg-white rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.2)] overflow-hidden my-4">
+    <header class="px-4 py-3 bg-[#f8f9fa] border-b border-[#ecf0f1] font-semibold text-[#2c3e50] text-lg" id="formTitle">Request New Document</header>
+    <div class="p-4 max-h-[calc(100vh-180px)] overflow-y-auto">
+      <div class="text-[#7f8c8d] mb-2.5" id="msg"></div>
+      <form id="docForm" novalidate>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <label class="block text-gray-700 mb-2 text-sm font-semibold">Type of Document <span class="text-red-500">*</span></label>
-            <select id="typeOfDocument" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white text-gray-900 focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 transition-all shadow-sm hover:border-gray-300">
+            <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Type of Document *</label>
+            <select id="typeOfDocument" required class="w-full px-3 py-2 border border-input rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all text-sm">
               <option>Barangay Clearance</option>
               <option>Certificate of Indigency</option>
               <option>Certificate of Residency</option>
@@ -148,30 +149,29 @@
             </select>
           </div>
           <div>
-            <label class="block text-gray-700 mb-2 text-sm font-semibold">Number of Copies <span class="text-red-500">*</span></label>
-            <input id="numberOfCopies" type="number" min="1" value="1" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white text-gray-900 focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 transition-all shadow-sm hover:border-gray-300"/>
+            <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Number of Copies *</label>
+            <input id="numberOfCopies" type="number" min="1" value="1" required class="w-full px-3 py-2 border border-input rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all text-sm">
           </div>
-        </div>
-        
-        <div>
-          <label class="block text-gray-700 mb-2 text-sm font-semibold">Requester's Name <span class="text-red-500">*</span></label>
-          <input id="requesterName" type="text" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white text-gray-900 focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 transition-all shadow-sm hover:border-gray-300"/>
-        </div>
-        
-        <div>
-          <label class="block text-gray-700 mb-2 text-sm font-semibold">Requester's Address <span class="text-red-500">*</span></label>
-          <input id="address" type="text" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white text-gray-900 focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 transition-all shadow-sm hover:border-gray-300"/>
-        </div>
-        
-        <div>
-          <label class="block text-gray-700 mb-2 text-sm font-semibold">Purpose <span class="text-red-500">*</span></label>
-          <input id="purpose" type="text" placeholder="e.g. Employment, Scholarship" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white text-gray-900 focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 transition-all shadow-sm hover:border-gray-300"/>
-        </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
           <div>
-            <label class="block text-gray-700 mb-2 text-sm font-semibold">Payment Method</label>
-            <select id="paymentMethod" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white text-gray-900 focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 transition-all shadow-sm hover:border-gray-300">
+            <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Requester's Name *</label>
+            <input id="requesterName" type="text" required readonly class="w-full px-3 py-2 border border-input rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed focus:outline-none transition-all text-sm">
+            <p class="text-xs text-[#7f8c8d] mt-1">This field is automatically filled from your profile</p>
+          </div>
+          <div>
+            <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Requester's Address *</label>
+            <input id="address" type="text" required class="w-full px-3 py-2 border border-input rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all text-sm">
+            <p class="text-xs text-[#7f8c8d] mt-1" id="addressHelp">This field is automatically filled from your profile</p>
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Purpose *</label>
+            <input id="purpose" type="text" placeholder="e.g. Employment, Scholarship" required class="w-full px-3 py-2 border border-input rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all text-sm">
+          </div>
+
+          <div>
+            <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Payment Method</label>
+            <select id="paymentMethod" class="w-full px-3 py-2 border border-input rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all text-sm">
               <option value="">Select Payment Method</option>
               <option>GCash</option>
               <option>GoTyme</option>
@@ -179,8 +179,8 @@
             </select>
           </div>
           <div>
-            <label class="block text-gray-700 mb-2 text-sm font-semibold">Payment Status</label>
-            <select id="paymentStatus" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white text-gray-900 focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 transition-all shadow-sm hover:border-gray-300">
+            <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Payment Status</label>
+            <select id="paymentStatus" class="w-full px-3 py-2 border border-input rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all text-sm">
               <option value="">No payment found</option>
               <option>Successfully Paid</option>
               <option>Pending</option>
@@ -188,31 +188,15 @@
             </select>
           </div>
         </div>
-        
         <input type="hidden" id="docId"/>
       </form>
     </div>
-    
-    <!-- Modal Footer -->
-    <div class="flex justify-end gap-3 px-6 py-4 bg-white border-t border-gray-200">
-      <button class="px-5 py-2.5 rounded-xl border-2 border-gray-300 bg-white text-gray-700 font-semibold hover:bg-gray-50 hover:border-gray-400 transition-all shadow-sm" id="cancelForm">Cancel</button>
-      <button class="px-5 py-2.5 rounded-xl bg-[#3498db] hover:bg-[#2980b9] text-white font-semibold transition-all shadow-lg hover:shadow-xl" id="saveForm">Submit Request</button>
-    </div>
+    <footer class="flex justify-end gap-2 px-4 py-3 bg-[#f8f9fa] border-t border-[#ecf0f1]">
+      <button class="px-4 py-2 rounded-lg border-none cursor-pointer bg-ghost-btn text-primary-btn font-medium hover:opacity-90 transition-opacity text-sm" id="cancelForm">Cancel</button>
+      <button class="px-4 py-2 rounded-lg border-none cursor-pointer bg-primary-btn text-white font-semibold hover:opacity-90 transition-opacity shadow-sm text-sm" id="saveForm">Submit Request</button>
+    </footer>
   </div>
 </div>
-
-<style>
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-  @keyframes slideUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .animate-fadeIn { animation: fadeIn 0.2s ease-out; }
-  .animate-slideUp { animation: slideUp 0.3s ease-out; }
-</style>
 
 <script defer src="/user/user-document-permits.js"></script>
 </body>

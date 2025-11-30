@@ -114,36 +114,95 @@
     const cancel = $id("cancelForm");
     const save = $id("saveForm");
     const form = $id("docForm");
+    const requesterNameInput = $id("requesterName");
+    const addressInput = $id("address");
 
     const open = () => {
       form.reset();
       $id("docId").value = "";
       $id("formTitle").textContent = "Request New Document";
-      formModal.classList.add("active");
+      const msgEl = $id("msg");
+      if (msgEl) msgEl.textContent = "";
+      
+      // Auto-populate requester name and address from user profile
+      if (currentUser) {
+        requesterNameInput.value = currentUser.name || "";
+        addressInput.value = currentUser.address || "";
+        
+        // Name is always read-only
+        requesterNameInput.readOnly = true;
+        requesterNameInput.style.backgroundColor = "#f5f5f5";
+        requesterNameInput.style.cursor = "not-allowed";
+        
+        // If address is missing, allow user to enter it
+        const addressHelp = document.getElementById("addressHelp");
+        if (!currentUser.address || currentUser.address.trim() === "") {
+          addressInput.readOnly = false;
+          addressInput.style.backgroundColor = "";
+          addressInput.style.cursor = "";
+          addressInput.required = true;
+          if (addressHelp) addressHelp.textContent = "Please enter your address";
+        } else {
+          // Make address read-only if it exists
+          addressInput.readOnly = true;
+          addressInput.style.backgroundColor = "#f5f5f5";
+          addressInput.style.cursor = "not-allowed";
+          if (addressHelp) addressHelp.textContent = "This field is automatically filled from your profile";
+        }
+      }
+      
+      // Reset payment fields
+      $id("paymentMethod").value = "";
+      $id("paymentStatus").value = "";
+      
+      formModal.classList.remove("hidden");
+      formModal.classList.add("flex");
     };
 
-    const close = () => formModal.classList.remove("active");
+    const close = () => {
+      formModal.classList.remove("flex");
+      formModal.classList.add("hidden");
+      // Reset read-only styling when closing
+      requesterNameInput.readOnly = false;
+      requesterNameInput.style.backgroundColor = "";
+      requesterNameInput.style.cursor = "";
+      addressInput.readOnly = false;
+      addressInput.style.backgroundColor = "";
+      addressInput.style.cursor = "";
+    };
 
     on(addBtn, "click", open);
     on(closeX, "click", close);
     on(cancel, "click", close);
+    // Close modal when clicking outside (on the overlay)
     on(formModal, "click", (e) => {
       if (e.target === formModal) close();
     });
+    
+    // Prevent modal from closing when clicking inside the modal content
+    const modalContent = formModal.querySelector("div.w-full");
+    if (modalContent) {
+      on(modalContent, "click", (e) => {
+        e.stopPropagation();
+      });
+    }
 
-    on(save, "click", async () => {
+    on(save, "click", async (e) => {
+      e.preventDefault();
+      
+      const msgEl = $id("msg");
       const data = {
-        typeOfDocument: $id("typeOfDocument").value,
-        numberOfCopies: parseInt($id("numberOfCopies").value) || 1,
-        requesterName: $id("requesterName").value,
-        address: $id("address").value,
-        purpose: $id("purpose").value,
-        paymentMethod: $id("paymentMethod").value,
-        paymentStatus: $id("paymentStatus").value,
+        typeOfDocument: $id("typeOfDocument").value.trim(),
+        numberOfCopies: Math.max(1, parseInt($id("numberOfCopies").value || 1, 10)),
+        requesterName: requesterNameInput.value.trim(),
+        address: addressInput.value.trim(),
+        purpose: $id("purpose").value.trim(),
+        paymentMethod: $id("paymentMethod").value || "",
+        paymentStatus: $id("paymentStatus").value || "",
       };
 
       if (!data.typeOfDocument || !data.requesterName || !data.address || !data.purpose) {
-        alert("Please fill all required fields.");
+        if (msgEl) msgEl.textContent = "Please fill all required fields.";
         return;
       }
 
@@ -158,10 +217,10 @@
           close();
           loadDocs();
         } else {
-          alert(j.message || "Failed to submit request");
+          if (msgEl) msgEl.textContent = j.message || "Failed to submit request";
         }
       } catch (e) {
-        alert(e.message || "Failed to submit request");
+        if (msgEl) msgEl.textContent = e.message || "Failed to submit request";
       }
     });
   }

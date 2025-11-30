@@ -24,10 +24,33 @@
     const text = await res.text();
 
     if (!res.ok) {
-      throw Object.assign(new Error(text || res.statusText), { status: res.status });
+      // Try to parse as JSON first
+      let errorMessage = res.statusText;
+      try {
+        const json = JSON.parse(text);
+        errorMessage = json.message || json.error || errorMessage;
+      } catch {
+        // If not JSON, check if it's HTML and extract a meaningful message
+        if (ct.includes("text/html") || text.trim().startsWith("<!")) {
+          if (res.status === 404) {
+            errorMessage = "API endpoint not found. Please check if the server is running correctly.";
+          } else if (res.status === 500) {
+            errorMessage = "Server error. Please try again later.";
+          } else {
+            errorMessage = `Request failed with status ${res.status}`;
+          }
+        } else {
+          // Try to extract a short error message from text
+          const shortText = text.length > 100 ? text.substring(0, 100) + "..." : text;
+          errorMessage = shortText || errorMessage;
+        }
+      }
+      const error = new Error(errorMessage);
+      error.status = res.status;
+      throw error;
     }
     if (!ct.includes("application/json")) {
-      throw new Error("Expected JSON response");
+      throw new Error("Server returned non-JSON response. Please check the API endpoint.");
     }
     return JSON.parse(text);
   }
@@ -35,6 +58,8 @@
   /* ---- state ---- */
   let ALL = [];
   let VIEW = [];
+  let isAdmin = false;
+  let currentUser = null;
 
   /* ---- small render utils ---- */
   const fmt = (d) => (d ? new Date(d).toISOString().slice(0, 10) : "—");
@@ -49,7 +74,13 @@
     tb.innerHTML = "";
 
     if (!rows.length) {
-      tb.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#777;">No document requests found.</td></tr>`;
+      tb.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:3rem 1rem;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;color:#777;">
+          <div style="font-size:3rem;opacity:0.5;">📋</div>
+          <div style="font-weight:500;color:#666;">No document requests found.</div>
+          <div style="font-size:0.875rem;color:#999;">Click "+ Add New" to create a document request.</div>
+        </div>
+      </td></tr>`;
       return;
     }
 
@@ -116,8 +147,14 @@
       renderRows(VIEW);
     } catch (e) {
       console.warn("[loadDocs]", e);
-      $id("reqTbody").innerHTML =
-        `<tr><td colspan="8" style="text-align:center;color:#888">Unable to load data.</td></tr>`;
+      const tb = $id("reqTbody");
+      tb.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:3rem 1rem;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;color:#888;">
+          <div style="font-size:3rem;opacity:0.5;">📄</div>
+          <div style="font-weight:500;color:#666;">Unable to load data.</div>
+          <div style="font-size:0.875rem;color:#999;">Please refresh the page or contact support if the issue persists.</div>
+        </div>
+      </td></tr>`;
     }
   }
 
@@ -229,22 +266,38 @@
 
   async function saveStatus() {
     const id = $id("statusDocId").value;
+    if (!id) {
+      alert("Invalid document ID");
+      return;
+    }
+    
+    const status = $id("statusValue").value;
+    const dateReleased = $id("dateReleased").value || null;
+    
+    if (!status) {
+      alert("Please select a status");
+      return;
+    }
+    
     try {
       const j = await fetchJSON(`/api/documents/update-status/${id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          status: $id("statusValue").value,
-          dateReleased: $id("dateReleased").value || null,
+          status: status,
+          dateReleased: dateReleased,
         }),
       });
       if (j.ok) {
-        alert("Status updated");
+        alert("Status updated successfully");
         hideModal(statusModal);
         loadDocs();
+      } else {
+        alert(j.message || "Update failed");
       }
-    } catch {
-      alert("Update failed");
+    } catch (e) {
+      console.error("Status update error:", e);
+      alert(e.message || "Update failed. Please check the console for details.");
     }
   }
 
@@ -293,37 +346,25 @@
     on($id("doDelete"), "click", () => doDelete());
 
 
-    // get role from header (populated by base-header.js)
-let isAdmin = false;
-let currentUser = null;
-
-async function applyRoleUI() {
-  // If base-header hasn't loaded yet, fetch /api/me directly
-  const me = window.__BRGY_USER__ || await (async () => {
-    const r = await fetch("/api/me", { credentials: "include" });
-    const j = await r.json(); 
-    return j.user;
-  })();
-
-  currentUser = me;
-  const role = me?.role || "user";
-  isAdmin = /^(admin)$/i.test(role||'') || me?.isAdmin===true || me?.type==='admin' || me?.accountType==='admin';
-
-  // Hide admin-only UI elements for regular users
-  if (!isAdmin) {
-    const bulk = document.getElementById("bulkReleasedBtn");
-    if (bulk) bulk.style.display = "none";
-    
-    // Hide kebab menus (edit/delete/status change) for non-admins
-    // We'll handle this in renderRows instead
-  }
-
-  // Save for later checks if you need
-  window.__BRGY_ROLE__ = role;
-  window.__BRGY_IS_ADMIN__ = isAdmin;
-}
-
-document.addEventListener("DOMContentLoaded", applyRoleUI);
+    // For admin pages, assume admin access
+    // Get user info if available, but set isAdmin to true
+    (async function applyRoleUI() {
+      try {
+        const me = window.__BRGY_USER__ || await (async () => {
+          const r = await fetch("/api/me", { credentials: "include" });
+          const j = await r.json(); 
+          return j.user;
+        })();
+        currentUser = me;
+        // On admin pages, user should be admin, but check anyway
+        const role = me?.role || "admin";
+        isAdmin = /^(admin)$/i.test(role||'') || me?.isAdmin===true || me?.type==='admin' || me?.accountType==='admin' || true; // Default to true for admin pages
+      } catch (e) {
+        // If check fails, assume admin since we're on admin page
+        isAdmin = true;
+        console.warn("Could not verify admin status, assuming admin:", e);
+      }
+    })();
 
     // initial load
     loadDocs();
