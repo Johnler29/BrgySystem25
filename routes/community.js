@@ -11,14 +11,41 @@ try { multer = require('multer'); } catch {
 module.exports = function communityRoutes(withDb, requireAuth, requireAdmin) {
   const router = express.Router();
 
-  // serve uploads
-  router.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
-
   // ----- Multer (optional upload) -----
   let upload = null;
   if (multer) {
+    const fs = require('fs');
+    // Use /tmp in serverless environments (Vercel, AWS Lambda), otherwise use uploads folder
+    const getUploadDir = () => {
+      if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.LAMBDA_TASK_ROOT) {
+        return '/tmp/uploads';
+      }
+      return path.join(process.cwd(), 'uploads');
+    };
+
+    const uploadDir = getUploadDir();
+    
+    // Ensure upload directory exists
+    try {
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+    } catch (err) {
+      console.error('[community] Failed to create upload directory:', err.message);
+    }
+
     const storage = multer.diskStorage({
-      destination: (_, __, cb) => cb(null, path.join(process.cwd(), 'uploads')),
+      destination: (_, __, cb) => {
+        try {
+          // Ensure directory exists before callback
+          if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+          }
+          cb(null, uploadDir);
+        } catch (err) {
+          cb(err);
+        }
+      },
       filename: (_, file, cb) => {
         const ext = (file.originalname.split('.').pop() || 'bin').toLowerCase();
         cb(null, Date.now() + '-' + Math.random().toString(36).slice(2) + '.' + ext);
@@ -32,6 +59,15 @@ module.exports = function communityRoutes(withDb, requireAuth, requireAdmin) {
       }
     });
   }
+
+  // serve uploads (use same directory logic as multer)
+  const getUploadsDir = () => {
+    if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.LAMBDA_TASK_ROOT) {
+      return '/tmp/uploads';
+    }
+    return path.join(process.cwd(), 'uploads');
+  };
+  router.use('/uploads', express.static(getUploadsDir()));
 
   // ----- Seed + Indexes (idempotent) -----
   async function ensureIndexesAndSeed(db) {

@@ -1632,7 +1632,26 @@ try {
 }
 
 // and ensure uploads are served if not already:
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// In serverless environments, use /tmp/uploads, otherwise use regular uploads folder
+const fs = require('fs');
+const getUploadsDir = () => {
+  if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.LAMBDA_TASK_ROOT) {
+    return '/tmp/uploads';
+  }
+  return path.join(__dirname, 'uploads');
+};
+
+const uploadsDir = getUploadsDir();
+// Ensure directory exists
+try {
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+} catch (err) {
+  console.warn('[welcome] Could not create uploads directory:', err.message);
+}
+
+app.use('/uploads', express.static(uploadsDir));
 
 app.get('/health', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin', 'admin-health.html'));

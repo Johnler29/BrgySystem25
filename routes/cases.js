@@ -1,5 +1,6 @@
 // routes/cases.js
 const path = require('path');
+const fs = require('fs');
 const { MongoClient, ObjectId } = require('mongodb');
 
 let multer;
@@ -9,6 +10,66 @@ try {
 } catch {
   console.warn('[cases] multer not installed — run: npm i multer');
 }
+
+// ---- Upload utility functions ----
+const getUploadDir = () => {
+  // Check if we're in a serverless environment
+  if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.LAMBDA_TASK_ROOT) {
+    return '/tmp/uploads';
+  }
+  return path.join(process.cwd(), 'uploads');
+};
+
+const ensureUploadDir = () => {
+  const uploadDir = getUploadDir();
+  try {
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    return { success: true, dir: uploadDir };
+  } catch (err) {
+    console.error('[cases] Failed to create upload directory:', err.message);
+    return { success: false, error: err.message, dir: uploadDir };
+  }
+};
+
+const verifyUploadedFile = (file) => {
+  if (!file || !file.filename) {
+    return { valid: false, error: 'Invalid file object' };
+  }
+  const uploadDir = getUploadDir();
+  const filePath = path.join(uploadDir, file.filename);
+  try {
+    if (!fs.existsSync(filePath)) {
+      return { valid: false, error: `File not found: ${file.filename}` };
+    }
+    const stats = fs.statSync(filePath);
+    if (stats.size === 0) {
+      return { valid: false, error: `File is empty: ${file.filename}` };
+    }
+    return { valid: true, path: filePath, size: stats.size };
+  } catch (err) {
+    return { valid: false, error: `Error accessing file: ${err.message}` };
+  }
+};
+
+const cleanupUploadedFiles = (files) => {
+  if (!Array.isArray(files)) return;
+  const uploadDir = getUploadDir();
+  files.forEach(file => {
+    if (file && file.filename) {
+      try {
+        const filePath = path.join(uploadDir, file.filename);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+          console.log(`[cases] Cleaned up file: ${file.filename}`);
+        }
+      } catch (err) {
+        console.warn(`[cases] Failed to cleanup file ${file.filename}:`, err.message);
+      }
+    }
+  });
+};
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://adminDB:capstonelozonvill@barangaydb.5ootwqc.mongodb.net/barangayDB?retryWrites=true&w=majority';
 
@@ -35,9 +96,23 @@ function requireAdmin(req, res, next) {
 // ---- Multer setup for evidence uploads ----
 let upload = null;
 if (multer) {
+  // Ensure upload directory exists
+  const dirCheck = ensureUploadDir();
+  if (!dirCheck.success) {
+    console.error('[cases] Cannot proceed without upload directory:', dirCheck.error);
+  }
+
   const storage = multer.diskStorage({
     destination: (_, __, cb) => {
-      cb(null, path.join(process.cwd(), 'uploads'));
+      try {
+        const dirCheck = ensureUploadDir();
+        if (!dirCheck.success) {
+          return cb(new Error(`Upload directory not accessible: ${dirCheck.error}`));
+        }
+        cb(null, dirCheck.dir);
+      } catch (err) {
+        cb(err);
+      }
     },
     filename: (_, file, cb) => {
       const ext = (file.originalname.split('.').pop() || 'bin').toLowerCase();
@@ -410,6 +485,34 @@ module.exports = function mountCases(app) {
         };
 
         const evidences = [];
+        const allFiles = [...general, ...medico, ...vandal];
+        const failedFiles = [];
+
+        // Validate all files before processing
+        for (const file of allFiles) {
+          const verification = verifyUploadedFile(file);
+          if (!verification.valid) {
+            failedFiles.push({ file, error: verification.error });
+            console.error(`[cases] File validation failed for ${file.originalname}: ${verification.error}`);
+          } else {
+            console.log(`[cases] File validated: ${file.originalname} (${verification.size} bytes)`);
+          }
+        }
+
+        // If any files failed validation, cleanup and return error
+        if (failedFiles.length > 0) {
+          cleanupUploadedFiles(allFiles);
+          const errorMsg = failedFiles.length === 1 
+            ? `File upload failed: ${failedFiles[0].error}. Please try uploading again.`
+            : `Multiple file uploads failed. Please check your files and try again.`;
+          return res.status(400).json({
+            ok: false,
+            message: errorMsg,
+            details: process.env.NODE_ENV === 'development' ? failedFiles.map(f => f.error) : undefined
+          });
+        }
+
+        // All files are valid, proceed with evidence creation
         const pushEvidence = (file, kind) => {
           evidences.push({
             _id: new ObjectId(),
@@ -426,6 +529,7 @@ module.exports = function mountCases(app) {
         vandal.forEach(f => pushEvidence(f, 'vandalismImage'));
 
         if (evidences.length < 3) {
+          cleanupUploadedFiles(allFiles);
           return res.status(400).json({
             ok: false,
             message: 'Please upload at least 3 evidence files.'
@@ -485,7 +589,30 @@ module.exports = function mountCases(app) {
         res.json({ ok:true, row });
       } catch (e) {
         console.error('Create case error:', e);
-        res.status(500).json({ ok:false, message:'Failed to create case.' });
+        
+        // Cleanup uploaded files on error
+        try {
+          const files = req.files || {};
+          const allFiles = [
+            ...(files.evidenceFiles || []),
+            ...(files.medicoLegalFile || []),
+            ...(files.vandalismImage || [])
+          ];
+          cleanupUploadedFiles(allFiles);
+        } catch (cleanupError) {
+          console.error('[cases] Error during file cleanup:', cleanupError);
+        }
+
+        // Provide more descriptive error message
+        const errorMessage = e.code === 'ENOENT' 
+          ? 'File upload failed. Please check that the upload directory is accessible.'
+          : e.message || 'Failed to create case. Please try again.';
+        
+        res.status(500).json({ 
+          ok: false, 
+          message: errorMessage,
+          ...(process.env.NODE_ENV === 'development' && { details: e.stack })
+        });
       }
     });
   });
