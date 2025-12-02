@@ -75,22 +75,32 @@ async function initFinancial() {
     // This allows buttons to work while data is loading
     (async () => {
       try {
-        await checkAuth();
+        // Try to check auth, but don't block if it fails
+        const authOk = await checkAuth();
+        
+        // If auth check failed, still try to load data (might work if session is valid)
+        // The API endpoints will handle auth themselves
+        if (!authOk) {
+          console.warn('Auth check returned false, but continuing anyway - API will handle auth');
+          // Don't redirect immediately - let the API calls fail first
+          // This prevents redirect loops when session is actually valid but checkAuth had a temporary issue
+        }
         
         // Load data in parallel for faster initialization
+        // These will fail gracefully if auth is actually invalid
         await Promise.all([
-          loadFinancialSummary(),
-          loadCharts(),
-          loadApprovers(),
-          loadBudgets()
+          loadFinancialSummary().catch(e => console.warn('Summary load failed:', e)),
+          loadCharts().catch(e => console.warn('Charts load failed:', e)),
+          loadApprovers().catch(e => console.warn('Approvers load failed:', e)),
+          loadBudgets().catch(e => console.warn('Budgets load failed:', e))
         ]);
         
         // Load table data after listeners are attached
-        loadTabData();
+        loadTabData().catch(e => console.warn('Table data load failed:', e));
       } catch (err) {
         console.error('Financial data loading error:', err);
         // Still try to load table data even if other data fails
-        loadTabData();
+        loadTabData().catch(e => console.warn('Table data load failed (fallback):', e));
       }
     })();
   } catch (err) {
@@ -110,32 +120,111 @@ window.initFinancial = initFinancial;
 // AUTH & USER
 // ========================================
 
+// Track if we've already checked auth to prevent multiple redirects
+let authCheckInProgress = false;
+let lastAuthCheck = null;
+const AUTH_CHECK_CACHE_MS = 5000; // Cache auth check for 5 seconds
+
 async function checkAuth() {
+  // Prevent multiple simultaneous auth checks
+  if (authCheckInProgress) {
+    console.log('Auth check already in progress, waiting...');
+    // Wait for the in-progress check to complete
+    while (authCheckInProgress) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    return lastAuthCheck !== null ? lastAuthCheck : false;
+  }
+  
+  // Use cached result if recent
+  if (lastAuthCheck !== null && Date.now() - (lastAuthCheck.timestamp || 0) < AUTH_CHECK_CACHE_MS) {
+    return lastAuthCheck.result;
+  }
+  
+  authCheckInProgress = true;
   try {
-    const res = await fetch('/api/me');
+    const res = await fetch('/api/me', {
+      credentials: 'include', // Ensure session cookies are sent (critical for Vercel)
+      cache: 'no-store' // Prevent caching issues
+    });
+    
+    // Don't redirect immediately on network errors - might be temporary
+    if (!res.ok) {
+      if (res.status === 401 || res.status === 403) {
+        // Only redirect if we're sure it's an auth issue, not a network error
+        console.warn('Auth check failed:', res.status);
+        // Try one more time after a short delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const retryRes = await fetch('/api/me', { credentials: 'include', cache: 'no-store' });
+        if (!retryRes.ok && (retryRes.status === 401 || retryRes.status === 403)) {
+          window.location.href = '/login';
+          return false;
+        }
+        // If retry succeeded, continue
+      } else {
+        // Network or server error - don't redirect, just log
+        console.warn('Auth check network error:', res.status);
+        return false;
+      }
+    }
+    
     const data = await res.json();
     
-    if (!data.user) {
-      window.location.href = '/login';
-      return;
+    if (!data || !data.user) {
+      console.warn('No user data in response');
+      // Don't redirect immediately - might be a temporary issue
+      // The page should still work if user was authenticated on previous page
+      return false;
     }
     
     currentUser = data.user;
     
     // Check if user has access to financial page
-    if (currentUser.role !== 'admin') {
+    const isAdmin = /^(admin)$/i.test(currentUser.role || '') || 
+                    currentUser.isAdmin === true || 
+                    currentUser.type === 'admin' || 
+                    currentUser.accountType === 'admin';
+    
+    if (!isAdmin) {
       alert('Access Denied: You do not have permission to access Financial & Budget Management.');
-      window.location.href = '/dashboard';
-      return;
+      window.location.href = '/admin/dashboard';
+      return false;
     }
     
     // Update UI with user info
-    document.getElementById('adminUsername').textContent = currentUser.name;
+    const usernameEl = document.getElementById('adminUsername') || document.getElementById('username');
+    if (usernameEl) usernameEl.textContent = currentUser.name;
     const avatar = document.getElementById('avatar');
-    avatar.textContent = currentUser.name.charAt(0).toUpperCase();
+    if (avatar) avatar.textContent = (currentUser.name || 'A').charAt(0).toUpperCase();
+    
+    // Cache successful result
+    lastAuthCheck = { result: true, timestamp: Date.now() };
+    authCheckInProgress = false;
+    return true;
   } catch (err) {
-    console.error('Auth check failed:', err);
-    window.location.href = '/login';
+    console.error('Auth check error:', err);
+    authCheckInProgress = false;
+    
+    // Don't redirect on network errors - might be temporary
+    // Only redirect if it's clearly an auth error
+    if (err.message && err.message.includes('UNAUTH')) {
+      // Only redirect if we're sure we're not authenticated
+      // Check one more time after a delay
+      setTimeout(async () => {
+        try {
+          const finalCheck = await fetch('/api/me', { credentials: 'include', cache: 'no-store' });
+          if (!finalCheck.ok || !(await finalCheck.json()).user) {
+            window.location.href = '/login';
+          }
+        } catch {
+          // If final check also fails, assume network issue and don't redirect
+        }
+      }, 1000);
+      lastAuthCheck = { result: false, timestamp: Date.now() };
+      return false;
+    }
+    lastAuthCheck = { result: false, timestamp: Date.now() };
+    return false;
   }
 }
 
@@ -156,7 +245,9 @@ async function loadFinancialSummary() {
   showSummarySkeleton();
   
   try {
-    const res = await fetch('/api/financial/summary');
+    const res = await fetch('/api/financial/summary', {
+      credentials: 'include' // Ensure session cookies are sent (critical for Vercel)
+    });
     const data = await res.json();
     
     if (data.ok) {
@@ -220,7 +311,9 @@ async function loadCharts() {
   showChartsSkeleton();
   
   try {
-    const res = await fetch('/api/financial/charts');
+    const res = await fetch('/api/financial/charts', {
+      credentials: 'include' // Ensure session cookies are sent (critical for Vercel)
+    });
     const data = await res.json();
     
     if (data.ok) {
@@ -303,7 +396,9 @@ function hideChartsSkeleton() {
 
 async function loadApprovers() {
   try {
-    const res = await fetch('/api/financial/approvers');
+    const res = await fetch('/api/financial/approvers', {
+      credentials: 'include' // Ensure session cookies are sent (critical for Vercel)
+    });
     const data = await res.json();
     if (data.ok) {
       approvers = data.approvers || [];
@@ -315,7 +410,9 @@ async function loadApprovers() {
 
 async function loadBudgets() {
   try {
-    const res = await fetch('/api/financial/budget-planning');
+    const res = await fetch('/api/financial/budget-planning', {
+      credentials: 'include' // Ensure session cookies are sent (critical for Vercel)
+    });
     const data = await res.json();
     if (data.ok) {
       budgets = data.records || [];
@@ -503,7 +600,27 @@ async function loadTabData() {
       endpoint = '/api/financial/reports';
     }
     
-    const res = await fetch(endpoint);
+    const res = await fetch(endpoint, {
+      credentials: 'include' // Ensure session cookies are sent (critical for Vercel)
+    });
+    
+    // Check if response is OK before parsing JSON
+    if (!res.ok) {
+      // Handle authentication errors
+      if (res.status === 401 || res.status === 403) {
+        console.error('Authentication error:', res.status);
+        // Don't redirect here - let checkAuth handle it
+        // Just show error message
+        const tbody = document.getElementById('tableBody');
+        if (tbody) {
+          const headers = getTableHeaders();
+          tbody.innerHTML = `<tr><td colspan="${headers.length + 1}" style="text-align:center;padding:40px;color:#c0392b">Authentication required. Please refresh the page.</td></tr>`;
+        }
+        return;
+      }
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+    
     const data = await res.json();
     
     if (data.ok) {
@@ -971,6 +1088,7 @@ async function saveRecord() {
     const res = await fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include', // Ensure session cookies are sent (critical for Vercel)
       body: JSON.stringify(data)
     });
     
@@ -1000,7 +1118,8 @@ async function deleteRecord(id) {
   
   try {
     const res = await fetch(`/api/financial/${currentTab}/${id}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      credentials: 'include' // Ensure session cookies are sent (critical for Vercel)
     });
     
     const result = await res.json();
@@ -1474,6 +1593,7 @@ async function handleReceiptUpload(event) {
   try {
     const res = await fetch('/api/financial/expense-management/upload-receipt', {
       method: 'POST',
+      credentials: 'include', // Ensure session cookies are sent (critical for Vercel)
       body: formData
     });
 
@@ -1648,8 +1768,19 @@ async function generateReport() {
     const res = await fetch('/api/financial/reports/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include', // Ensure session cookies are sent (critical for Vercel)
       body: JSON.stringify({ reportType, year, month, quarter, period })
     });
+    
+    if (!res.ok) {
+      if (res.status === 401 || res.status === 403) {
+        alert('Authentication required. Please refresh the page and try again.');
+        return;
+      }
+      const errorData = await res.json().catch(() => ({ message: 'Failed to generate report' }));
+      document.getElementById('msg').textContent = errorData.message || 'Failed to generate report';
+      return;
+    }
 
     const result = await res.json();
     
@@ -1673,7 +1804,18 @@ async function generateReport() {
 
 async function viewReport(reportId) {
   try {
-    const res = await fetch(`/api/financial/reports`);
+    const res = await fetch(`/api/financial/reports`, {
+      credentials: 'include' // Ensure session cookies are sent (critical for Vercel)
+    });
+    
+    if (!res.ok) {
+      if (res.status === 401 || res.status === 403) {
+        alert('Authentication required. Please refresh the page and try again.');
+        return;
+      }
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+    
     const data = await res.json();
     
     if (data.ok) {

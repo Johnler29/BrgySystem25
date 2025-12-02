@@ -83,18 +83,44 @@
         return currentUser;
       }
       
-      // Fetch from API
-      const response = await fetch('/api/me', { credentials: 'include' });
-      const data = await response.json();
+      // Fetch from API with timeout to prevent hanging
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
       
-      if (data && data.user) {
-        currentUser = data.user;
-        userRole = currentUser.role || 'user';
-        window.__BRGY_USER__ = currentUser; // Cache globally
-        return currentUser;
+      try {
+        const response = await fetch('/api/me', { 
+          credentials: 'include',
+          cache: 'no-store',
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          // Don't throw on 401/403 - just return null
+          if (response.status === 401 || response.status === 403) {
+            return null;
+          }
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data && data.user) {
+          currentUser = data.user;
+          userRole = currentUser.role || 'user';
+          window.__BRGY_USER__ = currentUser; // Cache globally
+          return currentUser;
+        }
+        
+        return null;
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        if (fetchError.name === 'AbortError') {
+          console.warn('User info fetch timeout');
+          return null;
+        }
+        throw fetchError;
       }
-      
-      return null;
     } catch (error) {
       console.error('Error fetching user info:', error);
       return null;

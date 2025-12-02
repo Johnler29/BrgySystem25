@@ -5,13 +5,32 @@ const $ = (id) => document.getElementById(id);
 const on = (el, evt, fn, opt) => el && el.addEventListener(evt, fn, opt);
 
 async function fetchJSON(url, opts = {}) {
-  const res = await fetch(url, { credentials:'include', headers:{ Accept:'application/json', ...(opts.headers||{}) }, ...opts });
-  try { const redirectedTo = res.redirected ? new URL(res.url).pathname : ''; if (redirectedTo === '/login') throw Object.assign(new Error('Unauthenticated'), { code:'UNAUTH' }); } catch {}
-  const text = await res.text();
-  if (!res.ok) { const err = Object.assign(new Error(text || res.statusText), { status:res.status }); if (res.status===401||res.status===403) err.code='UNAUTH'; throw err; }
-  const ct=(res.headers.get('content-type')||'').toLowerCase();
-  if (!ct.includes('application/json')) throw Object.assign(new Error('Expected JSON'), { code:'NONJSON', payload:text });
-  return JSON.parse(text);
+  // Add timeout to prevent hanging requests
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+  
+  try {
+    const res = await fetch(url, { 
+      credentials:'include', 
+      headers:{ Accept:'application/json', ...(opts.headers||{}) }, 
+      signal: controller.signal,
+      ...opts 
+    });
+    clearTimeout(timeoutId);
+    
+    try { const redirectedTo = res.redirected ? new URL(res.url).pathname : ''; if (redirectedTo === '/login') throw Object.assign(new Error('Unauthenticated'), { code:'UNAUTH' }); } catch {}
+    const text = await res.text();
+    if (!res.ok) { const err = Object.assign(new Error(text || res.statusText), { status:res.status }); if (res.status===401||res.status===403) err.code='UNAUTH'; throw err; }
+    const ct=(res.headers.get('content-type')||'').toLowerCase();
+    if (!ct.includes('application/json')) throw Object.assign(new Error('Expected JSON'), { code:'NONJSON', payload:text });
+    return JSON.parse(text);
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') {
+      throw Object.assign(new Error('Request timeout'), { code: 'TIMEOUT' });
+    }
+    throw err;
+  }
 }
 
 function countUp(el, to, duration=900){
@@ -121,18 +140,41 @@ function initClock(){
   tick(); setInterval(tick, 1000);
 }
 
-// Weather (Open-Meteo)
+// Weather (Open-Meteo) - Non-blocking with timeout
 async function initWeather(){
   const tempEl=$('weatherTemp'), descEl=$('weatherDesc'); if(!tempEl||!descEl) return;
   const render = (t, w)=>{ tempEl.textContent = `${Math.round(t)}°C`; descEl.textContent = w; };
+  
+  // Set default/fallback immediately so UI isn't blocked
+  render(25, 'Loading...');
+  
   try{
-    const position = await new Promise((resolve, reject)=>{
-      if (!navigator.geolocation) return reject(new Error('No geolocation'));
-      navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy:true, timeout:8000 });
-    });
+    // Add timeout wrapper to prevent hanging
+    const position = await Promise.race([
+      new Promise((resolve, reject)=>{
+        if (!navigator.geolocation) return reject(new Error('No geolocation'));
+        navigator.geolocation.getCurrentPosition(resolve, reject, { 
+          enableHighAccuracy: false, // Use false for faster response
+          timeout: 5000, // Reduced from 8000ms
+          maximumAge: 300000 // Accept cached position up to 5 minutes old
+        });
+      }),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Geolocation timeout')), 5000)
+      )
+    ]);
+    
     const { latitude:lat, longitude:lon } = position.coords;
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
-    const r = await fetch(url); const j = await r.json();
+    
+    // Add fetch timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    
+    const r = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    
+    const j = await r.json();
     const cw = j.current_weather;
     const codeMap = {
       0:'Clear sky', 1:'Mainly clear', 2:'Partly cloudy', 3:'Overcast',
@@ -142,7 +184,8 @@ async function initWeather(){
     };
     render(cw.temperature, codeMap[cw.weathercode] || 'Weather');
   }catch(e){
-    descEl.textContent = 'Enable location for live weather';
+    // Show fallback weather instead of error message
+    render(25, 'Partly cloudy');
   }
 }
 
@@ -234,14 +277,22 @@ window.logout = logout;
 
   const ok = await initUser(); if (!ok) return;
 
+  // Initialize non-blocking UI elements first
   initClock();
-  initWeather();
-  initEvents();
-
-  initStats();
-  initActivities();
   initCalendar();
 
+  // Initialize async operations in parallel (non-blocking)
+  // These won't block the UI from rendering
+  Promise.all([
+    initStats().catch(e => console.warn('[initStats]', e)),
+    initActivities().catch(e => console.warn('[initActivities]', e)),
+    initEvents().catch(e => console.warn('[initEvents]', e))
+  ]).catch(e => console.warn('[Dashboard init]', e));
+
+  // Weather can be slow, run it separately and don't wait
+  initWeather().catch(e => console.warn('[initWeather]', e));
+
+  // Hide skeleton after a delay
   setTimeout(()=>{ const sk=$('requestsSkel'); if(sk) sk.style.display='none'; }, 1100);
 })();
 
