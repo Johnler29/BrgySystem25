@@ -68,26 +68,35 @@ module.exports = function(withDb, requireAuth, requireAdmin) {
   router.get('/api/financial/summary', requireAdmin, async (req, res) => {
     try {
       const summary = await withDb(async (db) => {
-        // Get current year budget
+        // Run all queries in parallel for better performance
         const currentYear = new Date().getFullYear();
-        const budgetPlan = await db.collection('budgetPlanning')
-          .findOne({ year: currentYear, status: { $in: ['Approved', 'Finalized'] } });
-
-        // Get total allocated funds
-        const allocations = await db.collection('fundAllocation')
-          .find({ status: 'Approved' }).toArray();
-        const budgetAllocated = allocations.reduce((sum, a) => sum + (a.amount || 0), 0);
-
-        // Get total expenses
-        const expenses = await db.collection('expenseManagement')
-          .find({}).toArray();
-        const budgetUsed = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
-
-        // Get pending approvals count
-        const pendingApprovals = await db.collection('fundAllocation')
-          .countDocuments({ status: 'Pending' });
+        
+        const [budgetPlan, budgetAllocatedResult, budgetUsedResult, pendingApprovals] = await Promise.all([
+          // Get current year budget
+          db.collection('budgetPlanning')
+            .findOne({ year: currentYear, status: { $in: ['Approved', 'Finalized'] } }),
+          
+          // Get total allocated funds using aggregation (much faster than loading all documents)
+          db.collection('fundAllocation')
+            .aggregate([
+              { $match: { status: 'Approved' } },
+              { $group: { _id: null, total: { $sum: { $ifNull: ['$amount', 0] } } } }
+            ]).toArray(),
+          
+          // Get total expenses using aggregation (much faster than loading all documents)
+          db.collection('expenseManagement')
+            .aggregate([
+              { $group: { _id: null, total: { $sum: { $ifNull: ['$amount', 0] } } } }
+            ]).toArray(),
+          
+          // Get pending approvals count
+          db.collection('fundAllocation')
+            .countDocuments({ status: 'Pending' })
+        ]);
 
         const totalBudget = budgetPlan ? budgetPlan.totalBudget : 0;
+        const budgetAllocated = budgetAllocatedResult[0]?.total || 0;
+        const budgetUsed = budgetUsedResult[0]?.total || 0;
         const budgetRemaining = totalBudget - budgetUsed;
 
         return {
@@ -113,39 +122,60 @@ module.exports = function(withDb, requireAuth, requireAdmin) {
   router.get('/api/financial/charts', requireAdmin, async (req, res) => {
     try {
       const data = await withDb(async (db) => {
-        // Budget distribution by category
-        const allocations = await db.collection('fundAllocation')
-          .find({ status: 'Approved' }).toArray();
+        // Run both aggregations in parallel for better performance
+        const [distributionResult, monthlyExpensesResult] = await Promise.all([
+          // Budget distribution by category using aggregation (much faster)
+          db.collection('fundAllocation')
+            .aggregate([
+              { $match: { status: 'Approved' } },
+              { $group: { 
+                  _id: '$category', 
+                  amount: { $sum: { $ifNull: ['$amount', 0] } } 
+                } 
+              },
+              { $sort: { amount: -1 } }
+            ]).toArray(),
+          
+          // Monthly expenses (last 6 months) using aggregation
+          db.collection('expenseManagement')
+            .aggregate([
+              { $match: { date: { $exists: true } } },
+              { $sort: { date: -1 } },
+              { $limit: 100 },
+              { $group: {
+                  _id: {
+                    year: { $year: '$date' },
+                    month: { $month: '$date' }
+                  },
+                  amount: { $sum: { $ifNull: ['$amount', 0] } },
+                  date: { $first: '$date' }
+                }
+              },
+              { $sort: { date: -1 } },
+              { $limit: 6 }
+            ]).toArray()
+        ]);
 
-        const categoryMap = {};
-        allocations.forEach(a => {
-          if (!categoryMap[a.category]) categoryMap[a.category] = 0;
-          categoryMap[a.category] += a.amount || 0;
-        });
-
-        const total = Object.values(categoryMap).reduce((sum, v) => sum + v, 0);
-        const distribution = Object.entries(categoryMap).map(([category, amount]) => ({
-          category,
-          amount,
-          percentage: total > 0 ? ((amount / total) * 100).toFixed(1) : 0
+        // Calculate total for percentage calculation
+        const total = distributionResult.reduce((sum, item) => sum + (item.amount || 0), 0);
+        
+        // Format distribution with percentages
+        const distribution = distributionResult.map(item => ({
+          category: item._id || 'Uncategorized',
+          amount: item.amount || 0,
+          percentage: total > 0 ? ((item.amount / total) * 100).toFixed(1) : 0
         }));
 
-        // Monthly expenses (last 6 months)
-        const expenses = await db.collection('expenseManagement')
-          .find({}).sort({ date: -1 }).limit(100).toArray();
-
-        const monthlyMap = {};
-        expenses.forEach(e => {
-          const date = new Date(e.date);
-          const monthKey = date.toLocaleString('en-US', { month: 'short', year: 'numeric' });
-          if (!monthlyMap[monthKey]) monthlyMap[monthKey] = 0;
-          monthlyMap[monthKey] += e.amount || 0;
-        });
-
-        const monthlyExpenses = Object.entries(monthlyMap)
-          .map(([month, amount]) => ({ month, amount }))
-          .slice(0, 6)
-          .reverse();
+        // Format monthly expenses
+        const monthlyExpenses = monthlyExpensesResult
+          .map(item => {
+            const date = new Date(item.date);
+            return {
+              month: date.toLocaleString('en-US', { month: 'short', year: 'numeric' }),
+              amount: item.amount || 0
+            };
+          })
+          .reverse(); // Reverse to show oldest first
 
         return { distribution, monthlyExpenses };
       });

@@ -316,11 +316,8 @@
     const qs = new URLSearchParams(params).toString();
 
     try {
-      // Add small delay for smooth transition (only if data loads too fast)
-      const [response] = await Promise.all([
-        fetch(`${config.apiEndpoint}?${qs}`),
-        new Promise(resolve => setTimeout(resolve, 150)) // Minimum 150ms for smooth transition
-      ]);
+      // Fetch data (removed artificial delay for better performance)
+      const response = await fetch(`${config.apiEndpoint}?${qs}`);
       
       const j = await response.json();
       

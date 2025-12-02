@@ -187,11 +187,8 @@
     showLoading();
 
     try {
-      // Add small delay for smooth transition (only if data loads too fast)
-      const [data] = await Promise.all([
-        fetchJSON("/api/documents"),
-        new Promise(resolve => setTimeout(resolve, 150)) // Minimum 150ms for smooth transition
-      ]);
+      // Fetch data (removed artificial delay for better performance)
+      const data = await fetchJSON("/api/documents");
       
       ALL = data.documents || [];
       VIEW = [...ALL];

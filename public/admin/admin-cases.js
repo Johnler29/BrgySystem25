@@ -172,11 +172,8 @@
     }).toString();
 
     try {
-      // Add small delay for smooth transition (only if data loads too fast)
-      const [j] = await Promise.all([
-        fetchJSON('/api/cases?'+qs),
-        new Promise(resolve => setTimeout(resolve, 150)) // Minimum 150ms for smooth transition
-      ]);
+      // Fetch data (removed artificial delay for better performance)
+      const j = await fetchJSON('/api/cases?'+qs);
 
       // Remove loading class
       const tableWrap = tblBody?.closest('.table-wrap');

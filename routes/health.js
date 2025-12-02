@@ -164,16 +164,54 @@ module.exports = function healthRoutes(withDb, requireAuth, requireAdmin) {
           userFilter['createdBy.username'] = me.username.toLowerCase();
         }
 
-        // Count Total Patients from health_patient_records collection (actual patient records)
-        // This is the master patient list - each record represents one patient
+        // Build filters once for reuse
         const patientRecordsCol = db.collection('health_patient_records');
         const patientRecordsMatch = mineOnly && me.username ? { 'createdBy.username': me.username.toLowerCase() } : {};
-        const patientRecordsCount = await patientRecordsCol.countDocuments(patientRecordsMatch);
+        
+        const patientDataCol = db.collection('health_patient_data');
+        let patientDataMatch = {};
+        if (mineOnly && me.username) {
+          const usernameLower = me.username.toLowerCase();
+          const userName = (me.name || '').toLowerCase();
+          patientDataMatch = {
+            $or: [
+              { 'createdBy.username': usernameLower },
+              { residentUsername: usernameLower },
+              { patientUsername: usernameLower },
+              ...(userName ? [{ coordinator: { $regex: userName, $options: 'i' } }] : [])
+            ]
+          };
+        }
+
+        const schedulesCol = db.collection('health_schedules');
+        const scheduleMatch = mineOnly && me.username ? { residentUsername: me.username.toLowerCase() } : {};
+
+        // Run all initial queries in parallel for better performance
+        const [patientRecordsCount, patientStatusCounts, totalSchedules, scheduleStatusCounts] = await Promise.all([
+          // Count Total Patients from health_patient_records collection
+          patientRecordsCol.countDocuments(patientRecordsMatch),
+          
+          // Count by status from patient_data
+          patientDataCol.aggregate([
+            { $match: patientDataMatch },
+            { $group: { _id: '$status', n: { $sum: 1 } } }
+          ]).toArray(),
+          
+          // Count total schedules
+          schedulesCol.countDocuments(scheduleMatch),
+          
+          // Count schedules by status
+          schedulesCol.aggregate([
+            { $match: scheduleMatch },
+            { $group: { _id: '$status', n: { $sum: 1 } } }
+          ]).toArray()
+        ]);
+
         out.Total = patientRecordsCount;
+        out.Total += totalSchedules; // Add schedules to total count
         
         // Debug logging to help troubleshoot
         if (patientRecordsCount === 0) {
-          // Check if collection exists and has any records at all (for debugging)
           const totalInCollection = await patientRecordsCol.countDocuments({});
           console.log('[health] summary - Total Patients debug:', {
             isAdmin,
@@ -185,30 +223,8 @@ module.exports = function healthRoutes(withDb, requireAuth, requireAdmin) {
             message: totalInCollection > 0 ? 'Records exist but filtered out' : 'No records in collection'
           });
         }
-        
-        // Also get patient_data collection for status counts
-        const patientDataCol = db.collection('health_patient_data');
-        let patientDataMatch = {};
-        if (mineOnly && me.username) {
-          const usernameLower = me.username.toLowerCase();
-          const userName = (me.name || '').toLowerCase();
-          // Match by creator OR by resident username OR by patient name matching user's name
-          patientDataMatch = {
-            $or: [
-              { 'createdBy.username': usernameLower },
-              { residentUsername: usernameLower },
-              { patientUsername: usernameLower },
-              ...(userName ? [{ coordinator: { $regex: userName, $options: 'i' } }] : [])
-            ]
-          };
-        }
 
-        // Count by status from patient_data
-        const patientStatusCounts = await patientDataCol.aggregate([
-          { $match: patientDataMatch },
-          { $group: { _id: '$status', n: { $sum: 1 } } }
-        ]).toArray();
-
+        // Process patient status counts
         patientStatusCounts.forEach(r => {
           const k = r._id || 'Pending';
           if (k === 'Active' && Object.prototype.hasOwnProperty.call(out, 'Active')) {
@@ -228,20 +244,7 @@ module.exports = function healthRoutes(withDb, requireAuth, requireAdmin) {
           }
         });
 
-        // Also count from schedules for scheduled/completed/pending
-        const schedulesCol = db.collection('health_schedules');
-        const scheduleMatch = mineOnly && me.username ? { residentUsername: me.username.toLowerCase() } : {};
-        
-        // Count total schedules
-        const totalSchedules = await schedulesCol.countDocuments(scheduleMatch);
-        out.Total += totalSchedules; // Add schedules to total count
-        
-        // Count by status
-        const scheduleStatusCounts = await schedulesCol.aggregate([
-          { $match: scheduleMatch },
-          { $group: { _id: '$status', n: { $sum: 1 } } }
-        ]).toArray();
-
+        // Process schedule status counts
         scheduleStatusCounts.forEach(r => {
           const k = r._id || 'Pending';
           if (k === 'Scheduled' && Object.prototype.hasOwnProperty.call(out, 'Scheduled')) {
