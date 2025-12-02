@@ -35,6 +35,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <link rel="stylesheet" href="/base.css">
 <style>
   /* Status Badges - Pill Design (matching cases page) */
@@ -573,36 +574,97 @@
     gap: 6px;
     align-items: center;
   }
+  /* Table Action Buttons - Standardized across all admin pages */
   .table-action-btn {
-    padding: 6px 12px;
-    border-radius: 6px;
-    border: 1px solid var(--border);
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1.5px solid #d1d5db;
     background: #fff;
-    color: var(--text);
-    font-size: 0.8rem;
+    color: #374151;
+    font-size: 0.8125rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
     white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
   }
   .table-action-btn:hover {
     transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0,0,0,.1);
   }
-  .table-action-btn.view:hover,
+  .table-action-btn.view {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1.5px solid #d1d5db;
+    background: #fff;
+    color: #374151;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+  }
+  .table-action-btn.view:hover {
+    background: #3498db;
+    color: #fff;
+    border-color: #3498db;
+    box-shadow: 0 2px 4px rgba(52,152,219,.2);
+  }
+  .table-action-btn.view i {
+    font-size: 0.75rem;
+  }
+  .table-action-btn.edit {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1.5px solid #d1d5db;
+    background: #fff;
+    color: #374151;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+  }
   .table-action-btn.edit:hover {
     background: #f0f7ff;
-    border-color: var(--brand);
-    color: var(--brand);
+    border-color: #3498db;
+    color: #3498db;
+    box-shadow: 0 2px 4px rgba(52,152,219,.1);
+  }
+  .table-action-btn.edit i {
+    font-size: 0.75rem;
   }
   .table-action-btn.delete {
-    background: var(--danger);
+    background: #e74c3c;
     color: #fff;
-    border-color: var(--danger);
+    border-color: #e74c3c;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
   }
   .table-action-btn.delete:hover {
     background: #c0392b;
     border-color: #c0392b;
+    box-shadow: 0 2px 4px rgba(231,76,60,.2);
+  }
+  .table-action-btn.delete i {
+    font-size: 0.75rem;
   }
   
   /* Status Badge Base Styles - Pill Design */
@@ -858,18 +920,18 @@
     </div>
 
     <ul class="sidebar-menu" id="navList">
-      <li><a href="/admin/dashboard" data-tooltip="Admin Dashboard"><span class="icon">🏠︎</span><span class="label">Dashboard</span></a></li>
-      <li><a href="/admin/residents" data-tooltip="Resident Management"><span class="icon">👪</span><span class="label">Resident Management</span></a></li>
-      <li><a href="/admin/document-permits" data-tooltip="Document & Permit Management"><span class="icon">📄</span><span class="label">Document & Permit Management</span></a></li>
-      <li><a href="/admin/community" data-tooltip="Community Development"><span class="icon">🤝</span><span class="label">Community Development</span></a></li>
-      <li><a href="/admin/cases" data-tooltip="Cases & Incidents"><span class="icon">⚖️</span><span class="label">Case & Incident Management</span></a></li>
-      <li><a href="/admin/health" data-tooltip="Health & Social"><span class="icon">🏥</span><span class="label">Health & Social Services</span></a></li>
-      <li><a href="/admin/disaster" class="active" data-tooltip="Disaster Response"><span class="icon">🚨</span><span class="label">Disaster & Emergency Response</span></a></li>
-      <li><a href="/admin/financial" data-tooltip="Finance & Budget"><span class="icon">💰</span><span class="label">Financial & Budget</span></a></li>
-      <li><a href="/admin/logs-reports" data-tooltip="Logs & Reports"><span class="icon">📊</span><span class="label">Logs & Reports</span></a></li>
-      <li><a href="/admin/settings" data-tooltip="System Settings"><span class="icon">⚙️</span><span class="label">System Settings</span></a></li>
+      <li><a href="/admin/dashboard" data-tooltip="Admin Dashboard"><span class="icon"><i class="fas fa-home"></i></span><span class="label">Dashboard</span></a></li>
+      <li><a href="/admin/residents" data-tooltip="Resident Management"><span class="icon"><i class="fas fa-users"></i></span><span class="label">Resident Management</span></a></li>
+      <li><a href="/admin/document-permits" data-tooltip="Document & Permit Management"><span class="icon"><i class="fas fa-file-alt"></i></span><span class="label">Document & Permit Management</span></a></li>
+      <li><a href="/admin/community" data-tooltip="Community Development"><span class="icon"><i class="fas fa-handshake"></i></span><span class="label">Community Development</span></a></li>
+      <li><a href="/admin/cases" data-tooltip="Cases & Incidents"><span class="icon"><i class="fas fa-balance-scale"></i></span><span class="label">Case & Incident Management</span></a></li>
+      <li><a href="/admin/health" data-tooltip="Health & Social"><span class="icon"><i class="fas fa-hospital"></i></span><span class="label">Health & Social Services</span></a></li>
+      <li><a href="/admin/disaster" class="active" data-tooltip="Disaster Response"><span class="icon"><i class="fas fa-exclamation-triangle"></i></span><span class="label">Disaster & Emergency Response</span></a></li>
+      <li><a href="/admin/financial" data-tooltip="Finance & Budget"><span class="icon"><i class="fas fa-dollar-sign"></i></span><span class="label">Financial & Budget</span></a></li>
+      <li><a href="/admin/logs-reports" data-tooltip="Logs & Reports"><span class="icon"><i class="fas fa-chart-bar"></i></span><span class="label">Logs & Reports</span></a></li>
+      <li><a href="/admin/settings" data-tooltip="System Settings"><span class="icon"><i class="fas fa-cog"></i></span><span class="label">System Settings</span></a></li>
 
-      <li style="margin-top:50px;"><a href="#" onclick="logout()" data-tooltip="Log out"><span class="icon">🚪</span><span class="label">Log out</span></a></li>
+      <li style="margin-top:50px;"><a href="#" onclick="logout()" data-tooltip="Log out"><span class="icon"><i class="fas fa-sign-out-alt"></i></span><span class="label">Log out</span></a></li>
     </ul>
   </nav>
 
@@ -881,7 +943,7 @@
         <h1 id="greeting">Disaster & Emergency Response</h1>
       </div>
       <div class="user-info" id="userChip">
-        <button class="btn btn-outline" id="notifBtn" title="Notifications">🔔</button>
+        <button class="btn btn-outline" id="notifBtn" title="Notifications"><i class="fas fa-bell"></i></button>
         <div class="user-avatar" id="avatar">U</div>
         <span id="username" class="user-name">User</span>
 

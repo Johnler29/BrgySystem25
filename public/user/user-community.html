@@ -4,75 +4,445 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Community — Barangay Langkaan II</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        fontFamily: {
-          'inter': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        }
-      }
-    }
-  }
-</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <link rel="stylesheet" href="/base.css">
 <style>
-  .bg-primary-btn { background-color: #3498db; }
-  .bg-ghost-btn { background-color: #ecf0f1; }
-  .text-primary-btn { color: #2c3e50; }
-  .border-input { border-color: #dfe6e9; }
+  body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+  
+  /* Info Banner */
+  .info-banner-community {
+    background: #1a237e;
+    color: #fff;
+    padding: 16px 20px;
+    border-radius: 10px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.1);
+  }
+  .info-banner-content-community {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .info-banner-icon-community {
+    font-size: 1.25rem;
+    margin-top: 2px;
+  }
+  .info-banner-title-community {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 4px;
+  }
+  .info-banner-text-community {
+    font-size: 0.875rem;
+    margin: 0;
+    line-height: 1.5;
+    opacity: 0.95;
+  }
+  
+  /* Search and Filter Bar */
+  .search-filter-bar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+  .search-wrapper-community {
+    position: relative;
+    flex: 1;
+  }
+  .search-icon-community {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    pointer-events: none;
+  }
+  .search-input-community {
+    width: 100%;
+    padding: 12px 16px 12px 44px;
+    background: #fff;
+    border-radius: 12px;
+    border: 1.5px solid #d1d5db;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+  .search-input-community:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52,152,219,.1);
+  }
+  .search-input-community::placeholder {
+    color: #9ca3af;
+  }
+  .filter-select-community {
+    padding: 12px 16px;
+    background: #fff;
+    border-radius: 12px;
+    border: 1.5px solid #d1d5db;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    min-width: 180px;
+  }
+  .filter-select-community:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52,152,219,.1);
+  }
+  
+  /* Main Grid */
+  .community-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) 420px;
+    gap: 24px;
+    align-items: start;
+    max-width: 1300px;
+    margin: 0 auto;
+  }
+  @media (max-width: 1100px) {
+    .community-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  /* Feed Column */
+  .feed-column {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .feed {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .post {
+    padding: 20px;
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 2px 4px rgba(0,0,0,.04);
+    transition: all 0.2s ease;
+  }
+  .post:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,.08);
+    transform: translateY(-2px);
+  }
+  .post-header {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .post-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+  }
+  .post-body {
+    color: #374151;
+    margin: 8px 0 12px;
+    line-height: 1.6;
+    font-size: 0.9375rem;
+  }
+  .post-image {
+    width: 100%;
+    max-height: 450px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin: 12px 0;
+  }
+  .post-meta {
+    font-size: 0.8125rem;
+    color: #6b7280;
+    margin-top: 8px;
+  }
+  .pill {
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    display: inline-block;
+    font-weight: 500;
+  }
+  .category {
+    color: #3498db;
+    border-color: #dbeafe;
+    background: #e3f2fd;
+  }
+  .event {
+    color: #239b56;
+    border-color: #c3e6cb;
+    background: #e9f9ef;
+  }
+  .actions {
+    display: flex;
+    gap: 8px;
+    border-top: 1px solid #e5e7eb;
+    margin-top: 12px;
+    padding-top: 12px;
+  }
+  .actions .btn {
+    flex: 1;
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+  }
+  .actions .btn:hover {
+    background: #e5e7eb;
+  }
+  .comments {
+    border-top: 1px solid #e5e7eb;
+    margin-top: 12px;
+    padding-top: 12px;
+  }
+  .comment {
+    display: flex;
+    gap: 8px;
+    margin: 8px 0;
+  }
+  .comment .bubble {
+    background: #f0f2f5;
+    border-radius: 14px;
+    padding: 8px 12px;
+    font-size: 0.875rem;
+  }
+  .add-comment {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .add-comment input {
+    flex: 1;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 8px 12px;
+    font-size: 0.875rem;
+    font-family: inherit;
+  }
+  .add-comment input:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52,152,219,.1);
+  }
+  .load-more-wrapper {
+    text-align: center;
+    margin: 24px 0;
+  }
+  .btn-load-more {
+    background: #fff;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: 1.5px solid #e5e7eb;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #374151;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,.04);
+  }
+  .btn-load-more:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,.08);
+  }
+  
+  /* Sidebar Column */
+  .sidebar-column {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .widget-community {
+    padding: 20px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    border: 1px solid #e5e7eb;
+  }
+  .widget-header-community {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .widget-title-community {
+    font-size: 1rem;
+    margin: 0;
+    color: #111827;
+    font-weight: 700;
+  }
+  .calendar-controls {
+    display: flex;
+    gap: 6px;
+  }
+  .calendar-btn {
+    background: #fff;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1.5px solid #e5e7eb;
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,.04);
+  }
+  .calendar-btn:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+  }
+  .mini-calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    font-size: 0.75rem;
+  }
+  .mini-calendar .day {
+    padding: 8px 0;
+    text-align: center;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .mini-calendar .day:hover {
+    background: #f0f7ff;
+  }
+  .mini-calendar .muted {
+    color: #9ca3af;
+  }
+  .mini-calendar .today {
+    background: #3498db;
+    color: #fff;
+    font-weight: 700;
+  }
+  .mini-calendar .has {
+    position: relative;
+  }
+  .mini-calendar .has::after {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #239b56;
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .calendar-footer {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .btn-clear-date {
+    flex: 1;
+    background: #fff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1.5px solid #e5e7eb;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.8125rem;
+    color: #374151;
+    transition: all 0.2s ease;
+  }
+  .btn-clear-date:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+  }
+  .event-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .event-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .datepill {
+    min-width: 46px;
+    text-align: center;
+    background: #e3f2fd;
+    border: 1px solid #dbeafe;
+    border-radius: 8px;
+    padding: 6px;
+  }
+  .datepill .d {
+    font-weight: 700;
+    font-size: 0.875rem;
+    color: #1565c0;
+  }
+  .datepill .m {
+    font-size: 0.6875rem;
+    color: #3498db;
+  }
+  .catchips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .chip {
+    font-size: 0.75rem;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    border-radius: 999px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+  }
+  .chip:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+  }
+  .chip.active {
+    background: #3498db;
+    color: #fff;
+    border-color: #3498db;
+  }
 
-  .shell{flex:1;padding:26px}
-  .grid{display:grid;grid-template-columns: minmax(0,1.4fr) 420px; gap:18px; align-items:start; max-width:1300px; margin:0 auto}
-  @media (max-width:1100px){.grid{grid-template-columns:1fr}}
-  .card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
-  .content{display:flex;flex-direction:column;gap:16px}
-  .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:14px}
-  .search{flex:1;background:#fff;border-radius:50px;padding:10px 16px;display:flex;gap:8px;align-items:center;box-shadow:0 2px 6px rgba(0,0,0,.06)}
-  .search input{border:none;outline:none;flex:1}
-  .btn{border:none;border-radius:8px;padding:10px 14px;cursor:pointer}
-  .btn-primary{background:#1877f2;color:#fff}
-  .btn-light{background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.06)}
-  .feed{display:flex;flex-direction:column;gap:16px}
-  .post{padding:14px}
-  .post-header{display:flex;gap:10px;align-items:center;margin-bottom:8px}
-  .post-title{font-size:1.05rem;font-weight:700;color:#222}
-  .post-body{color:#444;margin:6px 0 10px}
-  .post-image{width:100%;max-height:450px;object-fit:cover;border-radius:10px}
-  .post-meta{font-size:.85rem;color:#888;margin-top:6px}
-  .pill{padding:6px 10px;border-radius:999px;font-size:.85rem;border:1px solid #eee;background:#fff}
-  .category{color:#1877f2;border-color:#dfe8ff;background:#f6f9ff}
-  .event{color:#1d9c72;border-color:#d4f1e6;background:#eefaf6}
-  .actions{display:flex;gap:6px;border-top:1px solid #eee;margin-top:10px;padding-top:8px}
-  .actions .btn{flex:1;background:#f7f8fa;border:1px solid #eee}
-  .comments{border-top:1px solid #eee;margin-top:8px;padding-top:8px}
-  .comment{display:flex;gap:8px;margin:8px 0}
-  .comment .bubble{background:#f0f2f5;border-radius:14px;padding:8px 12px}
-  .add-comment{display:flex;gap:8px;margin-top:8px}
-  .add-comment input{flex:1;border:1px solid #e5e5e5;border-radius:16px;padding:8px 12px}
-
-  .widget{padding:14px}
-  .widget h4{font-size:1rem;margin-bottom:10px;color:#2c3e50}
-  .mini-calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;font-size:12px}
-  .mini-calendar .day{padding:8px 0;text-align:center;border-radius:6px;cursor:pointer}
-  .mini-calendar .muted{color:#bbb}
-  .mini-calendar .today{background:#1877f2;color:#fff}
-  .mini-calendar .has{position:relative}
-  .mini-calendar .has::after{content:'';width:6px;height:6px;border-radius:50%;background:#27ae60;position:absolute;bottom:4px;left:50%;transform:translateX(-50%)}
-  .cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-  .list{display:flex;flex-direction:column;gap:10px}
-  .event-row{display:flex;gap:10px}
-  .datepill{min-width:46px;text-align:center;background:#f6f9ff;border:1px solid #dfe8ff;border-radius:8px;padding:6px 6px}
-  .datepill .d{font-weight:700;font-size:14px}
-  .datepill .m{font-size:11px;color:#5b77c2}
-  .catchips{display:flex;flex-wrap:wrap;gap:8px}
-  .chip{font-size:12px;border:1px solid #eee;background:#fff;border-radius:999px;padding:6px 10px;cursor:pointer}
-  .chip.active{background:#1877f2;color:#fff;border-color:#1877f2}
-
-  .toast{position:fixed;right:16px;bottom:16px;background:#333;color:#fff;padding:10px 14px;border-radius:8px;opacity:0;transform:translateY(10px);transition:.2s}
-  .toast.show{opacity:1;transform:translateY(0)}
+  .toast {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    background: #111827;
+    color: #fff;
+    padding: 12px 18px;
+    border-radius: 8px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: 0.2s;
+    box-shadow: 0 4px 12px rgba(0,0,0,.2);
+    z-index: 1000;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .search-filter-bar {
+      flex-direction: column;
+    }
+    .filter-select-community {
+      width: 100%;
+    }
+  }
 </style>
 </head>
 <script defer src="/base-header.js"></script>
@@ -124,26 +494,25 @@
 
     <div class="content-area">
       <!-- Info Banner -->
-      <div class="bg-[#1a237e] text-white px-5 py-4 rounded-lg mb-6 shadow-sm">
-        <div class="flex items-start gap-3">
-          <div class="text-xl mt-0.5">ℹ️</div>
+      <div class="info-banner-community">
+        <div class="info-banner-content-community">
+          <div class="info-banner-icon-community">ℹ️</div>
           <div>
-            <strong class="font-semibold block mb-1">Resident Portal</strong>
-            <p class="text-sm m-0 leading-relaxed opacity-95">View community posts and events. Only administrators can create posts.</p>
+            <strong class="info-banner-title-community">Resident Portal</strong>
+            <p class="info-banner-text-community">View community posts and events. Only administrators can create posts.</p>
           </div>
         </div>
       </div>
 
-      <div class="flex gap-3 items-center mb-6">
-        <div class="relative flex-1">
-          <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-            </svg>
+      <!-- Search and Filter -->
+      <div class="search-filter-bar">
+        <div class="search-wrapper-community">
+          <div class="search-icon-community">
+            <i class="fas fa-search"></i>
           </div>
-          <input id="search" placeholder="Search posts or events" class="w-full pl-12 pr-4 py-3 bg-white rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-sm hover:shadow-md">
+          <input id="search" placeholder="Search posts or events" class="search-input-community">
         </div>
-        <select id="filterCategory" class="px-4 py-3 bg-white rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-sm hover:shadow-md cursor-pointer">
+        <select id="filterCategory" class="filter-select-community">
           <option value="">All Categories</option>
           <option>Announcement</option>
           <option>Health</option>
@@ -153,36 +522,42 @@
         </select>
       </div>
 
-      <div class="grid grid-cols-[minmax(0,1.4fr)_420px] gap-4.5 items-start max-w-[1300px] mx-auto">
-        <div class="flex flex-col gap-4">
-          <div id="feed" class="flex flex-col gap-4"></div>
-          <div class="text-center my-3">
-            <button id="loadMore" class="bg-white px-3.5 py-2.5 rounded-lg border border-[#eee] shadow-[0_2px_6px_rgba(0,0,0,0.06)] cursor-pointer">Load more</button>
+      <!-- Main Grid -->
+      <div class="community-grid">
+        <!-- Feed Column -->
+        <div class="feed-column">
+          <div id="feed" class="feed"></div>
+          <div class="load-more-wrapper">
+            <button id="loadMore" class="btn-load-more">Load more</button>
           </div>
         </div>
 
-        <div class="space-y-4">
-          <div class="bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] p-3.5">
-            <div class="flex justify-between items-center mb-2.5">
-              <h4 id="calLabel" class="text-base mb-2.5 text-[#2c3e50] m-0">April 2025</h4>
-              <div class="flex gap-1.5">
-                <button id="prevMonth" class="bg-white px-2 py-1 rounded-lg border border-[#eee] shadow-[0_2px_6px_rgba(0,0,0,0.06)] cursor-pointer">←</button>
-                <button id="nextMonth" class="bg-white px-2 py-1 rounded-lg border border-[#eee] shadow-[0_2px_6px_rgba(0,0,0,0.06)] cursor-pointer">→</button>
+        <!-- Sidebar Column -->
+        <div class="sidebar-column">
+          <!-- Calendar Widget -->
+          <div class="widget-community">
+            <div class="widget-header-community">
+              <h4 id="calLabel" class="widget-title-community">April 2025</h4>
+              <div class="calendar-controls">
+                <button id="prevMonth" class="calendar-btn">←</button>
+                <button id="nextMonth" class="calendar-btn">→</button>
               </div>
             </div>
-            <div id="calendar" class="grid grid-cols-7 gap-1 text-xs"></div>
-            <div class="flex gap-2 mt-2.5">
-              <button id="clearDate" class="flex-1 bg-white px-2 py-1 rounded-lg border border-[#eee] shadow-[0_2px_6px_rgba(0,0,0,0.06)] cursor-pointer">Clear date</button>
+            <div id="calendar" class="mini-calendar"></div>
+            <div class="calendar-footer">
+              <button id="clearDate" class="btn-clear-date">Clear date</button>
             </div>
           </div>
 
-          <div class="bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] p-3.5">
-            <h4 class="text-base mb-2.5 text-[#2c3e50] m-0">Upcoming Events</h4>
-            <div id="eventList" class="flex flex-col gap-2.5"></div>
+          <!-- Upcoming Events Widget -->
+          <div class="widget-community">
+            <h4 class="widget-title-community">Upcoming Events</h4>
+            <div id="eventList" class="event-list"></div>
           </div>
 
-          <div class="card widget">
-            <h4>Categories</h4>
+          <!-- Categories Widget -->
+          <div class="widget-community">
+            <h4 class="widget-title-community">Categories</h4>
             <div class="catchips">
               <span class="chip" data-cat="">All</span>
               <span class="chip" data-cat="Announcement">Announcement</span>

@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>User Management — Barangay Langkaan II</title>
+
+<script>
+/* set theme/font early from localStorage to avoid flash */
+(function () {
+  try {
+    var s = JSON.parse(localStorage.getItem('userSettings') || '{}');
+    var html = document.documentElement;
+
+    // theme
+    var t = s.theme || 'light';
+    if (t === 'dark') {
+      html.setAttribute('data-theme', 'dark');
+    } else if (t === 'auto') {
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (prefersDark) html.setAttribute('data-theme', 'dark'); else html.removeAttribute('data-theme');
+    } else {
+      html.removeAttribute('data-theme');
+    }
+
+    // font size
+    var fs = (s.fontSize || 'medium').toLowerCase();
+    var map = { small:'14px', medium:'16px', large:'18px', xlarge:'20px' };
+    html.setAttribute('data-font-size', fs);
+    html.style.setProperty('--fs-base', map[fs] || '16px');
+
+    // body-level toggles (not critical pre-paint, but fine)
+    document.addEventListener('DOMContentLoaded', function(){
+      document.body.classList.toggle('compact-mode', !!s.compactMode);
+      document.body.classList.toggle('high-contrast', !!s.highContrast);
+      document.body.classList.toggle('sidebar-collapsed', s.showSidebar === false);
+    });
+  } catch (e) {}
+})();
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="/base.css">
+<style>
+  /* Modern Form Styling */
+  .user-form-section {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .user-form-header {
+    padding: 18px 24px;
+    background: #f8fafb;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .user-form-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #111827;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .user-form-header i {
+    color: #3498db;
+    font-size: 1.1rem;
+  }
+  .user-form-content {
+    padding: 24px;
+  }
+  .form-grid-modern {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+  .form-grid-modern .full {
+    grid-column: 1 / -1;
+  }
+  .form-field-modern {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .form-field-modern label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .form-field-modern label .required {
+    color: #dc2626;
+  }
+  .form-field-modern label .optional {
+    color: #9ca3af;
+    font-weight: 400;
+  }
+  .form-field-modern input,
+  .form-field-modern select {
+    padding: 12px 16px;
+    border: 1.5px solid #d1d5db;
+    border-radius: 10px;
+    background: #fff;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    color: #111827;
+    font-family: inherit;
+    width: 100%;
+  }
+  .form-field-modern input:focus,
+  .form-field-modern select:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52,152,219,.1);
+  }
+  .form-field-modern input:hover,
+  .form-field-modern select:hover {
+    border-color: #9ca3af;
+  }
+  .form-field-modern input::placeholder {
+    color: #9ca3af;
+  }
+  .form-field-modern select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M4 6l4 4 4-4' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 40px;
+  }
+  .form-field-modern small {
+    color: #6b7280;
+    font-size: 0.75rem;
+    margin-top: -4px;
+  }
+  .form-field-modern label.checkbox-label {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-weight: 500;
+  }
+  .form-field-modern input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: #3498db;
+    margin: 0;
+  }
+  .form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+    padding-top: 20px;
+    border-top: 1px solid #e5e7eb;
+  }
+  .btn-modern {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1.5px solid transparent;
+    white-space: nowrap;
+  }
+  .btn-modern-primary {
+    background: #3498db;
+    color: #fff;
+    border-color: #3498db;
+    box-shadow: 0 2px 4px rgba(52,152,219,.2);
+  }
+  .btn-modern-primary:hover {
+    background: #2980b9;
+    border-color: #2980b9;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(52,152,219,.3);
+  }
+  .btn-modern-primary:active {
+    transform: translateY(0);
+  }
+  .btn-modern-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+  .btn-modern-outline {
+    background: #fff;
+    color: #374151;
+    border-color: #d1d5db;
+  }
+  .btn-modern-outline:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+    transform: translateY(-1px);
+  }
+  .btn-modern-outline:active {
+    transform: translateY(0);
+  }
+
+  /* Message Alert */
+  #message {
+    padding: 14px 18px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-top: 20px;
+    display: none;
+    animation: slideDown 0.3s ease;
+  }
+  #message.success {
+    background: #e9f9ef;
+    color: #239b56;
+    border: 1px solid #c3e6cb;
+  }
+  #message.error {
+    background: #fdecea;
+    color: #c0392b;
+    border: 1px solid #f5c6cb;
+  }
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Users Table Section */
+  .users-table-section {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+  }
+  .users-table-header {
+    padding: 18px 24px;
+    background: #f8fafb;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .users-table-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #111827;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .users-table-header i {
+    color: #3498db;
+    font-size: 1.1rem;
+  }
+  .users-table-content {
+    padding: 0;
+  }
+  .table-wrap-modern {
+    overflow-x: auto;
+  }
+  .table-modern {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: #fff;
+  }
+  .table-modern thead {
+    background: #f8f9fa;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .table-modern thead th {
+    background: #f8f9fa;
+    padding: 14px 20px;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #374151;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #e5e7eb;
+    white-space: nowrap;
+  }
+  .table-modern thead th:first-child {
+    padding-left: 24px;
+  }
+  .table-modern thead th:last-child {
+    padding-right: 24px;
+  }
+  .table-modern tbody tr {
+    transition: all 0.2s ease;
+    background: #fff;
+    border-bottom: 1px solid #f1f3f5;
+  }
+  .table-modern tbody tr:nth-child(even) {
+    background: #fafbfc;
+  }
+  .table-modern tbody tr:hover {
+    background: #f0f7ff;
+    box-shadow: 0 1px 3px rgba(52,152,219,.08);
+  }
+  .table-modern tbody tr:last-child {
+    border-bottom: none;
+  }
+  .table-modern tbody td {
+    padding: 16px 20px;
+    font-size: 0.875rem;
+    color: #374151;
+    vertical-align: middle;
+  }
+  .table-modern tbody td:first-child {
+    padding-left: 24px;
+  }
+  .table-modern tbody td:last-child {
+    padding-right: 24px;
+  }
+  .table-modern tbody tr:last-child td {
+    border-bottom: none;
+  }
+  .table-modern tbody tr:only-child td[colspan] {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6b7280;
+    font-size: 0.9rem;
+    background: #fafbfc;
+    border: none;
+  }
+  .table-modern tbody tr:only-child td[colspan]:before {
+    content: '👥';
+    display: block;
+    font-size: 3rem;
+    margin-bottom: 12px;
+    opacity: 0.4;
+  }
+
+  /* Badge Styles */
+  .badge-modern {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .badge-verified {
+    background: #e9f9ef;
+    color: #239b56;
+  }
+  .badge-unverified {
+    background: #fff4e5;
+    color: #b9770e;
+  }
+  .badge-role {
+    background: #eaf4ff;
+    color: #1b73c7;
+    text-transform: capitalize;
+  }
+
+  /* Action Buttons */
+  .table-actions-modern {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .btn-action {
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    background: #fff;
+    color: #374151;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,.1);
+  }
+  .btn-action.edit:hover {
+    background: #f0f7ff;
+    border-color: #3498db;
+    color: #3498db;
+  }
+  .btn-action.delete {
+    background: #e74c3c;
+    color: #fff;
+    border-color: #e74c3c;
+  }
+  .btn-action.delete:hover {
+    background: #c0392b;
+    border-color: #c0392b;
+  }
+  .btn-action.verify {
+    background: #10b981;
+    color: #fff;
+    border-color: #10b981;
+  }
+  .btn-action.verify:hover {
+    background: #059669;
+    border-color: #059669;
+  }
+
+  /* Refresh Button */
+  .btn-refresh {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 10px;
+    border: 1.5px solid #d1d5db;
+    background: #fff;
+    color: #374151;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .btn-refresh:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+    transform: translateY(-1px);
+  }
+  .btn-refresh:active {
+    transform: translateY(0);
+  }
+
+  /* Modal Styles */
+  .modal-modern {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 1000;
+    overflow-y: auto;
+  }
+  .modal-modern.active {
+    display: flex;
+  }
+  .modal-content-modern {
+    width: 100%;
+    max-width: 600px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,.2);
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+  }
+  .modal-header-modern {
+    padding: 18px 24px;
+    background: #f8fafb;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .modal-header-modern h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #111827;
+  }
+  .modal-close-btn {
+    padding: 8px;
+    border: none;
+    background: transparent;
+    color: #6b7280;
+    font-size: 1.2rem;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    line-height: 1;
+  }
+  .modal-close-btn:hover {
+    background: #e5e7eb;
+    color: #111827;
+  }
+  .modal-body-modern {
+    padding: 24px;
+  }
+  .modal-footer-modern {
+    padding: 18px 24px;
+    background: #f8f9fa;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .form-grid-modern {
+      grid-template-columns: 1fr;
+    }
+    .form-actions {
+      flex-direction: column;
+    }
+    .form-actions .btn-modern {
+      width: 100%;
+      justify-content: center;
+    }
+    .users-table-header {
+      flex-direction: column;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .table-actions-modern {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .table-modern {
+      font-size: 0.8rem;
+    }
+    .table-modern thead th,
+    .table-modern tbody td {
+      padding: 12px 16px;
+    }
+  }
+</style>
+</head>
+<script defer src="/base-header.js"></script>
+<script defer src="/base.js"></script>
+<body>
+<div class="dashboard-container">
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <img src="https://scontent.fmnl31-1.fna.fbcdn.net/v/t1.15752-9/566459805_2304695176635817_7965723576219961744_n.png?_nc_cat=100&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeFvsvFPtYKGEdwHZwyXJu6hLWJQAEjhjVotYlAASOGNWmCLSn6KIuOYN8ElKlNNHQrO159FSCuwFcll7OgdlzCP&_nc_ohc=yiA3bhEGnNAQ7kNvwGUy1mZ&_nc_oc=AdkuAJIw6rTtWuKWDNP7QJAFplSOwMhvUK5rJ7b_uZdCToSR1sT73c7CFJ5zrYhIU-I&_nc_zt=23&_nc_ht=scontent.fmnl31-1.fna&oh=03_Q7cD3gGocOn0qEMEx3iINh9aOx48m0LIlXIab9IT08mckx_JZw&oe=692126F5" alt="Logo">
+      <h3 class="sidebar-title">Barangay Langkaan II<br><small style="font-size:0.85em;opacity:0.8;">Admin Portal</small></h3>
+    </div>
+    <ul class="sidebar-menu" id="navList">
+      <li><a href="/admin/dashboard" data-tooltip="Admin Dashboard"><span class="icon"><i class="fas fa-home"></i></span><span class="label">Dashboard</span></a></li>
+      <li><a href="/admin/residents" data-tooltip="Resident Management"><span class="icon"><i class="fas fa-users"></i></span><span class="label">Resident Management</span></a></li>
+      <li><a href="/admin/document-permits" data-tooltip="Document & Permit Management"><span class="icon"><i class="fas fa-file-alt"></i></span><span class="label">Document & Permit Management</span></a></li>
+      <li><a href="/admin/community" data-tooltip="Community Development"><span class="icon"><i class="fas fa-handshake"></i></span><span class="label">Community Development</span></a></li>
+      <li><a href="/admin/cases" data-tooltip="Cases & Incidents"><span class="icon"><i class="fas fa-balance-scale"></i></span><span class="label">Case & Incident Management</span></a></li>
+      <li><a href="/admin/health" data-tooltip="Health & Social"><span class="icon"><i class="fas fa-hospital"></i></span><span class="label">Health & Social Services</span></a></li>
+      <li><a href="/admin/disaster" data-tooltip="Disaster Response"><span class="icon"><i class="fas fa-exclamation-triangle"></i></span><span class="label">Disaster & Emergency Response</span></a></li>
+      <li><a href="/admin/financial" data-tooltip="Finance & Budget"><span class="icon"><i class="fas fa-dollar-sign"></i></span><span class="label">Financial & Budget</span></a></li>
+      <li><a href="/admin/logs-reports" data-tooltip="Logs & Reports"><span class="icon"><i class="fas fa-chart-bar"></i></span><span class="label">Logs & Reports</span></a></li>
+      <li><a href="/admin/users" class="active" data-tooltip="User Management"><span class="icon"><i class="fas fa-user-shield"></i></span><span class="label">User Management</span></a></li>
+      <li><a href="/admin/settings" data-tooltip="System Settings"><span class="icon"><i class="fas fa-cog"></i></span><span class="label">System Settings</span></a></li>
+      <li style="margin-top:50px;"><a href="#" onclick="logout()" data-tooltip="Log out"><span class="icon"><i class="fas fa-sign-out-alt"></i></span><span class="label">Log out</span></a></li>
+    </ul>
+  </nav>
+
+  <!-- Main -->
+  <main class="main-content">
+    <header class="header">
+      <div class="header-left">
+        <button class="hamburger" id="hamburgerBtn" aria-label="Toggle sidebar"><span></span></button>
+        <h1 id="greeting">User Management</h1>
+      </div>
+      <div class="user-info" id="userChip">
+        <button class="btn btn-outline" id="notifBtn" title="Notifications"><i class="fas fa-bell"></i></button>
+        <div class="user-avatar" id="avatar">U</div>
+        <span id="username" class="user-name">Admin</span>
+
+        <div class="notif-panel" id="notifPanel">
+          <div class="notif-head">Notifications</div>
+          <div class="notif-item">No new notifications.</div>
+        </div>
+
+        <div class="dropdown" id="userMenu">
+          <div class="item" id="goProfile"><i class="fas fa-user"></i> Profile</div>
+          <div class="item" id="goSettings"><i class="fas fa-cog"></i> Settings</div>
+          <div class="item" id="doLogout"><i class="fas fa-sign-out-alt"></i> Log out</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="content-area">
+      <!-- Create User Form -->
+      <div class="user-form-section">
+        <div class="user-form-header">
+          <h3><i class="fas fa-user-plus"></i> Create New User Account</h3>
+        </div>
+        <div class="user-form-content">
+          <form id="createUserForm" class="form-grid-modern">
+            <div class="form-field-modern">
+              <label>First Name <span class="required">*</span></label>
+              <input type="text" id="firstName" required placeholder="John">
+            </div>
+            <div class="form-field-modern">
+              <label>Middle Name <span class="optional">(optional)</span></label>
+              <input type="text" id="middleName" placeholder="Marie">
+            </div>
+            <div class="form-field-modern">
+              <label>Last Name <span class="required">*</span></label>
+              <input type="text" id="lastName" required placeholder="Doe">
+            </div>
+            <div class="form-field-modern">
+              <label>Username <span class="required">*</span></label>
+              <input type="text" id="username" required placeholder="john.doe" pattern="^[a-zA-Z0-9._-]{3,20}$">
+              <small>3-20 characters: letters, numbers, . _ - only</small>
+            </div>
+            <div class="form-field-modern">
+              <label>Email <span class="required">*</span></label>
+              <input type="email" id="email" required placeholder="john@example.com">
+            </div>
+            <div class="form-field-modern">
+              <label>Address <span class="required">*</span></label>
+              <input type="text" id="address" required placeholder="Langkaan II">
+            </div>
+            <div class="form-field-modern">
+              <label>Password <span class="required">*</span></label>
+              <input type="password" id="password" required placeholder="SecurePass123!" minlength="8">
+              <small>Min 8 chars: uppercase, number, and symbol required</small>
+            </div>
+            <div class="form-field-modern">
+              <label>Role <span class="required">*</span></label>
+              <select id="role" required>
+                <option value="user">User (Regular)</option>
+                <option value="admin">Admin</option>
+                <option value="super_admin">Super Admin</option>
+                <option value="moderator">Moderator</option>
+                <option value="clerk">Clerk</option>
+                <option value="health_officer">Health Officer</option>
+                <option value="emergency_officer">Emergency Officer</option>
+              </select>
+              <small>Select the user's access level</small>
+            </div>
+            <div class="form-field-modern full">
+              <label class="checkbox-label">
+                <input type="checkbox" id="verified" checked>
+                <span>Account Verified (user can login immediately)</span>
+              </label>
+            </div>
+            <div class="form-actions full">
+              <button type="submit" class="btn-modern btn-modern-primary" id="createBtn">
+                <i class="fas fa-user-plus"></i> Create Account
+              </button>
+              <button type="reset" class="btn-modern btn-modern-outline" id="resetBtn">
+                <i class="fas fa-redo"></i> Reset Form
+              </button>
+            </div>
+          </form>
+          <div id="message"></div>
+        </div>
+      </div>
+
+      <!-- Users List -->
+      <div class="users-table-section">
+        <div class="users-table-header">
+          <h3><i class="fas fa-users"></i> Existing Users</h3>
+          <div style="display: flex; gap: 12px; align-items: center;">
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <select id="filterVerified" style="padding: 8px 12px; border: 1.5px solid #d1d5db; border-radius: 8px; font-size: 0.875rem; cursor: pointer;">
+                <option value="">All Users</option>
+                <option value="true">Verified Only</option>
+                <option value="false">Pending Verification</option>
+              </select>
+              <input type="text" id="searchUsers" placeholder="Search users..." style="padding: 8px 12px; border: 1.5px solid #d1d5db; border-radius: 8px; font-size: 0.875rem; width: 200px;">
+            </div>
+            <button class="btn-refresh" id="refreshBtn">
+              <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+          </div>
+        </div>
+        <div class="users-table-content">
+          <div class="table-wrap-modern">
+            <table class="table-modern">
+              <thead>
+                <tr>
+                  <th>Username</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Verified</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody">
+                <tr><td colspan="7" style="text-align: center; padding: 40px; color: #6b7280;">Loading users...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Edit Role Modal -->
+<div class="modal-modern" id="editRoleModal" aria-hidden="true">
+  <div class="modal-content-modern">
+    <div class="modal-header-modern">
+      <h3>Update User Role</h3>
+      <button class="modal-close-btn" id="closeEditModal" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body-modern">
+      <form id="editRoleForm" class="form-grid-modern">
+        <div class="form-field-modern full">
+          <label>Username</label>
+          <input type="text" id="editUsername" readonly style="background: #f3f4f6; cursor: not-allowed;">
+        </div>
+        <div class="form-field-modern">
+          <label>Role <span class="required">*</span></label>
+          <select id="editRole" required>
+            <option value="user">User (Regular)</option>
+            <option value="admin">Admin</option>
+            <option value="super_admin">Super Admin</option>
+            <option value="moderator">Moderator</option>
+            <option value="clerk">Clerk</option>
+            <option value="health_officer">Health Officer</option>
+            <option value="emergency_officer">Emergency Officer</option>
+          </select>
+        </div>
+        <div class="form-field-modern">
+          <label class="checkbox-label">
+            <input type="checkbox" id="editVerified">
+            <span>Verified</span>
+          </label>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer-modern">
+      <button class="btn-modern btn-modern-outline" id="cancelEdit">Cancel</button>
+      <button class="btn-modern btn-modern-primary" id="saveEdit">Update Role</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(async function(){
+  try{
+    const r = await fetch('/api/settings/system');
+    if(!r.ok) return;
+    const { settings } = await r.json();
+    if(settings?.maintenanceMode){
+      const b = document.createElement('div');
+      b.textContent = 'Maintenance Mode is ON — users are seeing the maintenance page';
+      b.style.cssText = 'position:fixed;inset-inline:0;top:0;z-index:9999;padding:8px 12px;background:#f59e0b;color:#111827;text-align:center;font:14px/1.3 Inter,system-ui';
+      document.body.appendChild(b);
+      document.body.style.paddingTop = '36px';
+    }
+  }catch(e){}
+})();
+</script>
+
+<script src="/app-preferences.js"></script>
+<script defer src="/admin/admin-users.js"></script>
+</body>
+</html>
+

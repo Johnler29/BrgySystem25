@@ -431,7 +431,8 @@ module.exports = function healthRoutes(withDb, requireAuth, requireAdmin) {
         type = '',
         location = '',
         datetime = '',
-        status = 'Scheduled'
+        status = 'Scheduled',
+        residentUsername = ''
       } = req.body || {};
 
       if (!coordinator || !program || !type || !location || !datetime) {
@@ -459,6 +460,11 @@ module.exports = function healthRoutes(withDb, requireAuth, requireAdmin) {
           name: me.name || ''
         }
       };
+
+      // Link record to resident if username provided
+      if (residentUsername && residentUsername.trim()) {
+        doc.residentUsername = String(residentUsername).trim().toLowerCase();
+      }
 
       await withHealth(async (db) => {
         await db.collection('health_patient_data').insertOne(doc);
@@ -502,7 +508,8 @@ module.exports = function healthRoutes(withDb, requireAuth, requireAdmin) {
         address = '',
         contactNumber = '',
         clientType = '',
-        fpMethod = ''
+        fpMethod = '',
+        residentUsername = ''
       } = b;
 
       if (!lastName || !givenName || !dateOfBirth || !age || !address || !clientType) {
@@ -533,6 +540,11 @@ module.exports = function healthRoutes(withDb, requireAuth, requireAdmin) {
           name: me.name || ''
         }
       };
+
+      // Link record to resident if username provided
+      if (residentUsername && residentUsername.trim()) {
+        doc.residentUsername = String(residentUsername).trim().toLowerCase();
+      }
 
       await withHealth(async (db) => {
         await db.collection('health_family_planning').insertOne(doc);
@@ -580,7 +592,8 @@ module.exports = function healthRoutes(withDb, requireAuth, requireAdmin) {
         gender = '',
         weight = '',
         tetanusStatus = '',
-        details30Min = ''
+        details30Min = '',
+        residentUsername = ''
       } = b;
 
       if (!motherName || !address || !ageOfMother || !birthDate || !gravida || !placeOfDelivery || !deliveryDateTime || !gender || !weight) {
@@ -619,6 +632,11 @@ module.exports = function healthRoutes(withDb, requireAuth, requireAdmin) {
           name: me.name || ''
         }
       };
+
+      // Link record to resident if username provided
+      if (residentUsername && residentUsername.trim()) {
+        doc.residentUsername = String(residentUsername).trim().toLowerCase();
+      }
 
       await withHealth(async (db) => {
         await db.collection('health_post_partum').insertOne(doc);
@@ -666,7 +684,8 @@ module.exports = function healthRoutes(withDb, requireAuth, requireAdmin) {
         hepBBirthDate = '',
         pentavalent1Date = '',
         opv1Date = '',
-        mmr1Date = ''
+        mmr1Date = '',
+        residentUsername = ''
       } = b;
 
       if (!childName || !birthday || !gender || !address) {
@@ -702,6 +721,11 @@ module.exports = function healthRoutes(withDb, requireAuth, requireAdmin) {
           name: me.name || ''
         }
       };
+
+      // Link record to resident if username provided
+      if (residentUsername && residentUsername.trim()) {
+        doc.residentUsername = String(residentUsername).trim().toLowerCase();
+      }
 
       await withHealth(async (db) => {
         await db.collection('health_child_immunization').insertOne(doc);
@@ -748,7 +772,8 @@ module.exports = function healthRoutes(withDb, requireAuth, requireAdmin) {
         historyOfIllness = '',
         assessment = '',
         treatmentPlan = '',
-        status = 'Active'
+        status = 'Active',
+        residentUsername = ''
       } = b;
 
       if (!patientName || !consultationDate || !age || !birthday || !address || !sex || !historyOfIllness || !assessment || !treatmentPlan) {
@@ -784,6 +809,11 @@ module.exports = function healthRoutes(withDb, requireAuth, requireAdmin) {
           name: me.name || ''
         }
       };
+
+      // Link record to resident if username provided
+      if (residentUsername && residentUsername.trim()) {
+        doc.residentUsername = String(residentUsername).trim().toLowerCase();
+      }
 
       await withHealth(async (db) => {
         await db.collection('health_individual_treatment').insertOne(doc);
@@ -842,7 +872,8 @@ module.exports = function healthRoutes(withDb, requireAuth, requireAdmin) {
         status = 'Active',
         cvdStatus = '',
         ncdStatus = '',
-        chronicConditions = ''
+        chronicConditions = '',
+        residentUsername = ''
       } = b;
 
       if (!surname || !givenName || !age || !birthDate || !gender || !barangay) {
@@ -881,6 +912,11 @@ module.exports = function healthRoutes(withDb, requireAuth, requireAdmin) {
           name: me.name || ''
         }
       };
+
+      // Link record to resident if username provided
+      if (residentUsername && residentUsername.trim()) {
+        doc.residentUsername = String(residentUsername).trim().toLowerCase();
+      }
 
       await withHealth(async (db) => {
         await db.collection('health_patient_records').insertOne(doc);
@@ -930,7 +966,8 @@ module.exports = function healthRoutes(withDb, requireAuth, requireAdmin) {
         contactNumber = '',
         gravida = '',
         para = '',
-        riskLevel = ''
+        riskLevel = '',
+        residentUsername = ''
       } = b;
 
       if (!name || !age || !completeAddress || !lmp || !edd || !healthFacility) {
@@ -964,6 +1001,11 @@ module.exports = function healthRoutes(withDb, requireAuth, requireAdmin) {
           name: me.name || ''
         }
       };
+
+      // Link record to resident if username provided
+      if (residentUsername && residentUsername.trim()) {
+        doc.residentUsername = String(residentUsername).trim().toLowerCase();
+      }
 
       await withHealth(async (db) => {
         await db.collection('health_pregnancy_tracking').insertOne(doc);
@@ -1013,7 +1055,8 @@ module.exports = function healthRoutes(withDb, requireAuth, requireAdmin) {
         fetalHeartTone = '',
         midwifeId = '',
         midwifeName = '',
-        remarks = ''
+        remarks = '',
+        residentUsername = ''
       } = b;
 
       if (!patientName || !age || !address || !visitDate || !trimester) {
@@ -1047,6 +1090,11 @@ module.exports = function healthRoutes(withDb, requireAuth, requireAdmin) {
           name: me.name || ''
         }
       };
+
+      // Link record to resident if username provided
+      if (residentUsername && residentUsername.trim()) {
+        doc.residentUsername = String(residentUsername).trim().toLowerCase();
+      }
 
       await withHealth(async (db) => {
         await db.collection('health_prenatal_visits').insertOne(doc);

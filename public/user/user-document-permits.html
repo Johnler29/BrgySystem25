@@ -5,27 +5,369 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Request Documents — Barangay Langkaan II</title>
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            'inter': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-          }
-        }
-      }
-    }
-  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="/base.css">
   <style>
-    .bg-primary-btn { background-color: #3498db; }
-    .bg-ghost-btn { background-color: #ecf0f1; }
-    .text-primary-btn { color: #2c3e50; }
-    .border-input { border-color: #dfe6e9; }
+    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    
+    /* Info Banner */
+    .info-banner {
+      background: #1a237e;
+      color: #fff;
+      padding: 16px 20px;
+      border-radius: 10px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.1);
+    }
+    .info-banner-content {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .info-banner-icon {
+      font-size: 1.25rem;
+      margin-top: 2px;
+    }
+    .info-banner-title {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .info-banner-text {
+      font-size: 0.875rem;
+      margin: 0;
+      line-height: 1.5;
+      opacity: 0.95;
+    }
+    
+    /* Action Bar */
+    .action-bar {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    @media (min-width: 640px) {
+      .action-bar {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+    }
+    .search-wrapper {
+      position: relative;
+      width: 100%;
+    }
+    @media (min-width: 640px) {
+      .search-wrapper {
+        width: auto;
+        min-width: 320px;
+      }
+    }
+    .search-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #9ca3af;
+      pointer-events: none;
+    }
+    .search-input {
+      width: 100%;
+      padding: 12px 16px 12px 44px;
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      font-size: 0.875rem;
+      transition: all 0.2s ease;
+    }
+    .search-input:focus {
+      outline: none;
+      border-color: #3498db;
+      box-shadow: 0 0 0 3px rgba(52,152,219,.1);
+    }
+    .search-input:hover {
+      box-shadow: 0 2px 4px rgba(0,0,0,.05);
+    }
+    .search-input::placeholder {
+      color: #9ca3af;
+    }
+    
+    /* Table */
+    .table-card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+      border: 1px solid #e5e7eb;
+      overflow: hidden;
+    }
+    .table-user-docs {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+    .table-user-docs thead {
+      background: #f8f9fa;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .table-user-docs thead th {
+      padding: 14px 24px;
+      text-align: left;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #374151;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid #e5e7eb;
+      white-space: nowrap;
+    }
+    .table-user-docs tbody tr {
+      transition: all 0.2s ease;
+      background: #fff;
+      border-bottom: 1px solid #f1f3f5;
+    }
+    .table-user-docs tbody tr:nth-child(even) {
+      background: #fafbfc;
+    }
+    .table-user-docs tbody tr:hover {
+      background: #f0f7ff;
+      box-shadow: 0 1px 3px rgba(52,152,219,.08);
+    }
+    .table-user-docs tbody td {
+      padding: 14px 24px;
+      font-size: 0.875rem;
+      color: #374151;
+      vertical-align: middle;
+    }
+    
+    /* Badges */
+    .badge {
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      display: inline-block;
+    }
+    .badge-pending { background: #fff4e5; color: #b9770e; }
+    .badge-processing { background: #eaf4ff; color: #1b73c7; }
+    .badge-ready { background: #e9f9ef; color: #239b56; }
+    .badge-released { background: #e9f9ef; color: #239b56; }
+    
+    /* Modal */
+    .modal-user {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 1000;
+      overflow-y: auto;
+    }
+    .modal-user.active {
+      display: flex;
+    }
+    .modal-content-user {
+      width: 100%;
+      max-width: 700px;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.2);
+      overflow: hidden;
+      border: 1px solid #e5e7eb;
+      margin: 20px 0;
+    }
+    .modal-header-user {
+      padding: 16px 20px;
+      background: #f8f9fa;
+      border-bottom: 1px solid #e5e7eb;
+      font-weight: 600;
+      font-size: 1.125rem;
+      color: #2c3e50;
+    }
+    .modal-body-user {
+      padding: 20px;
+      max-height: calc(100vh - 180px);
+      overflow-y: auto;
+    }
+    .modal-footer-user {
+      padding: 16px 20px;
+      background: #f8f9fa;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .form-grid-user {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    .form-grid-user .full {
+      grid-column: 1 / -1;
+    }
+    .form-field-user label {
+      display: block;
+      color: #7f8c8d;
+      margin-bottom: 6px;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+    .form-field-user input,
+    .form-field-user select,
+    .form-field-user textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #dfe6e9;
+      border-radius: 8px;
+      background: #fff;
+      font-size: 0.875rem;
+      font-family: inherit;
+      transition: all 0.2s ease;
+    }
+    .form-field-user input:focus,
+    .form-field-user select:focus,
+    .form-field-user textarea:focus {
+      outline: none;
+      border-color: #3498db;
+      box-shadow: 0 0 0 3px rgba(52,152,219,.1);
+    }
+    .form-field-user input[readonly] {
+      background: #f3f4f6;
+      color: #6b7280;
+      cursor: not-allowed;
+    }
+    .form-field-user small {
+      color: #7f8c8d;
+      font-size: 0.75rem;
+      margin-top: 4px;
+      display: block;
+    }
+    .resident-dropdown {
+      position: absolute;
+      z-index: 50;
+      width: 100%;
+      margin-top: 4px;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.1);
+      max-height: 240px;
+      overflow-y: auto;
+      display: none;
+    }
+    .resident-dropdown.active {
+      display: block;
+    }
+    .resident-option {
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    .resident-option:hover {
+      background: #f0f7ff;
+    }
+    
+    /* Buttons */
+    .btn-primary-user {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border-radius: 12px;
+      background: #3498db;
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.875rem;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(52,152,219,.2);
+    }
+    .btn-primary-user:hover {
+      background: #2980b9;
+      box-shadow: 0 4px 8px rgba(52,152,219,.3);
+      transform: translateY(-1px);
+    }
+    .btn-secondary-user {
+      padding: 10px 18px;
+      border-radius: 8px;
+      border: 1.5px solid #d1d5db;
+      background: #ecf0f1;
+      color: #2c3e50;
+      font-weight: 500;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-secondary-user:hover {
+      opacity: 0.9;
+    }
+    
+    /* Table Action Buttons - Standardized across all user pages */
+    .action-btn-view {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      border: 1.5px solid #d1d5db;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: #fff;
+      color: #374151;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: inherit;
+    }
+    .action-btn-view:hover {
+      background: #3498db;
+      color: #fff;
+      border-color: #3498db;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(52,152,219,.2);
+    }
+    .action-btn-view:active {
+      transform: translateY(0);
+    }
+    .action-btn-view i {
+      font-size: 0.75rem;
+    }
+    .table-user-docs .action-btn-view {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      border: 1.5px solid #d1d5db;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: #fff;
+      color: #374151;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: inherit;
+    }
+    .table-user-docs .action-btn-view:hover {
+      background: #3498db;
+      color: #fff;
+      border-color: #3498db;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(52,152,219,.2);
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .form-grid-user {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 
@@ -79,80 +421,67 @@
 
     <div class="content-area">
       <!-- Info Banner -->
-      <div class="bg-[#1a237e] text-white px-5 py-4 rounded-lg mb-6 shadow-sm">
-        <div class="flex items-start gap-3">
-          <div class="text-xl mt-0.5">ℹ️</div>
+      <div class="info-banner">
+        <div class="info-banner-content">
+          <div class="info-banner-icon">ℹ️</div>
           <div>
-            <strong class="font-semibold block mb-1">Resident Portal</strong>
-            <p class="text-sm m-0 leading-relaxed opacity-95">View and request your documents here. Only your requests are visible.</p>
-      </div>
+            <strong class="info-banner-title">Resident Portal</strong>
+            <p class="info-banner-text">View and request your documents here. Only your requests are visible.</p>
+          </div>
         </div>
       </div>
 
       <!-- Action Bar -->
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <button class="inline-flex items-center gap-2 px-5 py-3 bg-[#3498db] hover:bg-[#2980b9] text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200" id="addNewBtn">
-          <span class="text-lg">+</span>
+      <div class="action-bar">
+        <button class="btn-primary-user" id="addNewBtn">
+          <span style="font-size: 1.125rem;">+</span>
           <span>Request New Document</span>
         </button>
-        <div class="relative w-full sm:w-auto sm:min-w-[320px]">
-          <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-            </svg>
+        <div class="search-wrapper">
+          <div class="search-icon">
+            <i class="fas fa-search"></i>
           </div>
-          <input id="searchInput" type="text" placeholder="Search by type, purpose..." class="w-full pl-12 pr-4 py-3 bg-white rounded-xl border border-gray-200 focus:border-[#3498db] focus:ring-2 focus:ring-[#3498db]/20 outline-none transition-all shadow-sm hover:shadow-md"/>
+          <input id="searchInput" type="text" placeholder="Search by type, purpose..." class="search-input">
         </div>
       </div>
 
       <!-- Table Card -->
-      <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full" id="docsTable">
-            <thead class="bg-gray-50">
-            <tr>
-                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider border-b border-gray-200">Type of Document</th>
-                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider border-b border-gray-200">Number of Copies</th>
-                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider border-b border-gray-200">Date Requested</th>
-                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider border-b border-gray-200">Date Released</th>
-                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider border-b border-gray-200">Status</th>
-            </tr>
-          </thead>
-            <tbody id="reqTbody" class="divide-y divide-gray-100 [&_tr:hover]:bg-blue-50/50 transition-colors">
-            <!-- rows injected by user-document-permits.js -->
-          </tbody>
-        </table>
+      <div class="table-card">
+        <div style="overflow-x: auto;">
+          <table class="table-user-docs" id="docsTable">
+            <thead>
+              <tr>
+                <th>Type of Document</th>
+                <th>Number of Copies</th>
+                <th>Date Requested</th>
+                <th>Date Released</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="reqTbody">
+              <!-- rows injected by user-document-permits.js -->
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <div class="pager mt-6" id="pager" style="display:none"></div>
+      <div class="pager-user" id="pager" style="display:none; margin-top: 24px;"></div>
     </div>
   </main>
 </div>
 
 <!-- Add/Edit Modal -->
-<div class="fixed inset-0 bg-black/25 hidden items-center justify-center p-4 z-50 overflow-y-auto" id="formModal" aria-hidden="true">
-  <div class="w-full max-w-[700px] bg-white rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.2)] overflow-hidden my-4">
-    <header class="px-4 py-3 bg-[#f8f9fa] border-b border-[#ecf0f1] font-semibold text-[#2c3e50] text-lg" id="formTitle">Request New Document</header>
-    <div class="p-4 max-h-[calc(100vh-180px)] overflow-y-auto">
-      <div class="text-[#7f8c8d] mb-2.5" id="msg"></div>
+<div class="modal-user" id="formModal" aria-hidden="true">
+  <div class="modal-content-user">
+    <header class="modal-header-user" id="formTitle">Request New Document</header>
+    <div class="modal-body-user">
+      <div style="color: #7f8c8d; margin-bottom: 10px;" id="msg"></div>
       <form id="docForm" novalidate>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div class="md:col-span-2">
-            <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Select Resident (for validation) *</label>
-            <div class="relative">
-              <input id="residentSearch" type="text" placeholder="Search by name, resident ID, or contact number..." autocomplete="off" class="w-full px-3 py-2 border border-input rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all text-sm">
-              <div id="residentDropdown" class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto hidden">
-                <!-- Resident options will be populated here -->
-              </div>
-            </div>
-            <p class="text-xs text-[#7f8c8d] mt-1">Search and select a resident to validate the request. This ensures the requester is a registered resident.</p>
-            <input type="hidden" id="selectedResidentId">
-          </div>
-
-          <div>
-            <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Type of Document *</label>
-            <select id="typeOfDocument" required class="w-full px-3 py-2 border border-input rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all text-sm">
+        <div class="form-grid-user">
+          <div class="form-field-user">
+            <label>Type of Document *</label>
+            <select id="typeOfDocument" required>
+              <option value="">Select Document Type</option>
               <option>Barangay Clearance</option>
               <option>Certificate of Indigency</option>
               <option>Certificate of Residency</option>
@@ -160,52 +489,44 @@
               <option>Construction Permit</option>
             </select>
           </div>
-          <div>
-            <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Number of Copies *</label>
-            <input id="numberOfCopies" type="number" min="1" value="1" required class="w-full px-3 py-2 border border-input rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all text-sm">
+          <div class="form-field-user">
+            <label>Number of Copies *</label>
+            <input id="numberOfCopies" type="number" min="1" value="1" required>
           </div>
-
-          <div>
-            <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Requester's Name *</label>
-            <input id="requesterName" type="text" required readonly class="w-full px-3 py-2 border border-input rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed focus:outline-none transition-all text-sm">
-            <p class="text-xs text-[#7f8c8d] mt-1" id="nameHelp">Will be auto-filled when you select a resident</p>
+          <div class="form-field-user">
+            <label>Your Name *</label>
+            <input id="requesterName" type="text" required>
+            <small id="nameHelp">Auto-filled from your account (you can edit if needed)</small>
           </div>
-          <div>
-            <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Requester's Address *</label>
-            <input id="address" type="text" required readonly class="w-full px-3 py-2 border border-input rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed focus:outline-none transition-all text-sm">
-            <p class="text-xs text-[#7f8c8d] mt-1" id="addressHelp">Will be auto-filled when you select a resident</p>
+          <div class="form-field-user">
+            <label>Your Address *</label>
+            <input id="address" type="text" required>
+            <small id="addressHelp">Auto-filled from your account (you can edit if needed)</small>
           </div>
-
-          <div class="md:col-span-2">
-            <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Purpose *</label>
-            <input id="purpose" type="text" placeholder="e.g. Employment, Scholarship" required class="w-full px-3 py-2 border border-input rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all text-sm">
+          <div class="form-field-user full">
+            <label>Purpose *</label>
+            <input id="purpose" type="text" placeholder="e.g. Employment, Scholarship, Business Registration" required>
+            <small>Please specify the reason for requesting this document</small>
           </div>
-
-          <div>
-            <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Payment Method</label>
-            <select id="paymentMethod" class="w-full px-3 py-2 border border-input rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all text-sm">
-              <option value="">Select Payment Method</option>
+          <div class="form-field-user">
+            <label>Payment Method</label>
+            <select id="paymentMethod">
+              <option value="">Select Payment Method (Optional)</option>
               <option>GCash</option>
               <option>GoTyme</option>
               <option>Local Bank</option>
+              <option>Cash</option>
             </select>
-          </div>
-          <div>
-            <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Payment Status</label>
-            <select id="paymentStatus" class="w-full px-3 py-2 border border-input rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all text-sm">
-              <option value="">No payment found</option>
-              <option>Successfully Paid</option>
-              <option>Pending</option>
-              <option>Failed</option>
-            </select>
+            <small>Select your preferred payment method if payment is required</small>
           </div>
         </div>
         <input type="hidden" id="docId"/>
+        <input type="hidden" id="selectedResidentId"/>
       </form>
     </div>
-    <footer class="flex justify-end gap-2 px-4 py-3 bg-[#f8f9fa] border-t border-[#ecf0f1]">
-      <button class="px-4 py-2 rounded-lg border-none cursor-pointer bg-ghost-btn text-primary-btn font-medium hover:opacity-90 transition-opacity text-sm" id="cancelForm">Cancel</button>
-      <button class="px-4 py-2 rounded-lg border-none cursor-pointer bg-primary-btn text-white font-semibold hover:opacity-90 transition-opacity shadow-sm text-sm" id="saveForm">Submit Request</button>
+    <footer class="modal-footer-user">
+      <button class="btn-secondary-user" id="cancelForm">Cancel</button>
+      <button class="btn-primary-user" id="saveForm">Submit Request</button>
     </footer>
   </div>
 </div>

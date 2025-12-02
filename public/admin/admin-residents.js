@@ -1,13 +1,23 @@
-// public/residents.js
-const $q = (sel) => document.querySelector(sel);
-const $qa = (sel) => Array.from(document.querySelectorAll(sel));
+// Admin Residents Management
+(() => {
+  'use strict';
 
-let RES = [];
-let VIEW = [];
-let PAGE = 1;
-const PER = 10;
-let EDIT_ID = null;
-let SORT = { key: 'name', dir: 'asc' };
+  const $id = (id) => document.getElementById(id);
+  const $q = (sel) => document.querySelector(sel);
+  const $qa = (sel) => Array.from(document.querySelectorAll(sel));
+
+  let RES = [];
+  let VIEW = [];
+  let PAGE = 1;
+  const PER = 10;
+  let EDIT_ID = null;
+  let SORT = { key: 'name', dir: 'asc' };
+  
+  // Check if we're in SPA mode (router is active)
+  const isSPAMode = () => {
+    return window.__ROUTER_INITIALIZED__ === true || 
+           document.querySelector('.content-area') !== null;
+  };
 
 function toBadge(val, yes='b-yes', no='b-no'){
   const y = String(val).toLowerCase() === 'yes';
@@ -23,13 +33,21 @@ function cmp(a,b,k){
 }
 
 function applyFilters(){
-  const q = $q('#q').value.trim().toLowerCase();
-  const g = $q('#fGender').value;
-  const an = $q('#fAnnex').value;
-  const vo = $q('#fVoter').value;
-  const indig = $q('#fIndigent').value;
-  const single = $q('#fSingle').value;
-  const f4ps = $q('#f4ps').value;
+  const qEl = $q('#q');
+  const gEl = $q('#fGender');
+  const anEl = $q('#fAnnex');
+  const voEl = $q('#fVoter');
+  const indigEl = $q('#fIndigent');
+  const singleEl = $q('#fSingle');
+  const f4psEl = $q('#f4ps');
+  
+  const q = qEl ? qEl.value.trim().toLowerCase() : '';
+  const g = gEl ? gEl.value : '';
+  const an = anEl ? anEl.value : '';
+  const vo = voEl ? voEl.value : '';
+  const indig = indigEl ? indigEl.value : '';
+  const single = singleEl ? singleEl.value : '';
+  const f4ps = f4psEl ? f4psEl.value : '';
 
   VIEW = RES.filter(r=>{
     const hay = `${r.name} ${r.residentId} ${r.contactNumber} ${r.address}`.toLowerCase();
@@ -51,6 +69,19 @@ function renderTable(){
   const start = (PAGE-1)*PER;
   const rows = VIEW.slice(start, start+PER);
   const tb = $q('#tbody');
+  
+  if (!tb) {
+    console.warn('Admin residents: Table body (#tbody) not found');
+    return;
+  }
+  
+  if (rows.length === 0) {
+    tb.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 40px; color: #6b7280;">No residents found.</td></tr>';
+    const pg = $q('#pager');
+    if (pg) pg.innerHTML = '';
+    return;
+  }
+  
   tb.innerHTML = rows.map(r=>{
     const indig = r.indigent || 'No';
     const single = r.singleParent || 'No';
@@ -103,126 +134,335 @@ function renderTable(){
   // pager
   const pages = Math.max(1, Math.ceil(VIEW.length / PER));
   const pg = $q('#pager');
-  const mk = (p, label=p, cls='p') => `<button class="${cls} ${p===PAGE?'active':''}" data-p="${p}">${label}</button>`;
-  pg.innerHTML = `${mk(Math.max(1,PAGE-1),'‹ Prev')} ${Array.from({length:pages}).slice(0,7).map((_,i)=>mk(i+1)).join(' ')} ${mk(Math.min(pages,PAGE+1),'Next ›')}`;
-  pg.querySelectorAll('button').forEach(b=> b.addEventListener('click', ()=>{ PAGE = Number(b.dataset.p); renderTable(); }));
+  if (pg) {
+    const mk = (p, label=p, cls='p') => `<button class="${cls} ${p===PAGE?'active':''}" data-p="${p}">${label}</button>`;
+    pg.innerHTML = `${mk(Math.max(1,PAGE-1),'‹ Prev')} ${Array.from({length:pages}).slice(0,7).map((_,i)=>mk(i+1)).join(' ')} ${mk(Math.min(pages,PAGE+1),'Next ›')}`;
+    pg.querySelectorAll('button').forEach(b=> b.addEventListener('click', ()=>{ PAGE = Number(b.dataset.p); renderTable(); }));
+  }
 }
 
 function getRowId(e){ return e.target.closest('tr')?.dataset.id || null; }
 
 async function loadResidents(){
-  const res = await fetch('/api/residents', { credentials:'include' });
-  const data = await res.json();
-  RES = (data.residents||[]).map(r=>({
-    ...r,
-    indigent: r.indigent || 'No',
-    singleParent: r.singleParent || 'No',
-    fourPs: r.fourPs || r['4ps'] || 'No'
-  }));
-  VIEW = RES.slice();
-  applyFilters();
-}
-
-/* Filters / Search / Sort */
-['#q','#fGender','#fAnnex','#fVoter','#fIndigent','#fSingle','#f4ps'].forEach(sel=>{
-  $q(sel).addEventListener('input', applyFilters);
-  $q(sel).addEventListener('change', applyFilters);
-});
-$q('#btnFilter').addEventListener('click', ()=>{
-  const f = $q('#filters'); f.style.display = f.style.display==='none'?'block':'none';
-});
-$q('#btnMore').addEventListener('click', ()=> alert('More actions coming soon (bulk update / print).'));
-$q('#tbl thead').addEventListener('click', (e)=>{
-  const map = { 'Name':'name','Resident ID':'residentId','Gender':'gender','Nearby Annex':'nearbyAnnex','Contact Number':'contactNumber','Voter':'voter' };
-  const key = map[e.target.textContent.trim()]; if (!key) return;
-  SORT = { key, dir: (SORT.key===key && SORT.dir==='asc') ? 'desc' : 'asc' };
-  applyFilters();
-});
-
-/* CSV Export */
-$q('#btnExport').addEventListener('click', ()=>{
-  const cols = ['name','residentId','gender','nearbyAnnex','contactNumber','voter','indigent','singleParent','fourPs','address','civilStatus','occupation','dateOfBirth'];
-  const rows = [cols.join(',')].concat(VIEW.map(r=> cols.map(c=> `"${String(r[c]??'').replace(/"/g,'""')}"`).join(',')));
-  const blob = new Blob([rows.join('\n')], { type:'text/csv' });
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'residents.csv'; a.click();
-});
-
-/* Modal (Add/Edit) */
-const modal = $q('#modal'), form = $q('#frmResident'), title = $q('#modalTitle');
-function openModal(id=null, readOnly=false){
-  EDIT_ID = id;
-  title.textContent = id ? (readOnly?'Resident Profile':'Edit Resident Profile') : 'Add New Resident';
-  form.reset();
-  if (id){
-    const r = RES.find(x=> String(x._id)===String(id));
-    if (r){
-      $q('#mName').value = r.name||'';
-      $q('#mResidentId').value = r.residentId||'';
-      $q('#mGender').value = r.gender||'';
-      $q('#mAnnex').value = r.nearbyAnnex||'Main';
-      $q('#mContact').value = r.contactNumber||'';
-      $q('#mDob').value = r.dateOfBirth ? r.dateOfBirth.slice(0,10) : '';
-      $q('#mCivil').value = r.civilStatus||'Single';
-      $q('#mVoter').value = r.voter||'No';
-      $q('#mOcc').value = r.occupation||'';
-      $q('#mIndigent').value = r.indigent||'No';
-      $q('#mSingle').value = r.singleParent||'No';
-      $q('#m4ps').value = r.fourPs || r['4ps'] || 'No';
-      $q('#mAddress').value = r.address||'';
+  try {
+    const tbody = $q('#tbody');
+    if (tbody) {
+      tbody.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 40px; color: #6b7280;">Loading residents...</td></tr>';
+    }
+    
+    const res = await fetch('/api/residents', { credentials:'include' });
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+    
+    const data = await res.json();
+    if (!data.ok) {
+      throw new Error(data.message || 'Failed to load residents');
+    }
+    
+    RES = (data.residents||[]).map(r=>({
+      ...r,
+      indigent: r.indigent || 'No',
+      singleParent: r.singleParent || 'No',
+      fourPs: r.fourPs || r['4ps'] || 'No'
+    }));
+    VIEW = RES.slice();
+    
+    console.log(`Admin residents: Loaded ${RES.length} residents`);
+    applyFilters();
+  } catch (e) {
+    console.error('Admin residents: Error loading residents:', e);
+    const tbody = $q('#tbody');
+    if (tbody) {
+      tbody.innerHTML = `<tr><td colspan="11" style="text-align: center; padding: 40px; color: #dc2626;">Error loading residents: ${e.message}</td></tr>`;
     }
   }
-  const ro = readOnly;
-  Array.from(form.querySelectorAll('input,select,textarea')).forEach(el=> el.disabled = ro);
-  $q('#saveResident').style.display = ro ? 'none' : 'inline-block';
-  modal.classList.add('open');
 }
-$q('#btnAdd').addEventListener('click', ()=> openModal());
-$q('#cancelModal').addEventListener('click', ()=> modal.classList.remove('open'));
-$q('#closeModal').addEventListener('click', ()=> modal.classList.remove('open'));
 
-form.addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  const payload = {
-    name: $q('#mName').value.trim(),
-    residentId: $q('#mResidentId').value.trim(),
-    gender: $q('#mGender').value,
-    nearbyAnnex: $q('#mAnnex').value,
-    contactNumber: $q('#mContact').value.trim(),
-    dateOfBirth: $q('#mDob').value || null,
-    civilStatus: $q('#mCivil').value,
-    voter: $q('#mVoter').value,
-    occupation: $q('#mOcc').value.trim(),
-    indigent: $q('#mIndigent').value,
-    singleParent: $q('#mSingle').value,
-    fourPs: $q('#m4ps').value,
-    address: $q('#mAddress').value.trim()
-  };
+  function exportCSV() {
+    const cols = ['name', 'residentId', 'gender', 'nearbyAnnex', 'contactNumber', 'voter', 'indigent', 'singleParent', 'fourPs', 'address', 'civilStatus', 'occupation', 'dateOfBirth'];
+    const rows = [cols.join(',')].concat(VIEW.map(r => cols.map(c => `"${String(r[c] ?? '').replace(/"/g, '""')}"`).join(',')));
+    const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'residents.csv';
+    a.click();
+  }
 
-  try{
-    let ok=false,res;
-    if (EDIT_ID){
-      res = await fetch(`/api/residents/${EDIT_ID}`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-      ok = res.ok;
-      if (ok){
-        const upd = await res.json();
-        const idx = RES.findIndex(x=> String(x._id)===String(EDIT_ID));
-        if (idx>-1) RES[idx] = { ...RES[idx], ...upd.resident };
-      }
-    } else {
-      res = await fetch('/api/residents', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-      ok = res.ok;
-      if (ok){
-        const { resident } = await res.json();
-        RES.unshift(resident);
+  function openModal(id = null, readOnly = false) {
+    EDIT_ID = id;
+    const title = $id('modalTitle');
+    const form = $id('frmResident');
+    const modal = $id('modal');
+    
+    if (!modal || !form) {
+      console.warn('Admin residents: Modal or form not found');
+      return;
+    }
+
+    if (title) {
+      title.textContent = id ? (readOnly ? 'Resident Profile' : 'Edit Resident Profile') : 'Add New Resident';
+    }
+    
+    form.reset();
+    
+    if (id) {
+      const r = RES.find(x => String(x._id) === String(id));
+      if (r) {
+        if ($id('mName')) $id('mName').value = r.name || '';
+        if ($id('mResidentId')) $id('mResidentId').value = r.residentId || '';
+        if ($id('mGender')) $id('mGender').value = r.gender || '';
+        if ($id('mAnnex')) $id('mAnnex').value = r.nearbyAnnex || 'Main';
+        if ($id('mContact')) $id('mContact').value = r.contactNumber || '';
+        if ($id('mDob')) {
+          const dob = r.dateOfBirth;
+          if (dob) {
+            // Handle both Date objects and string dates
+            const dateStr = dob instanceof Date ? dob.toISOString().slice(0, 10) : 
+                           typeof dob === 'string' ? dob.slice(0, 10) : '';
+            $id('mDob').value = dateStr;
+          } else {
+            $id('mDob').value = '';
+          }
+        }
+        if ($id('mCivil')) $id('mCivil').value = r.civilStatus || 'Single';
+        if ($id('mVoter')) $id('mVoter').value = r.voter || 'No';
+        if ($id('mOcc')) $id('mOcc').value = r.occupation || '';
+        if ($id('mIndigent')) $id('mIndigent').value = r.indigent || 'No';
+        if ($id('mSingle')) $id('mSingle').value = r.singleParent || 'No';
+        if ($id('m4ps')) $id('m4ps').value = r.fourPs || r['4ps'] || 'No';
+        if ($id('mAddress')) $id('mAddress').value = r.address || '';
       }
     }
-    if (!ok){ alert('Save failed (enable residents API on server).'); return; }
-    modal.classList.remove('open');
-    applyFilters();
-  }catch{ alert('Save failed.'); }
-});
+    
+    const ro = readOnly;
+    Array.from(form.querySelectorAll('input,select,textarea')).forEach(el => el.disabled = ro);
+    const saveBtn = $id('saveResident');
+    if (saveBtn) saveBtn.style.display = ro ? 'none' : 'inline-block';
+    
+    // Explicitly show the modal
+    modal.classList.add('open');
+    modal.style.display = 'flex';
+    modal.style.pointerEvents = 'auto';
+    modal.style.zIndex = '10000';
+  }
 
-/* Boot */
-(async function(){
-  try{ await loadResidents(); }catch{ alert('Failed to load residents'); }
+  // Initialize function for router
+  async function init() {
+    console.log('Admin residents: init() called');
+    const contentArea = document.querySelector('.content-area');
+    if (!contentArea) {
+      console.warn('Admin residents: Content area not found, retrying...');
+      setTimeout(init, 100);
+      return;
+    }
+
+    // Check if content is actually loaded
+    if (!contentArea.innerHTML || contentArea.innerHTML.trim().length < 100) {
+      console.warn('Admin residents: Content area is empty, waiting...');
+      setTimeout(init, 100);
+      return;
+    }
+
+    // Wait a bit for DOM to be fully ready
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // Re-query all DOM elements within content area
+    const tbody = $id('tbody');
+    const form = $id('frmResident');
+    const modal = $id('modal');
+    
+    if (!tbody) {
+      console.warn('Admin residents: Table body (#tbody) not found, retrying...');
+      setTimeout(init, 100);
+      return;
+    }
+
+    console.log('Admin residents: Initializing...');
+    
+    // Setup event listeners first
+    setupEventListeners();
+    
+    // Load residents
+    await loadResidents();
+  }
+
+  function setupEventListeners() {
+    // Remove old listeners by cloning elements
+    const elementsToClone = [
+      { id: 'btnFilter', handler: () => {
+          const f = $id('filters');
+          if (f) f.style.display = f.style.display === 'none' ? 'block' : 'none';
+        }},
+      { id: 'btnMore', handler: () => alert('More actions coming soon (bulk update / print).') },
+      { id: 'btnExport', handler: exportCSV },
+      { id: 'btnAdd', handler: () => openModal() },
+      { id: 'cancelModal', handler: () => {
+          const modal = $id('modal');
+          const form = $id('frmResident');
+          if (modal) {
+            modal.classList.remove('open');
+            modal.style.removeProperty('display');
+            modal.style.removeProperty('pointer-events');
+            modal.style.removeProperty('z-index');
+          }
+          if (form) form.reset();
+          EDIT_ID = null;
+        }},
+      { id: 'closeModal', handler: () => {
+          const modal = $id('modal');
+          const form = $id('frmResident');
+          if (modal) {
+            modal.classList.remove('open');
+            modal.style.removeProperty('display');
+            modal.style.removeProperty('pointer-events');
+            modal.style.removeProperty('z-index');
+          }
+          if (form) form.reset();
+          EDIT_ID = null;
+        }}
+    ];
+
+    elementsToClone.forEach(({ id, handler }) => {
+      const el = $id(id);
+      if (el) {
+        const newEl = el.cloneNode(true);
+        el.parentNode.replaceChild(newEl, el);
+        newEl.addEventListener('click', handler);
+      }
+    });
+
+    // Filter inputs
+    ['#q', '#fGender', '#fAnnex', '#fVoter', '#fIndigent', '#fSingle', '#f4ps'].forEach(sel => {
+      const el = $q(sel);
+      if (el) {
+        const newEl = el.cloneNode(true);
+        el.parentNode.replaceChild(newEl, el);
+        newEl.addEventListener('input', applyFilters);
+        newEl.addEventListener('change', applyFilters);
+      }
+    });
+
+    // Table header sort
+    const thead = $q('#tbl thead');
+    if (thead) {
+      const newThead = thead.cloneNode(true);
+      thead.parentNode.replaceChild(newThead, thead);
+      newThead.addEventListener('click', (e) => {
+        const map = { 
+          'Name': 'name',
+          'Resident ID': 'residentId',
+          'Gender': 'gender',
+          'Nearby Annex': 'nearbyAnnex',
+          'Contact Number': 'contactNumber',
+          'Voter': 'voter' 
+        };
+        const key = map[e.target.textContent.trim()];
+        if (!key) return;
+        SORT = { key, dir: (SORT.key === key && SORT.dir === 'asc') ? 'desc' : 'asc' };
+        applyFilters();
+      });
+    }
+
+    // Form submit
+    const form = $id('frmResident');
+    if (form) {
+      const newForm = form.cloneNode(true);
+      form.parentNode.replaceChild(newForm, form);
+      newForm.addEventListener('submit', handleFormSubmit);
+    }
+  }
+
+  async function handleFormSubmit(e) {
+    e.preventDefault();
+    const payload = {
+      name: $id('mName')?.value.trim() || '',
+      residentId: $id('mResidentId')?.value.trim() || '',
+      gender: $id('mGender')?.value || '',
+      nearbyAnnex: $id('mAnnex')?.value || 'Main',
+      contactNumber: $id('mContact')?.value.trim() || '',
+      dateOfBirth: $id('mDob')?.value || null,
+      civilStatus: $id('mCivil')?.value || 'Single',
+      voter: $id('mVoter')?.value || 'No',
+      occupation: $id('mOcc')?.value.trim() || '',
+      indigent: $id('mIndigent')?.value || 'No',
+      singleParent: $id('mSingle')?.value || 'No',
+      fourPs: $id('m4ps')?.value || 'No',
+      address: $id('mAddress')?.value.trim() || ''
+    };
+
+    try {
+      let ok = false, res;
+      if (EDIT_ID) {
+        res = await fetch(`/api/residents/${EDIT_ID}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(payload)
+        });
+        ok = res.ok;
+        if (ok) {
+          const upd = await res.json();
+          const idx = RES.findIndex(x => String(x._id) === String(EDIT_ID));
+          if (idx > -1) RES[idx] = { ...RES[idx], ...upd.resident };
+        }
+      } else {
+        res = await fetch('/api/residents', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(payload)
+        });
+        ok = res.ok;
+        if (ok) {
+          const { resident } = await res.json();
+          RES.unshift(resident);
+        }
+      }
+      if (!ok) {
+        const errorData = await res.json().catch(() => ({}));
+        alert(errorData.message || 'Save failed (enable residents API on server).');
+        return;
+      }
+      
+      // Success - close modal and refresh
+      const modal = $id('modal');
+      if (modal) {
+        modal.classList.remove('open');
+        // Remove inline styles that were set when opening
+        modal.style.removeProperty('display');
+        modal.style.removeProperty('pointer-events');
+        modal.style.removeProperty('z-index');
+      }
+      
+      // Reset form and EDIT_ID
+      const form = $id('frmResident');
+      if (form) form.reset();
+      EDIT_ID = null;
+      
+      // Reload residents to get fresh data from server
+      await loadResidents();
+    } catch (e) {
+      console.error('Save error:', e);
+      alert('Save failed: ' + (e.message || 'Unknown error'));
+    }
+  }
+
+  // Expose init function for router - do this immediately
+  window.initResidents = init;
+  console.log('Admin residents: initResidents function exposed to window');
+
+  // Auto-initialize only if not in SPA mode
+  if (!isSPAMode()) {
+    console.log('Admin residents: Not in SPA mode, auto-initializing...');
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(init, 50);
+      });
+    } else {
+      setTimeout(init, 50);
+    }
+  } else {
+    console.log('Admin residents: In SPA mode, waiting for router to call initResidents');
+  }
 })();

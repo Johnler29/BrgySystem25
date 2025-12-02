@@ -494,8 +494,8 @@
     }
   }
 
-  /* ---- bind once DOM is ready ---- */
-  document.addEventListener("DOMContentLoaded", () => {
+  /* ---- initialization function ---- */
+  function initPage() {
     // Setup resident search
     setupResidentSearch();
     
@@ -545,5 +545,17 @@
 
     // initial load
     loadDocs();
-  });
+  }
+  
+  /* ---- bind once DOM is ready ---- */
+  // Support both DOMContentLoaded (for direct page loads) and immediate execution (for SPA)
+  if (document.readyState === 'loading') {
+    document.addEventListener("DOMContentLoaded", initPage);
+  } else {
+    // DOM already loaded, run immediately
+    setTimeout(initPage, 50);
+  }
+  
+  // Expose init function for router
+  window.initDocumentPermits = initPage;
 })();

@@ -32,21 +32,10 @@
 })();
 </script>
 
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        fontFamily: {
-          'inter': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        }
-      }
-    }
-  }
-</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <link rel="stylesheet" href="/base.css">
 <style>
   .bg-primary-btn { background-color: #3498db; }
@@ -55,12 +44,58 @@
   .text-primary-btn { color: #1f2937; }
   .border-input { border-color: #e5e7eb; }
 
-  .bg-active { background-color: #dbeafe; color: #2563eb; }
-  .bg-completed { background-color: #bbdefb; color: #1565c0; }
-  .bg-scheduled { background-color: #bbdefb; color: #2563eb; }
-  .bg-pending { background-color: #c5d5f5; color: #1e40af; }
-  .bg-ongoing { background-color: #bbdefb; color: #2563eb; }
-  .bg-resolved { background-color: #dbeafe; color: #2563eb; }
+  /* Health CSS variables */
+  :root {
+    --health-primary: #3498db;
+    --health-success: #2980b9;
+    --health-accent: #10b981;
+    --health-border: #e5e7eb;
+    --health-muted: #6b7280;
+  }
+
+  /* Status Badges */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    border: none;
+    cursor: default;
+  }
+  
+  .bg-active { 
+    background-color: #dbeafe; 
+    color: #2563eb; 
+  }
+  .bg-completed { 
+    background-color: #e9f9ef; 
+    color: #239b56; 
+  }
+  .bg-scheduled { 
+    background-color: #e3f2fd; 
+    color: #1565c0; 
+  }
+  .bg-pending { 
+    background-color: #fff4e5; 
+    color: #b9770e; 
+  }
+  .bg-ongoing { 
+    background-color: #e3f2fd; 
+    color: #2563eb; 
+  }
+  .bg-resolved { 
+    background-color: #e9f9ef; 
+    color: #239b56; 
+  }
+  .bg-administered {
+    background-color: #e9f9ef;
+    color: #239b56;
+  }
 
   /* Modern info banner */
   .info-banner {
@@ -74,15 +109,24 @@
     line-height: 1.5;
   }
 
+  /* Stats Grid */
+  .stats-grid-health {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 32px;
+  }
+  
   /* Minimalist stat cards */
   .stat-modern {
     background: white;
-    border: 1px solid var(--health-border);
+    border: 1.5px solid #e3f2fd;
     border-radius: 16px;
     padding: 24px;
     transition: all 0.2s ease;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,.04);
   }
 
   .stat-modern::before {
@@ -92,18 +136,35 @@
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(90deg, var(--health-primary), var(--health-accent));
+    background: #3498db;
   }
 
   .stat-modern:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   }
+  
+  .stat-icon-health {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(52,152,219,.2);
+  }
+  .stat-icon-health.blue {
+    background: #3498db;
+  }
+  .stat-icon-health.dark-blue {
+    background: #2980b9;
+  }
 
   .stat-modern h4 {
     font-size: 0.75rem;
-    font-weight: 500;
-    color: var(--health-muted);
+    font-weight: 600;
+    color: #6b7280;
     margin: 0 0 8px 0;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -115,10 +176,6 @@
     color: #111827;
     margin: 0;
     line-height: 1;
-  }
-
-  .stat-modern.blue::before {
-    background: linear-gradient(90deg, var(--health-primary), var(--health-accent));
   }
 
   /* Modern tabs */
@@ -200,56 +257,428 @@
     box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
   }
 
-  /* Modern table */
-  .table-modern {
+  /* Toolbar */
+  .toolbar-health {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 16px;
+    background: #f9fafb;
     border-radius: 12px;
+    border: 1px solid #e5e7eb;
+  }
+  .toolbar-health input,
+  .toolbar-health select {
+    padding: 10px 14px;
+    border: 1.5px solid #d1d5db;
+    border-radius: 10px;
+    background: #fff;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+  .toolbar-health input:focus,
+  .toolbar-health select:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52,152,219,.1);
+  }
+  .toolbar-health input {
+    flex: 1;
+    min-width: 200px;
+  }
+  .toolbar-health input::placeholder {
+    color: #9ca3af;
+  }
+  .toolbar-health select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M4 6l4 4 4-4' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+  }
+  .toolbar-health button {
+    padding: 10px 18px;
+    border-radius: 10px;
+    border: 1.5px solid #d1d5db;
+    background: #fff;
+    color: #374151;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .toolbar-health button:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+    transform: translateY(-1px);
+  }
+  
+  /* Table */
+  .table-wrap-health {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
     overflow: hidden;
-    border: 1px solid var(--health-border);
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.05);
+  }
+  .table-modern {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
   }
 
   .table-modern thead {
-    background: #f9fafb;
+    background: linear-gradient(to bottom, #f8f9fa 0%, #f1f3f5 100%);
+    position: sticky;
+    top: 0;
+    z-index: 10;
   }
 
   .table-modern th {
-    padding: 14px 16px;
+    padding: 16px 20px;
     font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--health-muted);
+    font-weight: 700;
+    color: #374151;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 2px solid var(--health-border);
+    letter-spacing: 0.8px;
+    border-bottom: 2px solid #e5e7eb;
+    white-space: nowrap;
+    text-align: left;
+    position: relative;
+  }
+  
+  .table-modern th:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 20%;
+    height: 60%;
+    width: 1px;
+    background: #e5e7eb;
   }
 
   .table-modern td {
-    padding: 16px;
+    padding: 18px 20px;
     font-size: 0.875rem;
     color: #374151;
-    border-bottom: 1px solid #f3f4f6;
+    border-bottom: 1px solid #f1f3f5;
+    vertical-align: middle;
+  }
+  
+  .table-modern td:first-child {
+    font-weight: 500;
+  }
+
+  .table-modern tbody tr {
+    transition: all 0.2s ease;
+    background: #fff;
+    border-left: 3px solid transparent;
+  }
+  .table-modern tbody tr:nth-child(even) {
+    background: #fafbfc;
   }
 
   .table-modern tbody tr:hover {
-    background: #f9fafb;
+    background: #f0f7ff;
+    border-left-color: #3498db;
+    box-shadow: 0 2px 8px rgba(52,152,219,.1);
+    transform: translateX(2px);
   }
 
   .table-modern tbody tr:last-child td {
     border-bottom: none;
   }
-
-  /* Ensure table cells from JS render properly */
-  .table td {
-    padding: 16px;
-    font-size: 0.875rem;
+  
+  /* Table cell content styling */
+  .table-modern td .type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
     color: #374151;
   }
-
-  .table th {
-    padding: 14px 16px;
+  
+  .table-modern td .type-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e3f2fd;
+    color: #1565c0;
+    font-size: 1rem;
+  }
+  
+  .table-modern td .date-value {
+    font-weight: 500;
+    color: #111827;
+  }
+  
+  .table-modern td .time-value {
+    color: #6b7280;
+    font-size: 0.8125rem;
+  }
+  
+  .table-modern td .status-badge,
+  .table-modern td span[class*="bg-"] {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 12px;
     font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--health-muted);
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    border: none;
+    cursor: default;
+  }
+  
+  .table-modern td .notes-text {
+    color: #6b7280;
+    font-size: 0.8125rem;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  /* Pagination */
+  .pager-health {
+    display: flex;
+    gap: 8px;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0 0;
+    margin-top: 20px;
+    border-top: 1px solid #e5e7eb;
+  }
+  .pager-health .pager-info {
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 500;
+  }
+  .pager-health .pager-controls {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .pager-health button {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1.5px solid #d1d5db;
+    background: #fff;
+    color: #374151;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 40px;
+  }
+  .pager-health button:hover:not(:disabled) {
+    background: #f0f7ff;
+    border-color: #3498db;
+    color: #3498db;
+    transform: translateY(-1px);
+  }
+  .pager-health button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: #f9fafb;
+  }
+  .pager-health button.active {
+    background: #3498db;
+    color: #fff;
+    border-color: #3498db;
+    box-shadow: 0 2px 4px rgba(52,152,219,.2);
+  }
+  
+  /* Form Fields */
+  .form-field-health {
+    display: flex;
+    flex-direction: column;
+  }
+  .form-field-health.full {
+    grid-column: 1 / -1;
+  }
+  .form-field-health.full[style*="justify-content: flex-end"] {
+    align-items: flex-end;
+  }
+  .form-field-health label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 8px;
+  }
+  .form-field-health input,
+  .form-field-health select,
+  .form-field-health textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    background: white;
+    font-family: inherit;
+  }
+  .form-field-health button {
+    width: auto !important;
+    flex: 0 0 auto !important;
+  }
+  .form-field-health input:focus,
+  .form-field-health select:focus,
+  .form-field-health textarea:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52,152,219,.1);
+  }
+  .form-field-health textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+  
+  /* Drawer */
+  .drawer-health {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: none;
+  }
+  .drawer-health.active {
+    display: flex;
+    align-items: stretch;
+    justify-content: flex-end;
+  }
+  .drawer-backdrop-health {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    cursor: pointer;
+  }
+  .drawer-content-health {
+    position: relative;
+    height: 100%;
+    width: 100%;
+    max-width: 600px;
+    background: #fff;
+    box-shadow: -10px 0 30px rgba(0,0,0,.2);
+    display: flex;
+    flex-direction: column;
+    z-index: 10001;
+  }
+  .drawer-header-health {
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f8f9fa;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .drawer-header-health strong {
+    font-size: 1.125rem;
+    color: #2c3e50;
+  }
+  .drawer-body-health {
+    padding: 24px;
+    overflow-y: auto;
+    flex: 1;
+    background: #fff;
+  }
+  .drawer-body-health h4 {
+    margin-top: 24px;
+    margin-bottom: 12px;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #2c3e50;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e5e7eb;
+  }
+  .drawer-body-health h4:first-child {
+    margin-top: 0;
+  }
+  .drawer-field-health {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+    align-items: start;
+  }
+  .drawer-field-label-health {
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 500;
+  }
+  .drawer-field-value-health {
+    font-size: 0.875rem;
+    color: #2c3e50;
+    word-break: break-word;
+  }
+  .drawer-field-value-health strong {
+    font-weight: 600;
+    color: #111827;
+  }
+  .drawer-note-health {
+    padding: 12px 16px;
+    border-radius: 8px;
+    background: #fff4e5;
+    border: 1px solid #f5cba7;
+    font-size: 0.875rem;
+    color: #92400e;
+    margin: 16px 0;
+  }
+  .drawer-meta-health {
+    margin-top: 24px;
+    padding-left: 16px;
+    border-left: 2px solid #e5e7eb;
+  }
+  .drawer-meta-item-health {
+    margin-bottom: 12px;
+  }
+  .drawer-meta-label-health {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 0.875rem;
+    margin-bottom: 4px;
+  }
+  .drawer-meta-value-health {
+    font-size: 0.75rem;
+    color: #6b7280;
+  }
+  
+  @media (max-width: 768px) {
+    .drawer-content-health {
+      max-width: 100%;
+    }
+    .drawer-field-health {
+      grid-template-columns: 1fr;
+      gap: 4px;
+    }
+    .drawer-field-label-health {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .drawer-body-health {
+      padding: 16px;
+    }
+    .drawer-header-health {
+      padding: 16px;
+    }
+  }
+  .badge-health {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: inline-block;
   }
 
   /* Modern button */
@@ -257,51 +686,110 @@
     padding: 10px 20px;
     border-radius: 10px;
     font-size: 0.875rem;
-    font-weight: 500;
+    font-weight: 600;
     border: none;
     cursor: pointer;
     transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .btn-modern-primary {
     background: var(--health-primary);
     color: white;
+    box-shadow: 0 2px 4px rgba(52,152,219,.2);
   }
 
   .btn-modern-primary:hover {
     background: var(--health-success);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    box-shadow: 0 4px 12px rgba(52,152,219,.3);
+  }
+
+  .btn-modern-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(52,152,219,.2);
   }
 
   .btn-modern-ghost {
     background: #f3f4f6;
     color: #374151;
+    border: 1.5px solid #e5e7eb;
   }
 
   .btn-modern-ghost:hover {
     background: #e5e7eb;
+    border-color: #d1d5db;
   }
 
-  /* Table action buttons */
-  .table button {
-    padding: 6px 14px;
+  /* Table Action Buttons - Standardized across all user pages */
+  .action-btn-view {
+    padding: 8px 16px;
     border-radius: 8px;
     font-size: 0.8125rem;
-    font-weight: 500;
-    border: none;
+    font-weight: 600;
+    border: 1.5px solid #d1d5db;
     cursor: pointer;
     transition: all 0.2s ease;
+    background: #fff;
+    color: #374151;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+  }
+  .action-btn-view:hover {
+    background: #3498db;
+    color: #fff;
+    border-color: #3498db;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(52,152,219,.2);
+  }
+  .action-btn-view:active {
+    transform: translateY(0);
+  }
+  .action-btn-view i {
+    font-size: 0.75rem;
+  }
+  .table-modern .action-btn-view,
+  .table-modern button,
+  .table-modern .action-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    border: 1.5px solid #d1d5db;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #fff;
+    color: #374151;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
   }
 
-  .table .bg-ghost-btn {
+  .table-modern .action-btn-view:hover,
+  .table-modern button:hover,
+  .table-modern .action-btn:hover {
+    background: #3498db;
+    color: #fff;
+    border-color: #3498db;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(52,152,219,.2);
+  }
+  
+  .table-modern .bg-ghost-btn {
     background: #f3f4f6;
     color: #374151;
+    border-color: #e5e7eb;
   }
 
-  .table .bg-ghost-btn:hover {
-    background: #e5e7eb;
-    transform: translateY(-1px);
+  .table-modern .bg-ghost-btn:hover {
+    background: #3498db;
+    color: #fff;
+    border-color: #3498db;
   }
 
   /* Modern card */
@@ -399,6 +887,43 @@
     .stat-modern h3 {
       font-size: 1.75rem;
     }
+    
+    .toolbar-health {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .toolbar-health input,
+    .toolbar-health select,
+    .toolbar-health button {
+      width: 100%;
+    }
+    .stats-grid-health {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .drawer-content-health {
+      width: 100%;
+      max-width: 100%;
+    }
+    
+    .table-wrap-health {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .table-modern {
+      min-width: 800px;
+    }
+    .table-modern th,
+    .table-modern td {
+      padding: 12px 16px;
+    }
+    .pager-health {
+      flex-direction: column;
+      gap: 12px;
+      align-items: stretch;
+    }
+    .pager-health .pager-controls {
+      justify-content: center;
+    }
   }
 
   /* Dark mode support */
@@ -487,120 +1012,108 @@
 
     <div class="content-area">
       <!-- Info Banner -->
-      <div class="bg-[#1a237e] text-white px-5 py-4 rounded-lg mb-6 shadow-sm">
-        <div class="flex items-start gap-3">
-          <div class="text-xl mt-0.5">🏥</div>
+      <div class="info-banner" style="background: #1a237e; color: #fff; border: none;">
+        <div style="display: flex; align-items: flex-start; gap: 12px;">
+          <div style="font-size: 1.25rem; margin-top: 2px;">🏥</div>
           <div>
-            <strong class="font-semibold block mb-1">Resident Portal</strong>
-            <p class="text-sm m-0 leading-relaxed opacity-95">View your personal health records and program participation here.</p>
+            <strong style="font-weight: 600; display: block; margin-bottom: 4px;">Resident Portal</strong>
+            <p style="font-size: 0.875rem; margin: 0; line-height: 1.5; opacity: 0.95;">View your personal health records and program participation here.</p>
           </div>
         </div>
       </div>
 
       <!-- Statistics -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-        <div class="bg-white border-2 border-[#e3f2fd] rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all relative overflow-hidden">
-          <div class="absolute top-0 left-0 right-0 h-1.5 bg-[#3498db]"></div>
-          <div class="flex items-center justify-between mb-3">
-            <div class="w-10 h-10 rounded-xl bg-[#3498db] flex items-center justify-center shadow-md">
-              <span class="text-xl">📋</span>
-            </div>
+      <div class="stats-grid-health">
+        <div class="stat-modern">
+          <div class="stat-icon-health blue">
+            <span style="font-size: 1.25rem;">📋</span>
           </div>
-          <h4 class="text-xs text-gray-600 mb-2 font-semibold uppercase tracking-wide">My Records</h4>
-          <h3 class="text-3xl font-bold text-gray-900 m-0 leading-none" id="sTotal">0</h3>
+          <h4>My Records</h4>
+          <h3 id="sTotal">0</h3>
         </div>
-        <div class="bg-white border-2 border-[#e3f2fd] rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all relative overflow-hidden">
-          <div class="absolute top-0 left-0 right-0 h-1.5 bg-[#2980b9]"></div>
-          <div class="flex items-center justify-between mb-3">
-            <div class="w-10 h-10 rounded-xl bg-[#2980b9] flex items-center justify-center shadow-md">
-              <span class="text-xl">✅</span>
-            </div>
+        <div class="stat-modern">
+          <div class="stat-icon-health dark-blue">
+            <span style="font-size: 1.25rem;">✅</span>
           </div>
-          <h4 class="text-xs text-gray-600 mb-2 font-semibold uppercase tracking-wide">Active Programs</h4>
-          <h3 class="text-3xl font-bold text-gray-900 m-0 leading-none" id="sActive">0</h3>
+          <h4>Active Programs</h4>
+          <h3 id="sActive">0</h3>
         </div>
-        <div class="bg-white border-2 border-[#dbeafe] rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all relative overflow-hidden">
-          <div class="absolute top-0 left-0 right-0 h-1.5 bg-[#3498db]"></div>
-          <div class="flex items-center justify-between mb-3">
-            <div class="w-10 h-10 rounded-xl bg-[#3498db] flex items-center justify-center shadow-md">
-              <span class="text-xl">📅</span>
-            </div>
+        <div class="stat-modern">
+          <div class="stat-icon-health blue">
+            <span style="font-size: 1.25rem;">📅</span>
           </div>
-          <h4 class="text-xs text-gray-600 mb-2 font-semibold uppercase tracking-wide">Scheduled</h4>
-          <h3 class="text-3xl font-bold text-gray-900 m-0 leading-none" id="sScheduled">0</h3>
+          <h4>Scheduled</h4>
+          <h3 id="sScheduled">0</h3>
         </div>
-        <div class="bg-white border-2 border-[#e1f5fe] rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all relative overflow-hidden">
-          <div class="absolute top-0 left-0 right-0 h-1.5 bg-[#2980b9]"></div>
-          <div class="flex items-center justify-between mb-3">
-            <div class="w-10 h-10 rounded-xl bg-[#2980b9] flex items-center justify-center shadow-md">
-              <span class="text-xl">🎯</span>
-            </div>
+        <div class="stat-modern">
+          <div class="stat-icon-health dark-blue">
+            <span style="font-size: 1.25rem;">🎯</span>
           </div>
-          <h4 class="text-xs text-gray-600 mb-2 font-semibold uppercase tracking-wide">Completed</h4>
-          <h3 class="text-3xl font-bold text-gray-900 m-0 leading-none" id="sCompleted">0</h3>
+          <h4>Completed</h4>
+          <h3 id="sCompleted">0</h3>
         </div>
       </div>
 
       <!-- Main Card -->
-      <div class="bg-white border-2 border-gray-100 rounded-2xl overflow-hidden mb-6 shadow-lg">
-        <div class="px-6 py-5 border-b border-gray-200 bg-[#e3f2fd]">
-          <h3 class="text-xl font-bold text-gray-900 m-0">My Health Records</h3>
+      <div class="card-modern">
+        <div class="card-modern-header">
+          <h3>My Health Records</h3>
         </div>
-        <div class="p-6">
+        <div class="card-modern-content">
           <!-- Tabs -->
-          <div id="tabs" class="flex gap-2 border-b-2 border-gray-200 mb-6 pb-0 overflow-x-auto">
-            <div class="tab-modern tab active px-5 py-3 text-sm font-semibold text-[#1565c0] bg-transparent border-none border-b-3 border-b-[#3498db] cursor-pointer transition-all duration-200 -mb-[2px] relative" data-tab="patient-data">Patient Data</div>
-            <div class="tab-modern tab px-5 py-3 text-sm font-semibold text-gray-600 bg-transparent border-none border-b-3 border-b-transparent cursor-pointer transition-all duration-200 -mb-[2px] relative hover:text-[#1565c0]" data-tab="family-planning">Family Planning</div>
-            <div class="tab-modern tab px-5 py-3 text-sm font-semibold text-gray-600 bg-transparent border-none border-b-3 border-b-transparent cursor-pointer transition-all duration-200 -mb-[2px] relative hover:text-[#1565c0]" data-tab="post-partum">Post Partum</div>
-            <div class="tab-modern tab px-5 py-3 text-sm font-semibold text-gray-600 bg-transparent border-none border-b-3 border-b-transparent cursor-pointer transition-all duration-200 -mb-[2px] relative hover:text-[#1565c0]" data-tab="child-immunization">Child Immunization</div>
-            <div class="tab-modern tab px-5 py-3 text-sm font-semibold text-gray-600 bg-transparent border-none border-b-3 border-b-transparent cursor-pointer transition-all duration-200 -mb-[2px] relative hover:text-[#1565c0]" data-tab="individual-treatment">Treatment Records</div>
-            <div class="tab-modern tab px-5 py-3 text-sm font-semibold text-gray-600 bg-transparent border-none border-b-3 border-b-transparent cursor-pointer transition-all duration-200 -mb-[2px] relative hover:text-[#1565c0]" data-tab="patient-data-record">My Profile</div>
-            <div class="tab-modern tab px-5 py-3 text-sm font-semibold text-gray-600 bg-transparent border-none border-b-3 border-b-transparent cursor-pointer transition-all duration-200 -mb-[2px] relative hover:text-[#1565c0]" data-tab="pregnancy-tracking">Pregnancy Tracking</div>
-            <div class="tab-modern tab px-5 py-3 text-sm font-semibold text-gray-600 bg-transparent border-none border-b-3 border-b-transparent cursor-pointer transition-all duration-200 -mb-[2px] relative hover:text-[#1565c0]" data-tab="pre-natal">Pre-Natal Visits</div>
-            <div class="tab-modern tab px-5 py-3 text-sm font-semibold text-gray-600 bg-transparent border-none border-b-3 border-b-transparent cursor-pointer transition-all duration-200 -mb-[2px] relative hover:text-[#1565c0]" data-tab="schedules">My Schedules</div>
+          <div id="tabs" class="tabs-modern">
+            <div class="tab-modern tab active" data-tab="patient-data">Health Programs</div>
+            <div class="tab-modern tab" data-tab="family-planning">Family Planning</div>
+            <div class="tab-modern tab" data-tab="post-partum">Post Partum</div>
+            <div class="tab-modern tab" data-tab="child-immunization">Child Immunization</div>
+            <div class="tab-modern tab" data-tab="individual-treatment">Treatment Records</div>
+            <div class="tab-modern tab" data-tab="patient-data-record">My Profile</div>
+            <div class="tab-modern tab" data-tab="pregnancy-tracking">Pregnancy Tracking</div>
+            <div class="tab-modern tab" data-tab="pre-natal">Pre-Natal Visits</div>
+            <div class="tab-modern tab" data-tab="schedules">My Schedules</div>
           </div>
 
           <!-- Toolbar -->
-          <div class="flex flex-wrap gap-3 items-center mb-5 p-4 bg-gray-50 rounded-xl">
-            <input id="fQ" placeholder="Search records…" class="flex-1 min-w-[200px] px-4 py-3 border-2 border-gray-200 rounded-xl text-sm transition-all focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 bg-white shadow-sm">
-            <input id="fFrom" type="date" class="px-4 py-3 border-2 border-gray-200 rounded-xl text-sm transition-all focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 bg-white shadow-sm">
-            <input id="fTo" type="date" class="px-4 py-3 border-2 border-gray-200 rounded-xl text-sm transition-all focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 bg-white shadow-sm">
-            <select id="fStatus" class="px-4 py-3 border-2 border-gray-200 rounded-xl text-sm transition-all focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 bg-white shadow-sm">
+          <div class="toolbar-health">
+            <input id="fQ" placeholder="Search records…">
+            <input id="fFrom" type="date">
+            <input id="fTo" type="date">
+            <select id="fStatus">
               <option value="">All Status</option>
               <option value="Active">Active</option>
               <option value="Scheduled">Scheduled</option>
               <option value="Completed">Completed</option>
               <option value="Pending">Pending</option>
             </select>
-            <button class="px-5 py-3 rounded-xl border-2 border-gray-300 bg-white text-gray-700 font-semibold hover:bg-gray-50 hover:border-gray-400 transition-all shadow-sm" id="btnFilter">Apply</button>
+            <button id="btnFilter">Apply</button>
           </div>
 
           <!-- Table -->
-          <div class="border-2 border-gray-100 rounded-xl overflow-hidden">
-            <table class="w-full" id="tbl">
-              <thead id="tableHead" class="bg-gradient-to-r from-gray-50 to-gray-100/50"></thead>
-              <tbody id="tableBody" class="divide-y divide-gray-100 [&_tr:hover]:bg-blue-50/50 transition-colors"></tbody>
+          <div class="table-wrap-health">
+            <table class="table-modern" id="tbl">
+              <thead id="tableHead"></thead>
+              <tbody id="tableBody"></tbody>
             </table>
           </div>
 
           <!-- Pagination -->
-          <div class="pager mt-5" id="pager"></div>
+          <div class="pager-health" id="pager"></div>
         </div>
       </div>
 
       <!-- Schedule preference card -->
-      <div class="bg-white border-2 border-gray-100 rounded-2xl overflow-hidden shadow-lg">
-        <div class="px-6 py-5 border-b border-gray-200 bg-[#e3f2fd]">
-          <h3 class="text-xl font-bold text-gray-900 m-0">Request a Health Schedule</h3>
+      <div class="card-modern">
+        <div class="card-modern-header">
+          <h3>Request a Health Schedule</h3>
         </div>
-        <div class="p-6">
-          <p class="text-sm mb-6 text-[#6b7280] leading-relaxed m-0">
+        <div class="card-modern-content">
+          <p style="font-size: 0.875rem; margin-bottom: 24px; color: #6b7280; line-height: 1.6;">
             You can submit preferred dates for pre-natal, infant, health, or general checkups. The health center will confirm your final schedule.
           </p>
-          <form id="frmSchedule" class="grid grid-cols-2 gap-5">
-            <div>
-              <label class="block text-sm font-medium text-[#374151] mb-2">Checkup Type *</label>
-              <select name="type" required class="w-full px-3.5 py-2.5 border-1.5 border-[#e5e7eb] rounded-lg text-sm transition-all focus:outline-none focus:border-[#3498db] focus:ring-3 focus:ring-[#3498db]/10 bg-white">
+          <form id="frmSchedule" class="form-modern">
+            <div class="form-field-health">
+              <label>Checkup Type *</label>
+              <select name="type" required>
                 <option value="">Select Type</option>
                 <option value="prenatal">Pre-natal Checkup</option>
                 <option value="infant">Infant Checkup</option>
@@ -608,20 +1121,20 @@
                 <option value="general">General Checkup</option>
               </select>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-[#374151] mb-2">Preferred Date *</label>
-              <input type="date" name="preferredDate" required class="w-full px-3.5 py-2.5 border-1.5 border-[#e5e7eb] rounded-lg text-sm transition-all focus:outline-none focus:border-[#3498db] focus:ring-3 focus:ring-[#3498db]/10 bg-white">
+            <div class="form-field-health">
+              <label>Preferred Date *</label>
+              <input type="date" name="preferredDate" required>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-[#374151] mb-2">Preferred Time</label>
-              <input type="time" name="preferredTime" class="w-full px-3.5 py-2.5 border-1.5 border-[#e5e7eb] rounded-lg text-sm transition-all focus:outline-none focus:border-[#3498db] focus:ring-3 focus:ring-[#3498db]/10 bg-white">
+            <div class="form-field-health">
+              <label>Preferred Time</label>
+              <input type="time" name="preferredTime">
             </div>
-            <div class="col-span-2">
-              <label class="block text-sm font-medium text-[#374151] mb-2">Notes</label>
-              <textarea name="notes" rows="3" placeholder="Optional: additional details (e.g., trimester, infant age, special concerns)…" class="w-full px-3.5 py-2.5 border-1.5 border-[#e5e7eb] rounded-lg text-sm transition-all focus:outline-none focus:border-[#3498db] focus:ring-3 focus:ring-[#3498db]/10 bg-white resize-y"></textarea>
+            <div class="form-field-health full">
+              <label>Notes</label>
+              <textarea name="notes" rows="3" placeholder="Optional: additional details (e.g., trimester, infant age, special concerns)…"></textarea>
             </div>
-            <div class="col-span-2 flex justify-end mt-2">
-              <button type="button" id="btnSubmitSchedule" class="btn-modern btn-modern-primary">Submit Preference</button>
+            <div class="form-field-health full" style="display: flex; justify-content: flex-end; margin-top: 16px; padding-top: 0; align-items: flex-end;">
+              <button type="button" id="btnSubmitSchedule" class="btn-modern btn-modern-primary" style="width: auto; max-width: none; flex: 0 0 auto;">Submit Preference</button>
             </div>
           </form>
           <div id="scheduleMsg" class="muted" style="margin-top:12px;font-size:0.875rem;min-height:20px;"></div>
@@ -632,17 +1145,17 @@
 </div>
 
 <!-- Details Drawer -->
-<div class="fixed inset-0 hidden z-[1000]" id="drawer">
-  <div class="overlay absolute inset-0 bg-black/25" style="backdrop-filter:blur(2px);"></div>
-  <div class="absolute right-0 top-0 h-full w-full md:w-[520px] bg-white shadow-[-10px_0_30px_rgba(0,0,0,0.15)] flex flex-col" style="border-radius:16px 0 0 16px;">
-    <header class="px-6 py-5 border-b border-[#e5e7eb] bg-white flex justify-between items-center">
-      <div class="flex items-center gap-3">
+<div class="drawer-health" id="drawer">
+  <div class="drawer-backdrop-health" onclick="document.getElementById('drawer').classList.remove('active');"></div>
+  <div class="drawer-content-health">
+    <header class="drawer-header-health">
+      <div style="display: flex; align-items: center; gap: 12px;">
         <strong id="dRecordId" style="font-size:1rem;font-weight:600;color:#111827;">Record</strong>
-        <span id="dStatus" class="px-2.5 py-1 rounded-full text-xs font-semibold bg-active">Active</span>
+        <span id="dStatus" class="badge-health bg-active">Active</span>
       </div>
-      <button class="btn-modern btn-modern-ghost" id="dClose" style="padding:8px 16px;">Close</button>
+      <button class="btn-modern btn-modern-ghost" id="dClose">Close</button>
     </header>
-    <div class="p-6 overflow-auto flex-1" id="dBody" style="background:#fafafa;"></div>
+    <div class="drawer-body-health" id="dBody"></div>
   </div>
 </div>
 

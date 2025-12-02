@@ -39,22 +39,318 @@
 })();
 </script>
 
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        fontFamily: {
-          'inter': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        }
-      }
-    }
-  }
-</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <link rel="stylesheet" href="/base.css">
+<style>
+  body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+  
+  /* Welcome Text */
+  .welcome-text {
+    color: #6b7280;
+    margin-bottom: 24px;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  
+  /* Hero Banner */
+  .hero-banner {
+    position: relative;
+    height: 240px;
+    border-radius: 16px;
+    margin-bottom: 32px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,.1);
+    background-size: cover;
+    background-position: center;
+    background-image: url('https://scontent.fmnl31-1.fna.fbcdn.net/v/t39.30808-6/559179917_811371128144813_2033939863166001982_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=833d8c&_nc_eui2=AeErwaGGf-IyGwfaZCYiCt0yQxibiW0L6D5DGJuJbQvoPqlRxNY4Qf4qLUA0w7ktwF93q9XhhNXGhlq-5cSw0Flw&_nc_ohc=a_okqPIPTocQ7kNvwGEM_gk&_nc_oc=AdmgEYHbYJHtkBCGx_lfFTKBzFWInzf_Hjv6gYAo_3FLOmQPuqWnhhA1Carobj8i3II&_nc_zt=23&_nc_ht=scontent.fmnl31-1.fna&_nc_gid=F3f9Alyblno22Cprh-zSRA&oh=00_AfcSKtL2vBzTv9DRqun0DAlXTtDBVg68Z_ogYt2si8WsZQ&oe=68FF6C7C');
+  }
+  .hero-banner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,.4), rgba(0,0,0,.1), transparent);
+  }
+  .hero-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    z-index: 1;
+  }
+  .hero-logo {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    box-shadow: 0 8px 24px rgba(0,0,0,.3);
+    border: 4px solid rgba(255,255,255,.3);
+  }
+  
+  /* Quick Widgets Grid */
+  .widgets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-bottom: 32px;
+  }
+  .widget-card {
+    background: #fff;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    transition: all 0.2s ease;
+  }
+  .widget-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,.08);
+    transform: translateY(-2px);
+  }
+  .widget-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .widget-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: #e3f2fd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1565c0;
+    font-size: 1.25rem;
+  }
+  .widget-label {
+    color: #6b7280;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  .widget-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 4px;
+  }
+  .widget-subtext {
+    color: #6b7280;
+    font-size: 0.875rem;
+  }
+  .quick-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .quick-action-btn {
+    padding: 10px 16px;
+    border-radius: 12px;
+    border: 2px solid #3498db;
+    background: #e3f2fd;
+    color: #1565c0;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .quick-action-btn:hover {
+    background: #bbdefb;
+    border-color: #2980b9;
+    transform: translateY(-1px);
+  }
+  
+  /* Stats Cards Grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 32px;
+  }
+  .stat-card {
+    background: #fff;
+    border: 1.5px solid #e3f2fd;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    transition: all 0.2s ease;
+  }
+  .stat-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,.08);
+    transform: translateY(-2px);
+  }
+  .stat-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: #3498db;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(52,152,219,.2);
+  }
+  .stat-icon-wrapper.blue { background: #3498db; }
+  .stat-icon-wrapper.dark-blue { background: #2980b9; }
+  .stat-icon {
+    color: #fff;
+    font-size: 1.5rem;
+  }
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 4px;
+  }
+  .stat-label {
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 500;
+  }
+  
+  /* Main Content Grid */
+  .content-grid {
+    display: grid;
+    grid-template-columns: 1fr 420px;
+    gap: 24px;
+  }
+  @media (max-width: 1024px) {
+    .content-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  /* Dashboard Cards */
+  .dashboard-card-modern {
+    background: #fff;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .dashboard-card-header-modern {
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #e3f2fd;
+  }
+  .dashboard-card-header-modern h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #111827;
+  }
+  .dashboard-card-content-modern {
+    padding: 24px;
+  }
+  .status-label {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-bottom: 4px;
+  }
+  .status-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1565c0;
+  }
+  .skeleton-bar {
+    height: 12px;
+    background: #e5e7eb;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .5; }
+  }
+  .action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: 12px;
+    background: #3498db;
+    color: #fff;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(52,152,219,.2);
+  }
+  .action-btn:hover {
+    background: #2980b9;
+    box-shadow: 0 4px 12px rgba(52,152,219,.3);
+    transform: translateY(-1px);
+  }
+  
+  /* Calendar */
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    font-size: 0.75rem;
+  }
+  .calendar-month {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 16px;
+  }
+  
+  /* Announcements */
+  .announcement-item {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .announcement-item:last-child {
+    margin-bottom: 0;
+  }
+  .announcement-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-top: 8px;
+    flex-shrink: 0;
+  }
+  .announcement-dot.green { background: #27ae60; }
+  .announcement-dot.orange { background: #f39c12; }
+  .announcement-dot.blue { background: #3498db; }
+  .announcement-title {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 4px;
+  }
+  .announcement-meta {
+    font-size: 0.875rem;
+    color: #7f8c8d;
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .widgets-grid,
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+    .hero-banner {
+      height: 180px;
+    }
+    .hero-logo {
+      width: 72px;
+      height: 72px;
+    }
+  }
+</style>
 </head>
 <script defer src="/base-header.js"></script>
 <script defer src="/base.js"></script>
@@ -68,15 +364,15 @@
     </div>
 
     <ul class="sidebar-menu" id="navList">
-      <li><a href="/user/dashboard" class="active" data-tooltip="Dashboard"><span class="icon">🏠︎</span><span class="label">Dashboard</span></a></li>
-      <li><a href="/user/document-permits" data-tooltip="Request Documents"><span class="icon">📄</span><span class="label">Request Documents</span></a></li>
-      <li><a href="/user/community" data-tooltip="Community"><span class="icon">🤝</span><span class="label">Community</span></a></li>
-      <li><a href="/user/cases" data-tooltip="Report Cases"><span class="icon">⚖️</span><span class="label">Report Cases</span></a></li>
-      <li><a href="/user/health" data-tooltip="Health Services"><span class="icon">🏥</span><span class="label">Health Services</span></a></li>
-      <li><a href="/user/disaster" data-tooltip="Disaster Info"><span class="icon">🚨</span><span class="label">Disaster Info</span></a></li>
+      <li><a href="/user/dashboard" class="active" data-tooltip="Dashboard"><span class="icon"><i class="fas fa-home"></i></span><span class="label">Dashboard</span></a></li>
+      <li><a href="/user/document-permits" data-tooltip="Request Documents"><span class="icon"><i class="fas fa-file-alt"></i></span><span class="label">Request Documents</span></a></li>
+      <li><a href="/user/community" data-tooltip="Community"><span class="icon"><i class="fas fa-handshake"></i></span><span class="label">Community</span></a></li>
+      <li><a href="/user/cases" data-tooltip="Report Cases"><span class="icon"><i class="fas fa-balance-scale"></i></span><span class="label">Report Cases</span></a></li>
+      <li><a href="/user/health" data-tooltip="Health Services"><span class="icon"><i class="fas fa-hospital"></i></span><span class="label">Health Services</span></a></li>
+      <li><a href="/user/disaster" data-tooltip="Disaster Info"><span class="icon"><i class="fas fa-exclamation-triangle"></i></span><span class="label">Disaster Info</span></a></li>
 
-      <li style="margin-top:50px;"><a href="/user/settings" data-tooltip="Settings"><span class="icon">⚙️</span><span class="label">Settings</span></a></li>
-      <li><a href="#" onclick="logout()" data-tooltip="Log out"><span class="icon">🚪</span><span class="label">Log out</span></a></li>
+      <li style="margin-top:50px;"><a href="/user/settings" data-tooltip="Settings"><span class="icon"><i class="fas fa-cog"></i></span><span class="label">Settings</span></a></li>
+      <li><a href="#" onclick="logout()" data-tooltip="Log out"><span class="icon"><i class="fas fa-sign-out-alt"></i></span><span class="label">Log out</span></a></li>
     </ul>
   </nav>
 
@@ -87,7 +383,7 @@
         <h1 id="greeting">Hi!</h1>
       </div>
       <div class="user-info" id="userChip">
-        <button class="btn btn-outline" id="notifBtn" title="Notifications">🔔</button>
+        <button class="btn btn-outline" id="notifBtn" title="Notifications"><i class="fas fa-bell"></i></button>
         <div class="user-avatar" id="avatar">U</div>
         <span id="username" class="user-name">User</span>
 
@@ -97,156 +393,169 @@
         </div>
 
         <div class="dropdown" id="userMenu">
-          <div class="item" id="goProfile">👤 Profile</div>
-          <div class="item" id="goSettings">⚙️ Settings</div>
-          <div class="item" id="doLogout">🚪 Log out</div>
+          <div class="item" id="goProfile"><i class="fas fa-user"></i> Profile</div>
+          <div class="item" id="goSettings"><i class="fas fa-cog"></i> Settings</div>
+          <div class="item" id="doLogout"><i class="fas fa-sign-out-alt"></i> Log out</div>
         </div>
       </div>
     </header>
 
     <div class="content-area">
-      <p class="text-gray-500 mb-6 text-sm font-medium">Welcome to your resident portal</p>
+      <p class="welcome-text">Welcome to your resident portal</p>
 
       <!-- Hero Banner -->
-      <div class="relative h-[240px] rounded-2xl mb-8 overflow-hidden shadow-xl bg-cover bg-center" style="background-image:url('https://scontent.fmnl31-1.fna.fbcdn.net/v/t39.30808-6/559179917_811371128144813_2033939863166001982_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=833d8c&_nc_eui2=AeErwaGGf-IyGwfaZCYiCt0yQxibiW0L6D5DGJuJbQvoPqlRxNY4Qf4qLUA0w7ktwF93q9XhhNXGhlq-5cSw0Flw&_nc_ohc=a_okqPIPTocQ7kNvwGEM_gk&_nc_oc=AdmgEYHbYJHtkBCGx_lfFTKBzFWInzf_Hjv6gYAo_3FLOmQPuqWnhhA1Carobj8i3II&_nc_zt=23&_nc_ht=scontent.fmnl31-1.fna&_nc_gid=F3f9Alyblno22Cprh-zSRA&oh=00_AfcSKtL2vBzTv9DRqun0DAlXTtDBVg68Z_ogYt2si8WsZQ&oe=68FF6C7C');">
-        <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent"></div>
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-3">
-          <img src="https://scontent.fmnl31-1.fna.fbcdn.net/v/t1.15752-9/566459805_2304695176635817_7965723576219961744_n.png?_nc_cat=100&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeFvsvFPtYKGEdwHZwyXJu6hLWJQAEjhjVotYlAASOGNWmCLSn6KIuOYN8ElKlNNHQrO159FSCuwFcll7OgdlzCP&_nc_ohc=yiA3bhEGnNAQ7kNvwGUy1mZ&_nc_oc=AdkuAJIw6rTtWuKWDNP7QJAFplSOwMhvUK5rJ7b_uZdCToSR1sT73c7CFJ5zrYhIU-I&_nc_zt=23&_nc_ht=scontent.fmnl31-1.fna&oh=03_Q7cD3gGocOn0qEMEx3iINh9aOx48m0LIlXIab9IT08mckx_JZw&oe=692126F5" alt="Barangay Logo" class="w-24 h-24 rounded-full shadow-2xl ring-4 ring-white/30">
-  </div>
-</div>
+      <div class="hero-banner">
+        <div class="hero-content">
+          <img src="https://scontent.fmnl31-1.fna.fbcdn.net/v/t1.15752-9/566459805_2304695176635817_7965723576219961744_n.png?_nc_cat=100&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeFvsvFPtYKGEdwHZwyXJu6hLWJQAEjhjVotYlAASOGNWmCLSn6KIuOYN8ElKlNNHQrO159FSCuwFcll7OgdlzCP&_nc_ohc=yiA3bhEGnNAQ7kNvwGUy1mZ&_nc_oc=AdkuAJIw6rTtWuKWDNP7QJAFplSOwMhvUK5rJ7b_uZdCToSR1sT73c7CFJ5zrYhIU-I&_nc_zt=23&_nc_ht=scontent.fmnl31-1.fna&oh=03_Q7cD3gGocOn0qEMEx3iINh9aOx48m0LIlXIab9IT08mckx_JZw&oe=692126F5" alt="Barangay Logo" class="hero-logo">
+        </div>
+      </div>
 
       <!-- Quick Widgets -->
-      <section class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
-        <div class="bg-white border-2 border-gray-100 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow" id="clockWidget">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-10 h-10 rounded-xl bg-[#e3f2fd] flex items-center justify-center">
-              <span class="text-xl">🕐</span>
+      <section class="widgets-grid">
+        <div class="widget-card" id="clockWidget">
+          <div class="widget-header">
+            <div class="widget-icon">
+              <i class="fas fa-clock"></i>
             </div>
-            <div class="text-gray-500 text-sm font-medium">Local Time</div>
+            <div class="widget-label">Local Time</div>
           </div>
-          <div class="text-3xl font-bold text-gray-900 mb-1" id="clockTime">--:--</div>
-          <div class="text-gray-500 text-sm" id="clockDate">—</div>
+          <div class="widget-value" id="clockTime">--:--</div>
+          <div class="widget-subtext" id="clockDate">—</div>
         </div>
 
-        <div class="bg-white border-2 border-gray-100 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow" id="weatherWidget">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-10 h-10 rounded-xl bg-[#e3f2fd] flex items-center justify-center">
-              <span class="text-xl">☀️</span>
+        <div class="widget-card" id="weatherWidget">
+          <div class="widget-header">
+            <div class="widget-icon">
+              <i class="fas fa-sun"></i>
             </div>
-            <div class="text-gray-500 text-sm font-medium">Weather</div>
+            <div class="widget-label">Weather</div>
           </div>
-          <div class="text-3xl font-bold text-gray-900 mb-1" id="weatherTemp">--°C</div>
-          <div class="text-gray-500 text-sm" id="weatherDesc">Allow location to load weather</div>
+          <div class="widget-value" id="weatherTemp">--°C</div>
+          <div class="widget-subtext" id="weatherDesc">Allow location to load weather</div>
         </div>
 
-        <div class="bg-white border-2 border-gray-100 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
-          <div class="flex items-center gap-3 mb-4">
-            <div class="w-10 h-10 rounded-xl bg-[#e3f2fd] flex items-center justify-center">
-              <span class="text-xl">⚡</span>
+        <div class="widget-card">
+          <div class="widget-header">
+            <div class="widget-icon">
+              <i class="fas fa-bolt"></i>
             </div>
-            <div class="text-gray-500 text-sm font-medium">Quick Actions</div>
+            <div class="widget-label">Quick Actions</div>
           </div>
-          <div class="flex flex-col gap-2.5">
-            <a class="px-4 py-2.5 rounded-xl border-2 border-[#3498db] bg-[#e3f2fd] text-[#1565c0] font-semibold hover:bg-[#bbdefb] hover:border-[#2980b9] transition-all text-sm no-underline text-center" href="/user/document-permits">📄 Request Document</a>
-            <a class="px-4 py-2.5 rounded-xl border-2 border-[#3498db] bg-[#e3f2fd] text-[#1565c0] font-semibold hover:bg-[#bbdefb] hover:border-[#2980b9] transition-all text-sm no-underline text-center" href="/user/community">🤝 View Events</a>
-            <a class="px-4 py-2.5 rounded-xl border-2 border-[#3498db] bg-[#e3f2fd] text-[#1565c0] font-semibold hover:bg-[#bbdefb] hover:border-[#2980b9] transition-all text-sm no-underline text-center" href="/user/cases">⚖️ Report Case</a>
+          <div class="quick-actions">
+            <a class="quick-action-btn" href="/user/document-permits"><i class="fas fa-file-alt"></i> Request Document</a>
+            <a class="quick-action-btn" href="/user/community"><i class="fas fa-handshake"></i> View Events</a>
+            <a class="quick-action-btn" href="/user/cases"><i class="fas fa-balance-scale"></i> Report Case</a>
           </div>
         </div>
       </section>
 
       <!-- Stats Cards -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-        <div class="bg-white border-2 border-[#e3f2fd] rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all">
-          <div class="flex items-center justify-between mb-3">
-            <div class="w-12 h-12 rounded-xl bg-[#3498db] flex items-center justify-center shadow-md">
-              <span class="text-2xl">📄</span>
-            </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon-wrapper blue">
+            <i class="fas fa-file-alt stat-icon"></i>
           </div>
-          <h3 class="text-3xl font-bold text-gray-900 mb-1" id="myDocuments">0</h3>
-          <p class="text-sm text-gray-600 font-medium">My Documents</p>
+          <h3 class="stat-value" id="myDocuments">0</h3>
+          <p class="stat-label">My Documents</p>
         </div>
-        <div class="bg-white border-2 border-[#dbeafe] rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all">
-          <div class="flex items-center justify-between mb-3">
-            <div class="w-12 h-12 rounded-xl bg-[#2980b9] flex items-center justify-center shadow-md">
-              <span class="text-2xl">⏳</span>
-            </div>
+        <div class="stat-card">
+          <div class="stat-icon-wrapper dark-blue">
+            <i class="fas fa-hourglass-half stat-icon"></i>
           </div>
-          <h3 class="text-3xl font-bold text-gray-900 mb-1" id="pendingRequests">0</h3>
-          <p class="text-sm text-gray-600 font-medium">Pending Requests</p>
+          <h3 class="stat-value" id="pendingRequests">0</h3>
+          <p class="stat-label">Pending Requests</p>
         </div>
-        <div class="bg-white border-2 border-[#e1f5fe] rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all">
-          <div class="flex items-center justify-between mb-3">
-            <div class="w-12 h-12 rounded-xl bg-[#3498db] flex items-center justify-center shadow-md">
-              <span class="text-2xl">⚖️</span>
-            </div>
+        <div class="stat-card">
+          <div class="stat-icon-wrapper blue">
+            <i class="fas fa-balance-scale stat-icon"></i>
           </div>
-          <h3 class="text-3xl font-bold text-gray-900 mb-1" id="myCases">0</h3>
-          <p class="text-sm text-gray-600 font-medium">My Cases</p>
+          <h3 class="stat-value" id="myCases">0</h3>
+          <p class="stat-label">My Cases</p>
         </div>
-        <div class="bg-white border-2 border-[#e3f2fd] rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all">
-          <div class="flex items-center justify-between mb-3">
-            <div class="w-12 h-12 rounded-xl bg-[#2980b9] flex items-center justify-center shadow-md">
-              <span class="text-2xl">✅</span>
-            </div>
+        <div class="stat-card">
+          <div class="stat-icon-wrapper dark-blue">
+            <i class="fas fa-check-circle stat-icon"></i>
           </div>
-          <h3 class="text-3xl font-bold text-gray-900 mb-1" id="releasedDocs">0</h3>
-          <p class="text-sm text-gray-600 font-medium">Released Documents</p>
+          <h3 class="stat-value" id="releasedDocs">0</h3>
+          <p class="stat-label">Released Documents</p>
         </div>
       </div>
 
       <!-- Main Content Grid -->
-      <div class="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-6">
+      <div class="content-grid">
         <div>
-          <div class="bg-white border-2 border-gray-100 rounded-2xl shadow-lg mb-6 overflow-hidden">
-            <div class="px-6 py-5 border-b border-gray-200 bg-[#e3f2fd]">
-              <h3 class="text-xl text-gray-900 m-0 font-bold">My Document Requests</h3>
+          <div class="dashboard-card-modern">
+            <div class="dashboard-card-header-modern">
+              <h3>My Document Requests</h3>
             </div>
-            <div class="p-6">
-              <div class="mb-4">
-                <div class="text-sm text-gray-500 mb-1">Current Status</div>
-                <div class="text-2xl font-bold text-[#1565c0]"><span id="docStatus">Loading...</span></div>
+            <div class="dashboard-card-content-modern">
+              <div style="margin-bottom: 16px;">
+                <div class="status-label">Current Status</div>
+                <div class="status-value"><span id="docStatus">Loading...</span></div>
               </div>
-              <div class="space-y-2 mb-4" id="requestsSkel">
-                <div class="h-3 bg-gray-200 rounded-lg animate-pulse"></div>
-                <div class="h-3 bg-gray-200 rounded-lg animate-pulse"></div>
-                <div class="h-3 bg-gray-200 rounded-lg animate-pulse"></div>
+              <div style="margin-bottom: 16px;" id="requestsSkel">
+                <div class="skeleton-bar"></div>
+                <div class="skeleton-bar"></div>
+                <div class="skeleton-bar"></div>
               </div>
-              <a href="/user/document-permits" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#3498db] hover:bg-[#2980b9] text-white font-semibold transition-all shadow-lg hover:shadow-xl no-underline">
+              <a href="/user/document-permits" class="action-btn">
                 <span>+</span>
                 <span>Request New Document</span>
               </a>
             </div>
           </div>
 
-          <div class="bg-white border-2 border-gray-100 rounded-2xl shadow-lg overflow-hidden">
-            <div class="px-6 py-5 border-b border-gray-200 bg-[#e3f2fd]">
-              <h3 class="text-xl text-gray-900 m-0 font-bold">My Recent Activities</h3>
+          <div class="dashboard-card-modern">
+            <div class="dashboard-card-header-modern">
+              <h3>My Recent Activities</h3>
             </div>
-            <div class="p-6" id="recentActivities"></div>
+            <div class="dashboard-card-content-modern" id="recentActivities"></div>
           </div>
         </div>
 
         <aside>
-          <div class="bg-white border-2 border-gray-100 rounded-2xl shadow-lg mb-6 p-6">
-            <div class="text-xl font-bold text-gray-900 mb-4" id="calMonth">January</div>
-            <div class="grid grid-cols-7 gap-2 text-xs" id="calGrid"></div>
-          </div>
-
-          <div class="bg-white border-2 border-gray-100 rounded-2xl shadow-lg overflow-hidden">
-            <div class="px-6 py-5 border-b border-gray-200 bg-[#e3f2fd]">
-              <h3 class="text-xl text-gray-900 m-0 font-bold">Upcoming Events</h3>
-            </div>
-            <div class="p-6">
-              <div class="space-y-3" id="eventList"></div>
+          <div class="dashboard-card-modern">
+            <div class="dashboard-card-content-modern">
+              <div class="calendar-month" id="calMonth">January</div>
+              <div class="calendar-grid" id="calGrid"></div>
             </div>
           </div>
 
-          <div class="bg-white border border-[#ecf0f1] rounded-xl shadow-sm overflow-hidden">
-            <div class="px-6 py-4 border-b border-[#ecf0f1] bg-[#f8f9fa]"><h3 class="text-lg text-[#2c3e50] m-0 font-semibold">Announcements</h3></div>
-            <div class="p-6">
-              <div class="flex gap-3 mb-3"><div class="w-2 h-2 rounded-full bg-[#27ae60] mt-2 flex-shrink-0"></div><div><div class="font-semibold text-[#2c3e50]">Barangay Clean-up Drive</div><div class="text-sm text-[#7f8c8d]">April 25, 2025 • 7:00 AM</div></div></div>
-              <div class="flex gap-3 mb-3"><div class="w-2 h-2 rounded-full bg-[#f39c12] mt-2 flex-shrink-0"></div><div><div class="font-semibold text-[#2c3e50]">Typhoon Alert: Stay Indoors & Prepare</div><div class="text-sm text-[#7f8c8d]">Check your emergency kits</div></div></div>
-              <div class="flex gap-3"><div class="w-2 h-2 rounded-full bg-[#3498db] mt-2 flex-shrink-0"></div><div><div class="font-semibold text-[#2c3e50]">Vaccination: Booster Shots Available</div><div class="text-sm text-[#7f8c8d]">Barangay Hall</div></div></div>
+          <div class="dashboard-card-modern">
+            <div class="dashboard-card-header-modern">
+              <h3>Upcoming Events</h3>
+            </div>
+            <div class="dashboard-card-content-modern">
+              <div style="display: flex; flex-direction: column; gap: 12px;" id="eventList"></div>
+            </div>
+          </div>
+
+          <div class="dashboard-card-modern">
+            <div class="dashboard-card-header-modern" style="background: #f8f9fa;">
+              <h3 style="font-size: 1.125rem; font-weight: 600;">Announcements</h3>
+            </div>
+            <div class="dashboard-card-content-modern">
+              <div class="announcement-item">
+                <div class="announcement-dot green"></div>
+                <div>
+                  <div class="announcement-title">Barangay Clean-up Drive</div>
+                  <div class="announcement-meta">April 25, 2025 • 7:00 AM</div>
+                </div>
+              </div>
+              <div class="announcement-item">
+                <div class="announcement-dot orange"></div>
+                <div>
+                  <div class="announcement-title">Typhoon Alert: Stay Indoors & Prepare</div>
+                  <div class="announcement-meta">Check your emergency kits</div>
+                </div>
+              </div>
+              <div class="announcement-item">
+                <div class="announcement-dot blue"></div>
+                <div>
+                  <div class="announcement-title">Vaccination: Booster Shots Available</div>
+                  <div class="announcement-meta">Barangay Hall</div>
+                </div>
+              </div>
             </div>
           </div>
         </aside>
@@ -274,6 +583,7 @@
 </script>
 
 <script src="/app-preferences.js"></script>
+<script src="/router.js"></script>
 <script src="/user/user-dashboard.js"></script>
 </body>
 </html>

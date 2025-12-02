@@ -346,5 +346,15 @@
     await loadPosts(true);
   }
 
-  document.addEventListener('DOMContentLoaded', init);
+  // Expose init function for router
+  window.initCommunity = init;
+
+  // Auto-initialize for direct page loads
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    // For SPA navigation, router will call initCommunity
+    // But also call it here if DOM is already ready (direct page load)
+    setTimeout(init, 50);
+  }
 })();

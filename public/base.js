@@ -1,7 +1,14 @@
 // /public/base.js
-
-// ---------- helpers ----------
-const $ = (id) => document.getElementById(id);
+(function() {
+  'use strict';
+  
+  // Only declare $ if it doesn't already exist (prevents redeclaration errors in SPA)
+  if (typeof window.$ === 'undefined') {
+    window.$ = (id) => document.getElementById(id);
+  }
+  
+  // ---------- helpers ----------
+  const $ = window.$;
 const on = (el, evt, fn, opt) => el && el.addEventListener(evt, fn, opt);
 const qs  = (sel, root=document) => root.querySelector(sel);
 
@@ -133,18 +140,19 @@ function initHeaderMenus(){
   on(document, 'keydown', (e) => { if (e.key === 'Escape') closeAll(); });
 }
 
-// ---------- global init ----------
-document.addEventListener('DOMContentLoaded', () => {
-  initSidebar();
-  initHeaderMenus();
+  // ---------- global init ----------
+  document.addEventListener('DOMContentLoaded', () => {
+    initSidebar();
+    initHeaderMenus();
 
-  // shared ripple across pages (leave userChip itself out to avoid clipping)
-  enableRipple('.btn, .filter-chip, .kebab, .sidebar-menu a, .hamburger, #notifBtn, [data-notif-btn], .user-info .btn');
+    // shared ripple across pages (leave userChip itself out to avoid clipping)
+    enableRipple('.btn, .filter-chip, .kebab, .sidebar-menu a, .hamburger, #notifBtn, [data-notif-btn], .user-info .btn');
 
-  // Tiny feedback on bell (dblclick demo)
-  const nb = $('notifBtn') || qs('[data-notif-btn]');
-  if (nb && !nb._feedback) {
-    nb._feedback = true;
-    nb.addEventListener('dblclick', () => toast('No new notifications', 'info', 1600));
-  }
-});
+    // Tiny feedback on bell (dblclick demo)
+    const nb = $('notifBtn') || qs('[data-notif-btn]');
+    if (nb && !nb._feedback) {
+      nb._feedback = true;
+      nb.addEventListener('dblclick', () => toast('No new notifications', 'info', 1600));
+    }
+  });
+})();

@@ -1,27 +1,11 @@
 // public/user-cases.js - User-specific version (no admin features)
 (function(){
   const $ = (s,p=document)=>p.querySelector(s);
-  const tblBody = $('#tbl tbody');
-  const pager   = $('#pager');
-  const modal   = $('#modal');
-  const frm     = $('#frm');
-  const msg     = $('#msg');
-  const typeSel = $('#typeOfCase');
-  const fType   = $('#fType');
-  const fPriority = $('#fPriority');
-
-  const notifBtn   = document.getElementById('notifBtn');
-  const notifPanel = document.getElementById('notifPanel');
-  const notifList  = document.getElementById('notifList');
-  const notifEmpty = document.getElementById('notifEmpty');
-  const notifDot   = document.getElementById('notifDot');
-  const notifMarkAll = document.getElementById('notifMarkAll');
-
-  const drawer  = $('#drawer');
-  const dBody   = $('#dBody');
-  const dClose  = $('#dClose');
-  const dCaseId = $('#dCaseId');
-  const dStatus = $('#dStatus');
+  
+  // DOM element references - will be re-queried in init()
+  let tblBody, pager, modal, frm, msg, typeSel, fType, fPriority;
+  let notifBtn, notifPanel, notifList, notifEmpty, notifDot, notifMarkAll;
+  let drawer, dBody, dClose, dCaseId, dStatus;
 
   let user = null;
   let isAdmin = false;
@@ -51,8 +35,10 @@
         return;
       }
       
-      $('#username').textContent = user.name || 'User';
-      $('#avatar').textContent = (user.name || 'U').trim().charAt(0).toUpperCase();
+      const usernameEl = document.getElementById('username');
+      const avatarEl = document.getElementById('avatar');
+      if (usernameEl) usernameEl.textContent = user.name || 'User';
+      if (avatarEl) avatarEl.textContent = (user.name || 'U').trim().charAt(0).toUpperCase();
     }catch{ location.href='/login'; }
   }
   async function logout(){ await fetch('/api/logout',{method:'POST'}); location.href='/login'; }
@@ -61,12 +47,18 @@
   async function loadCaseTypes(){
     try{
       const j = await fetchJSON('/api/case-types');
-      (j.items || []).forEach(v=>{
-        const o=document.createElement('option'); o.value=v; o.textContent=v; typeSel.appendChild(o);
-        if (fType) {
+      if (typeSel) {
+        typeSel.innerHTML = '';
+        (j.items || []).forEach(v=>{
+          const o=document.createElement('option'); o.value=v; o.textContent=v; typeSel.appendChild(o);
+        });
+      }
+      if (fType) {
+        fType.innerHTML = '<option value="">All types</option>';
+        (j.items || []).forEach(v=>{
           const o2=document.createElement('option'); o2.value=v; o2.textContent=v; fType.appendChild(o2);
-        }
-      });
+        });
+      }
     }catch{}
   }
 
@@ -85,20 +77,9 @@
   };
   const fmt   = d => d ? new Date(d).toLocaleString() : '';
 
-  function setSummary(sum){
-    $('#sTotal').textContent    = sum.Total || 0;
-    $('#sPending').textContent  = sum.Reported || sum.Pending || 0;
-    $('#sOngoing').textContent  = sum.Ongoing || 0;
-    $('#sResolved').textContent = sum.Resolved || 0;
-  }
-  async function refreshSummary(){
-    try{
-      const j = await fetchJSON('/api/cases/summary');
-      if (j.ok) setSummary(j.summary || {});
-    }catch{}
-  }
-
   async function load(){
+    if (!tblBody) return;
+    
     const qs = new URLSearchParams({
       page: state.page,
       limit: state.limit,
@@ -115,10 +96,10 @@
     const j = await fetchJSON('/api/cases?'+qs);
     renderRows(j.rows || []);
     renderPager(j.page, j.totalPages, j.total);
-    refreshSummary();
   }
 
   function renderRows(rows){
+    if (!tblBody) return;
     tblBody.innerHTML = '';
     if (!rows.length) {
       tblBody.innerHTML = `<tr><td colspan="6" class="px-6 py-12 text-center"><div class="flex flex-col items-center gap-3"><div class="text-4xl">⚖️</div><p class="text-gray-500 font-medium">No cases found.</p><p class="text-sm text-gray-400">Click "Report New Case" to get started.</p></div></td></tr>`;
@@ -128,15 +109,16 @@
       const tr = document.createElement('tr');
       tr.className = 'group';
       tr.innerHTML = `
-        <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm font-semibold text-gray-900">${r.caseId}</div></td>
-        <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm text-gray-700">${r.typeOfCase}</div></td>
-        <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm text-gray-700">${fmt(r.createdAt)}</div></td>
-        <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm text-gray-700">${fmt(r.dateOfIncident)}</div></td>
-        <td class="px-6 py-4 whitespace-nowrap">${badge(r.status)}</td>
-        <td class="px-6 py-4 whitespace-nowrap">
-          <div class="flex gap-2">
-            <button class="px-4 py-2 rounded-xl border-2 border-gray-300 bg-white text-gray-700 font-semibold hover:bg-gray-50 hover:border-gray-400 transition-all shadow-sm text-sm" data-act="view" data-id="${r._id}">View</button>
-          </div>
+        <td><div style="font-size: 0.875rem; font-weight: 600; color: #111827;">${r.caseId}</div></td>
+        <td><div style="font-size: 0.875rem; color: #374151;">${r.typeOfCase}</div></td>
+        <td><div style="font-size: 0.875rem; color: #374151;">${fmt(r.createdAt)}</div></td>
+        <td><div style="font-size: 0.875rem; color: #374151;">${fmt(r.dateOfIncident)}</div></td>
+        <td>${badge(r.status)}</td>
+        <td>
+          <button class="action-btn-view" data-act="view" data-id="${r._id}">
+            <i class="fas fa-eye"></i>
+            <span>View</span>
+          </button>
         </td>
       `;
       tblBody.appendChild(tr);
@@ -144,6 +126,7 @@
   }
 
   function renderPager(page,totalPages,total){
+    if (!pager) return;
     pager.innerHTML = '';
     const info = document.createElement('div');
     info.style.marginRight='auto';
@@ -169,221 +152,462 @@
     mk('Next', ()=>{ if(state.page<totalPages){ state.page++; load(); }}, page>=totalPages);
   }
 
-  // chips
-  $('#chips').addEventListener('click',(e)=>{
-    const chip = e.target.closest('.chip'); if(!chip) return;
-    [...document.querySelectorAll('.chip')].forEach(c=>{
-      c.classList.remove('active', 'bg-primary-btn', 'text-white');
-      c.classList.add('bg-ghost-btn', 'text-primary-btn');
-    });
-    chip.classList.add('active', 'bg-primary-btn', 'text-white');
-    chip.classList.remove('bg-ghost-btn', 'text-primary-btn');
-    state.status = chip.getAttribute('data-status') || '';
-    state.page = 1;
-    load();
-  });
-
-  // toolbar
-  $('#btnFilter').onclick=()=>{
-    state.from   = $('#fFrom').value || '';
-    state.to     = $('#fTo').value || '';
-    state.q      = $('#fQ').value.trim();
-    state.type   = fType ? (fType.value || '') : '';
-    state.priority = fPriority ? (fPriority.value || '') : '';
-    state.page   = 1;
-    load();
-  };
-
-  // modal
-  $('#btnAdd').onclick=()=>{
-    frm.reset();
-    msg.textContent='';
-    $('#dlgTitle').textContent='Report New Case';
-    const hw = document.getElementById('harassmentTypeWrap');
-    const mw = document.getElementById('medicoWrap');
-    const vw = document.getElementById('vandalWrap');
-    if (hw) hw.classList.add('hidden');
-    if (mw) mw.classList.add('hidden');
-    if (vw) vw.classList.add('hidden');
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-  };
-  $('#btnCancel').onclick=()=> {
-    modal.classList.remove('flex');
-    modal.classList.add('hidden');
-  };
-  $('#btnSave').onclick=async ()=>{
-    const fd = new FormData(frm);
-    const body = Object.fromEntries(fd.entries());
-    if (!body.typeOfCase || !body.complainantName || !body.complainantAddress || !body.description || !body.dateOfIncident) {
-      msg.textContent='Please fill all required fields.'; return;
+  function setupEventListeners() {
+    // Chips
+    const chips = document.getElementById('chips');
+    if (chips) {
+      // Clone to remove old listeners
+      const newChips = chips.cloneNode(true);
+      chips.parentNode.replaceChild(newChips, chips);
+      newChips.addEventListener('click',(e)=>{
+        const chip = e.target.closest('.chip'); if(!chip) return;
+        [...document.querySelectorAll('.chip')].forEach(c=>{
+          c.classList.remove('active', 'bg-primary-btn', 'text-white');
+          c.classList.add('bg-ghost-btn', 'text-primary-btn');
+        });
+        chip.classList.add('active', 'bg-primary-btn', 'text-white');
+        chip.classList.remove('bg-ghost-btn', 'text-primary-btn');
+        state.status = chip.getAttribute('data-status') || '';
+        state.page = 1;
+        load();
+      });
     }
-    const files = document.getElementById('evidenceFiles');
-    if (!files || !files.files || files.files.length < 3) {
-      msg.textContent='Please upload at least 3 evidence files.'; return;
-    }
-    try{
-      const j = await fetchJSON('/api/cases', { method:'POST', body: fd });
-      if(!j.ok){ msg.textContent=j.message || 'Failed to save report.'; return; }
-    }catch(e){
-      msg.textContent=e.message || 'Failed to save report.'; return;
-    }
-    modal.classList.remove('flex');
-    modal.classList.add('hidden');
-    load();
-  };
 
-  // dynamic form behaviour
-  if (typeSel) {
-    typeSel.addEventListener('change', () => {
-      const v = typeSel.value || '';
-      const isHarass = v === 'Harassment';
-      const isAssault = v === 'Physical Assault';
-      const isVandal = v === 'Vandalism';
-      const hw = document.getElementById('harassmentTypeWrap');
-      const mw = document.getElementById('medicoWrap');
-      const vw = document.getElementById('vandalWrap');
-      if (hw) {
-        if (isHarass) {
-          hw.classList.remove('hidden');
-        } else {
-          hw.classList.add('hidden');
-        }
-      }
-      if (mw) {
-        if (isAssault) {
-          mw.classList.remove('hidden');
-        } else {
-          mw.classList.add('hidden');
-        }
-      }
-      if (vw) {
-        if (isVandal) {
-          vw.classList.remove('hidden');
-        } else {
-          vw.classList.add('hidden');
-        }
-      }
-    });
-  }
-
-  // table actions
-  tblBody.addEventListener('click', async (e)=>{
-    const btn = e.target.closest('button'); if(!btn) return;
-    const id = btn.getAttribute('data-id');
-    const act= btn.getAttribute('data-act');
-
-    if(act==='view'){
-      const j = await fetchJSON('/api/cases/'+id);
-      if(!j.ok) return alert('Not found');
-      const r = j.row;
-      dCaseId.textContent = r.caseId;
-      const status = r.status || 'Pending';
-      const statusMap = {
-        'Pending': 'bg-[#dbeafe] text-[#1e40af] border-[#60a5fa]',
-        'Ongoing': 'bg-[#e1f5fe] text-[#0277bd] border-[#4fc3f7]',
-        'Resolved': 'bg-[#e3f2fd] text-[#1565c0] border-[#64b5f6]',
-        'Cancelled': 'bg-[#e3f2fd] text-[#1565c0] border-[#64b5f6]'
+    // Filter button
+    const btnFilter = document.getElementById('btnFilter');
+    if (btnFilter) {
+      const newBtnFilter = btnFilter.cloneNode(true);
+      btnFilter.parentNode.replaceChild(newBtnFilter, btnFilter);
+      newBtnFilter.onclick=()=>{
+        const fFrom = document.getElementById('fFrom');
+        const fTo = document.getElementById('fTo');
+        const fQ = document.getElementById('fQ');
+        state.from   = fFrom ? (fFrom.value || '') : '';
+        state.to     = fTo ? (fTo.value || '') : '';
+        state.q      = fQ ? fQ.value.trim() : '';
+        state.type   = fType ? (fType.value || '') : '';
+        state.priority = fPriority ? (fPriority.value || '') : '';
+        state.page   = 1;
+        load();
       };
-      const classes = statusMap[status] || 'bg-[#e3f2fd] text-[#1565c0] border-[#64b5f6]';
-      dStatus.className = 'inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold border ' + classes;
-      dStatus.textContent = status;
-
-      dBody.innerHTML = `
-        <div class="grid grid-cols-[140px_1fr] gap-2 mb-2"><div class="text-[#7f8c8d] text-sm">Type</div><div class="font-semibold text-[#2c3e50]">${r.typeOfCase}</div></div>
-        <div class="grid grid-cols-[140px_1fr] gap-2 mb-2"><div class="text-[#7f8c8d] text-sm">Priority</div><div class="text-[#2c3e50]">${r.priority || 'Medium'}</div></div>
-        <div class="grid grid-cols-[140px_1fr] gap-2 mb-2"><div class="text-[#7f8c8d] text-sm">Reported By</div><div class="text-[#2c3e50]">${r.reportedBy?.name || r.reportedBy?.username || ''}</div></div>
-        <div class="grid grid-cols-[140px_1fr] gap-2 mb-2"><div class="text-[#7f8c8d] text-sm">Date Reported</div><div class="text-[#2c3e50]">${fmt(r.createdAt)}</div></div>
-        <div class="grid grid-cols-[140px_1fr] gap-2 mb-2"><div class="text-[#7f8c8d] text-sm">Date of Incident</div><div class="text-[#2c3e50]">${fmt(r.dateOfIncident)}</div></div>
-        <div class="grid grid-cols-[140px_1fr] gap-2 mb-2"><div class="text-[#7f8c8d] text-sm">Place</div><div class="text-[#2c3e50]">${r.placeOfIncident || '-'}</div></div>
-        ${r.harassmentType ? `<div class="grid grid-cols-[140px_1fr] gap-2 mb-2"><div class="text-[#7f8c8d] text-sm">Harassment Type</div><div class="text-[#2c3e50]">${r.harassmentType}</div></div>` : ''}
-        ${r.seniorCategory ? `<div class="grid grid-cols-[140px_1fr] gap-2 mb-2"><div class="text-[#7f8c8d] text-sm">Senior-Involved</div><div class="text-[#2c3e50]">${r.seniorCategory}</div></div>` : ''}
-
-        <h4 class="my-3.5 mb-2 text-lg font-semibold text-[#2c3e50]">Complainant</h4>
-        <div class="grid grid-cols-[140px_1fr] gap-2 mb-2"><div class="text-[#7f8c8d] text-sm">Name</div><div class="text-[#2c3e50]">${r.complainant?.name || ''}</div></div>
-        <div class="grid grid-cols-[140px_1fr] gap-2 mb-2"><div class="text-[#7f8c8d] text-sm">Address</div><div class="text-[#2c3e50]">${r.complainant?.address || ''}</div></div>
-        <div class="grid grid-cols-[140px_1fr] gap-2 mb-2"><div class="text-[#7f8c8d] text-sm">Contact</div><div class="text-[#2c3e50]">${r.complainant?.contact || ''}</div></div>
-
-        <h4 class="my-3.5 mb-2 text-lg font-semibold text-[#2c3e50]">Respondent</h4>
-        <div class="grid grid-cols-[140px_1fr] gap-2 mb-2"><div class="text-[#7f8c8d] text-sm">Name</div><div class="text-[#2c3e50]">${r.respondent?.name || '-'}</div></div>
-        <div class="grid grid-cols-[140px_1fr] gap-2 mb-2"><div class="text-[#7f8c8d] text-sm">Address</div><div class="text-[#2c3e50]">${r.respondent?.address || '-'}</div></div>
-        <div class="grid grid-cols-[140px_1fr] gap-2 mb-2"><div class="text-[#7f8c8d] text-sm">Contact</div><div class="text-[#2c3e50]">${r.respondent?.contact || '-'}</div></div>
-
-        <h4 class="my-3.5 mb-2 text-lg font-semibold text-[#2c3e50]">Description</h4>
-        <p class="whitespace-pre-wrap text-[#2c3e50] leading-relaxed">${r.description || ''}</p>
-
-        ${Array.isArray(r.evidences) && r.evidences.length ? `
-          <h4 class="my-3.5 mb-2 text-lg font-semibold text-[#2c3e50]">Evidence</h4>
-          <ul class="pl-4.5 mb-2 space-y-1">
-            ${r.evidences.map(ev => `
-              <li class="flex items-center gap-2">
-                <span class="inline-block px-2.5 py-1 rounded-full text-[11px] bg-ghost-btn text-[#636e72] mr-1">${ev.kind || 'File'}</span>
-                <a href="${ev.url}" target="_blank" rel="noopener" class="text-primary-btn hover:underline">${ev.filename}</a>
-              </li>
-            `).join('')}
-          </ul>
-        ` : ''}
-
-        ${Array.isArray(r.hearings) && r.hearings.length ? `
-          <h4 class="my-3.5 mb-2 text-lg font-semibold text-[#2c3e50]">Hearings</h4>
-          <ul class="pl-4.5 mb-2 space-y-1">
-            ${r.hearings.map(h => `
-              <li class="flex items-center gap-2">
-                <span class="inline-block px-2.5 py-1 rounded-full text-[11px] bg-ghost-btn text-[#636e72] mr-1">Hearing</span>
-                <span class="text-[#2c3e50]">${fmt(h.dateTime)} @ ${h.venue || 'Barangay Hall'}</span>
-              </li>
-            `).join('')}
-          </ul>
-        ` : ''}
-
-        ${Array.isArray(r.patawagForms) && r.patawagForms.length ? `
-          <h4 class="my-3.5 mb-2 text-lg font-semibold text-[#2c3e50]">Patawag Forms</h4>
-          <ul class="pl-4.5 mb-2 space-y-1">
-            ${r.patawagForms.map(p => `
-              <li class="flex items-center gap-2">
-                <span class="inline-block px-2.5 py-1 rounded-full text-[11px] bg-ghost-btn text-[#636e72] mr-1">Patawag</span>
-                <span class="text-[#2c3e50]">${p.scheduleDate ? fmt(p.scheduleDate) : 'No schedule'} @ ${p.venue || 'Barangay Hall'}</span>
-              </li>
-            `).join('')}
-          </ul>
-        ` : ''}
-
-        ${r.over45Note ? `<div class="px-3 py-2.5 rounded-lg bg-note-box border border-[#f5cba7] text-sm mt-2.5">${r.over45Note}</div>` : ''}
-
-        <div class="mt-3.5 border-l-2 border-[#ecf0f1] pl-3">
-          <div class="mb-2.5">
-            <div class="font-semibold text-[#2c3e50] mb-0.5">Created</div>
-            <div class="text-xs text-[#7f8c8d]">${fmt(r.createdAt)}</div>
-          </div>
-          <div class="mb-2.5">
-            <div class="font-semibold text-[#2c3e50] mb-0.5">Last Updated</div>
-            <div class="text-xs text-[#7f8c8d]">${fmt(r.updatedAt)}</div>
-          </div>
-        </div>
-
-        <div class="mt-4 flex gap-2 flex-wrap">
-          <button class="px-4 py-2.5 rounded-lg border-none cursor-pointer bg-ghost-btn text-primary-btn font-medium hover:opacity-90 transition-opacity" id="dPrint">Print</button>
-        </div>
-      `;
-
-      document.getElementById('dPrint').onclick=()=>window.print();
-      drawer.classList.remove('hidden');
-      drawer.classList.add('block');
     }
-  });
 
-  // close drawer
-  dClose.onclick=()=>{
-    drawer.classList.remove('block');
-    drawer.classList.add('hidden');
-  };
-  // Close drawer when clicking overlay (first child div)
-  const overlay = drawer.querySelector('div.absolute.inset-0');
-  if (overlay) {
-    overlay.onclick=()=>{
-      drawer.classList.remove('block');
-      drawer.classList.add('hidden');
-    };
+    // Add button - query within content area first, then fallback to document
+    const contentArea = document.querySelector('.content-area');
+    let btnAdd = contentArea ? contentArea.querySelector('#btnAdd') : null;
+    if (!btnAdd) btnAdd = document.getElementById('btnAdd');
+    
+    if (btnAdd) {
+      const newBtnAdd = btnAdd.cloneNode(true);
+      btnAdd.parentNode.replaceChild(newBtnAdd, btnAdd);
+      newBtnAdd.onclick=()=>{
+        console.log('User cases: Report New Case button clicked');
+        if (frm) frm.reset();
+        if (msg) msg.textContent='';
+        const dlgTitle = document.getElementById('dlgTitle');
+        if (dlgTitle) dlgTitle.textContent='Report New Case';
+        const hw = document.getElementById('harassmentTypeWrap');
+        const mw = document.getElementById('medicoWrap');
+        const vw = document.getElementById('vandalWrap');
+        if (hw) hw.classList.add('hidden');
+        if (mw) mw.classList.add('hidden');
+        if (vw) vw.classList.add('hidden');
+        
+        // Open modal with pointer-events enabled
+        const currentModal = document.getElementById('modal');
+        if (currentModal) {
+          currentModal.classList.remove('hidden');
+          currentModal.classList.add('flex');
+          currentModal.style.setProperty('pointer-events', 'auto', 'important');
+          currentModal.style.setProperty('display', 'flex', 'important');
+          currentModal.style.setProperty('z-index', '10000', 'important');
+          currentModal.style.setProperty('visibility', 'visible', 'important');
+          currentModal.style.setProperty('opacity', '1', 'important');
+          
+          // Ensure dialog content is also clickable
+          const dialog = currentModal.querySelector('.w-full.max-w-\\[700px\\]') || currentModal.querySelector('div > div');
+          if (dialog) {
+            dialog.style.setProperty('pointer-events', 'auto', 'important');
+          }
+          
+          console.log('User cases: Modal opened');
+        } else {
+          console.error('User cases: Modal not found');
+        }
+      };
+      console.log('User cases: btnAdd event listener attached');
+    } else {
+      console.warn('User cases: btnAdd not found');
+    }
+
+    // Cancel button
+    const btnCancel = document.getElementById('btnCancel');
+    if (btnCancel) {
+      const newBtnCancel = btnCancel.cloneNode(true);
+      btnCancel.parentNode.replaceChild(newBtnCancel, btnCancel);
+      newBtnCancel.onclick=()=> {
+        const currentModal = document.getElementById('modal');
+        if (currentModal) {
+          currentModal.classList.remove('flex');
+          currentModal.classList.add('hidden');
+          currentModal.style.removeProperty('pointer-events');
+          currentModal.style.removeProperty('display');
+          currentModal.style.removeProperty('z-index');
+          currentModal.style.removeProperty('visibility');
+          currentModal.style.removeProperty('opacity');
+        }
+      };
+    }
+
+    // Save button
+    const btnSave = document.getElementById('btnSave');
+    if (btnSave) {
+      const newBtnSave = btnSave.cloneNode(true);
+      btnSave.parentNode.replaceChild(newBtnSave, btnSave);
+      newBtnSave.onclick=async ()=>{
+        if (!frm) return;
+        const fd = new FormData(frm);
+        const body = Object.fromEntries(fd.entries());
+        if (!body.typeOfCase || !body.complainantName || !body.complainantAddress || !body.description || !body.dateOfIncident) {
+          if (msg) msg.textContent='Please fill all required fields.';
+          return;
+        }
+        const files = document.getElementById('evidenceFiles');
+        if (!files || !files.files || files.files.length < 3) {
+          if (msg) msg.textContent='Please upload at least 3 evidence files.';
+          return;
+        }
+        try{
+          const j = await fetchJSON('/api/cases', { method:'POST', body: fd, credentials: 'include' });
+          if(!j.ok){ 
+            if (msg) msg.textContent=j.message || 'Failed to save report.';
+            return; 
+          }
+        }catch(e){
+          if (msg) msg.textContent=e.message || 'Failed to save report.';
+          return;
+        }
+        const currentModal = document.getElementById('modal');
+        if (currentModal) {
+          currentModal.classList.remove('flex');
+          currentModal.classList.add('hidden');
+          currentModal.style.removeProperty('pointer-events');
+          currentModal.style.removeProperty('display');
+          currentModal.style.removeProperty('z-index');
+          currentModal.style.removeProperty('visibility');
+          currentModal.style.removeProperty('opacity');
+        }
+        load();
+      };
+    }
+
+    // Type selector - dynamic form behaviour
+    if (typeSel) {
+      const newTypeSel = typeSel.cloneNode(true);
+      typeSel.parentNode.replaceChild(newTypeSel, typeSel);
+      typeSel = newTypeSel;
+      newTypeSel.addEventListener('change', () => {
+        const v = newTypeSel.value || '';
+        const isHarass = v === 'Harassment';
+        const isAssault = v === 'Physical Assault';
+        const isVandal = v === 'Vandalism';
+        const hw = document.getElementById('harassmentTypeWrap');
+        const mw = document.getElementById('medicoWrap');
+        const vw = document.getElementById('vandalWrap');
+        if (hw) {
+          if (isHarass) {
+            hw.classList.remove('hidden');
+          } else {
+            hw.classList.add('hidden');
+          }
+        }
+        if (mw) {
+          if (isAssault) {
+            mw.classList.remove('hidden');
+          } else {
+            mw.classList.add('hidden');
+          }
+        }
+        if (vw) {
+          if (isVandal) {
+            vw.classList.remove('hidden');
+          } else {
+            vw.classList.add('hidden');
+          }
+        }
+      });
+    }
+
+    // Table actions - use event delegation on tbody
+    if (tblBody) {
+      // Use event delegation directly on tbody - no need to clone
+      tblBody.addEventListener('click', async (e)=>{
+        const btn = e.target.closest('button[data-act]');
+        if(!btn) return;
+        const id = btn.getAttribute('data-id');
+        const act = btn.getAttribute('data-act');
+
+        if(act==='view'){
+          console.log('User cases: View button clicked for case', id);
+          try {
+            // Re-query drawer elements to ensure fresh references
+            const currentDrawer = document.getElementById('drawer');
+            const currentDBody = document.getElementById('dBody');
+            const currentDCaseId = document.getElementById('dCaseId');
+            const currentDStatus = document.getElementById('dStatus');
+            const currentDClose = document.getElementById('dClose');
+            
+            if (!currentDrawer) {
+              console.error('User cases: Drawer not found');
+              return;
+            }
+            
+            const j = await fetchJSON('/api/cases/'+id, { credentials: 'include' });
+            if(!j.ok) {
+              alert('Case not found');
+              return;
+            }
+            const r = j.row;
+            
+            if (currentDCaseId) currentDCaseId.textContent = r.caseId || 'Case';
+            const status = r.status || 'Pending';
+            const statusMap = {
+              'Pending': 'bg-pending',
+              'Ongoing': 'bg-ongoing',
+              'Resolved': 'bg-resolved',
+              'Cancelled': 'bg-cancelled'
+            };
+            const statusClass = statusMap[status] || 'bg-pending';
+            if (currentDStatus) {
+              currentDStatus.className = 'badge ' + statusClass;
+              currentDStatus.textContent = status;
+            }
+
+            if (currentDBody) {
+              // Escape HTML to prevent XSS
+              const escape = (str) => {
+                if (!str) return '';
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+              };
+              
+              currentDBody.innerHTML = `
+                <div class="drawer-field">
+                  <div class="drawer-field-label">Type</div>
+                  <div class="drawer-field-value"><strong>${escape(r.typeOfCase || '')}</strong></div>
+                </div>
+                <div class="drawer-field">
+                  <div class="drawer-field-label">Priority</div>
+                  <div class="drawer-field-value">${escape(r.priority || 'Medium')}</div>
+                </div>
+                <div class="drawer-field">
+                  <div class="drawer-field-label">Reported By</div>
+                  <div class="drawer-field-value">${escape(r.reportedBy?.name || r.reportedBy?.username || '')}</div>
+                </div>
+                <div class="drawer-field">
+                  <div class="drawer-field-label">Date Reported</div>
+                  <div class="drawer-field-value">${escape(fmt(r.createdAt))}</div>
+                </div>
+                <div class="drawer-field">
+                  <div class="drawer-field-label">Date of Incident</div>
+                  <div class="drawer-field-value">${escape(fmt(r.dateOfIncident))}</div>
+                </div>
+                <div class="drawer-field">
+                  <div class="drawer-field-label">Place</div>
+                  <div class="drawer-field-value">${escape(r.placeOfIncident || '-')}</div>
+                </div>
+                ${r.harassmentType ? `
+                <div class="drawer-field">
+                  <div class="drawer-field-label">Harassment Type</div>
+                  <div class="drawer-field-value">${escape(r.harassmentType)}</div>
+                </div>
+                ` : ''}
+                ${r.seniorCategory ? `
+                <div class="drawer-field">
+                  <div class="drawer-field-label">Senior-Involved</div>
+                  <div class="drawer-field-value">${escape(r.seniorCategory)}</div>
+                </div>
+                ` : ''}
+
+                <h4>Complainant</h4>
+                <div class="drawer-field">
+                  <div class="drawer-field-label">Name</div>
+                  <div class="drawer-field-value">${escape(r.complainant?.name || r.complainantName || '')}</div>
+                </div>
+                <div class="drawer-field">
+                  <div class="drawer-field-label">Address</div>
+                  <div class="drawer-field-value">${escape(r.complainant?.address || r.complainantAddress || '')}</div>
+                </div>
+                <div class="drawer-field">
+                  <div class="drawer-field-label">Contact</div>
+                  <div class="drawer-field-value">${escape(r.complainant?.contact || r.complainantContact || '')}</div>
+                </div>
+
+                <h4>Respondent</h4>
+                <div class="drawer-field">
+                  <div class="drawer-field-label">Name</div>
+                  <div class="drawer-field-value">${escape(r.respondent?.name || r.respondentName || '-')}</div>
+                </div>
+                <div class="drawer-field">
+                  <div class="drawer-field-label">Address</div>
+                  <div class="drawer-field-value">${escape(r.respondent?.address || r.respondentAddress || '-')}</div>
+                </div>
+                <div class="drawer-field">
+                  <div class="drawer-field-label">Contact</div>
+                  <div class="drawer-field-value">${escape(r.respondent?.contact || r.respondentContact || '-')}</div>
+                </div>
+
+                <h4>Description</h4>
+                <div class="drawer-description">${escape(r.description || '')}</div>
+
+                ${Array.isArray(r.evidences) && r.evidences.length ? `
+                  <h4>Evidence</h4>
+                  <ul class="drawer-list">
+                    ${r.evidences.map(ev => `
+                      <li class="drawer-list-item">
+                        <span class="drawer-badge drawer-badge-file">${escape(ev.kind || 'File')}</span>
+                        <a href="${escape(ev.url)}" target="_blank" rel="noopener" class="drawer-link">${escape(ev.filename)}</a>
+                      </li>
+                    `).join('')}
+                  </ul>
+                ` : ''}
+
+                ${Array.isArray(r.hearings) && r.hearings.length ? `
+                  <h4>Hearings</h4>
+                  <ul class="drawer-list">
+                    ${r.hearings.map(h => `
+                      <li class="drawer-list-item">
+                        <span class="drawer-badge drawer-badge-file">Hearing</span>
+                        <span>${escape(fmt(h.dateTime))} @ ${escape(h.venue || 'Barangay Hall')}</span>
+                      </li>
+                    `).join('')}
+                  </ul>
+                ` : ''}
+
+                ${Array.isArray(r.patawagForms) && r.patawagForms.length ? `
+                  <h4>Patawag Forms</h4>
+                  <ul class="drawer-list">
+                    ${r.patawagForms.map(p => `
+                      <li class="drawer-list-item">
+                        <span class="drawer-badge drawer-badge-file">Patawag</span>
+                        <span>${escape(p.scheduleDate ? fmt(p.scheduleDate) : 'No schedule')} @ ${escape(p.venue || 'Barangay Hall')}</span>
+                      </li>
+                    `).join('')}
+                  </ul>
+                ` : ''}
+
+                ${r.over45Note ? `<div class="drawer-note">${escape(r.over45Note)}</div>` : ''}
+
+                <div class="drawer-meta">
+                  <div class="drawer-meta-item">
+                    <div class="drawer-meta-label">Created</div>
+                    <div class="drawer-meta-value">${escape(fmt(r.createdAt))}</div>
+                  </div>
+                  <div class="drawer-meta-item">
+                    <div class="drawer-meta-label">Last Updated</div>
+                    <div class="drawer-meta-value">${escape(fmt(r.updatedAt))}</div>
+                  </div>
+                </div>
+
+                <div class="drawer-actions">
+                  <button class="drawer-btn" id="dPrint">Print</button>
+                </div>
+              `;
+
+              const dPrint = document.getElementById('dPrint');
+              if (dPrint) dPrint.onclick=()=>window.print();
+            }
+            
+            // Open drawer with correct class
+            currentDrawer.classList.remove('hidden');
+            currentDrawer.classList.add('active');
+            currentDrawer.style.setProperty('pointer-events', 'auto', 'important');
+            currentDrawer.style.setProperty('display', 'flex', 'important');
+            currentDrawer.style.setProperty('z-index', '10000', 'important');
+            console.log('User cases: Drawer opened');
+          } catch (e) {
+            console.error('User cases: Error loading case details:', e);
+            alert('Failed to load case details: ' + (e.message || 'Unknown error'));
+          }
+        }
+      });
+    }
+
+    // Drawer close - re-query to get fresh reference
+    const currentDClose = document.getElementById('dClose');
+    if (currentDClose) {
+      const newDClose = currentDClose.cloneNode(true);
+      currentDClose.parentNode.replaceChild(newDClose, currentDClose);
+      newDClose.onclick=()=>{
+        const currentDrawer = document.getElementById('drawer');
+        if (currentDrawer) {
+          currentDrawer.classList.remove('active');
+          currentDrawer.classList.add('hidden');
+          currentDrawer.style.removeProperty('pointer-events');
+          currentDrawer.style.removeProperty('display');
+          currentDrawer.style.removeProperty('z-index');
+        }
+      };
+    }
+    
+    // Close drawer when clicking overlay
+    const currentDrawer = document.getElementById('drawer');
+    if (currentDrawer) {
+      const backdrop = currentDrawer.querySelector('.drawer-backdrop');
+      if (backdrop) {
+        const newBackdrop = backdrop.cloneNode(true);
+        backdrop.parentNode.replaceChild(newBackdrop, backdrop);
+        newBackdrop.onclick=()=>{
+          const drawerEl = document.getElementById('drawer');
+          if (drawerEl) {
+            drawerEl.classList.remove('active');
+            drawerEl.classList.add('hidden');
+            drawerEl.style.removeProperty('pointer-events');
+            drawerEl.style.removeProperty('display');
+            drawerEl.style.removeProperty('z-index');
+          }
+        };
+      }
+    }
+
+    // Notifications
+    if (notifBtn && notifPanel) {
+      const newNotifBtn = notifBtn.cloneNode(true);
+      notifBtn.parentNode.replaceChild(newNotifBtn, notifBtn);
+      notifBtn = newNotifBtn;
+      
+      newNotifBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isHidden = notifPanel.classList.contains('hidden');
+        if (isHidden) {
+          notifPanel.classList.remove('hidden');
+          notifPanel.classList.add('block');
+          loadNotifications(true);
+        } else {
+          notifPanel.classList.add('hidden');
+          notifPanel.classList.remove('block');
+        }
+      });
+      
+      document.addEventListener('click', (e) => {
+        if (!notifPanel.contains(e.target) && !notifBtn.contains(e.target)) {
+          notifPanel.classList.add('hidden');
+          notifPanel.classList.remove('block');
+        }
+      });
+      
+      if (notifMarkAll) {
+        const newNotifMarkAll = notifMarkAll.cloneNode(true);
+        notifMarkAll.parentNode.replaceChild(newNotifMarkAll, notifMarkAll);
+        notifMarkAll = newNotifMarkAll;
+        newNotifMarkAll.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          await fetch('/api/case-notifications/read-all', { method:'POST' });
+          loadNotifications(false);
+        });
+      }
+    }
   }
 
   // notifications
@@ -423,38 +647,65 @@
     }
   }
 
-  if (notifBtn && notifPanel) {
-    notifBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const isHidden = notifPanel.classList.contains('hidden');
-      if (isHidden) {
-        notifPanel.classList.remove('hidden');
-        notifPanel.classList.add('block');
-        loadNotifications(true);
-      } else {
-        notifPanel.classList.add('hidden');
-        notifPanel.classList.remove('block');
-      }
-    });
-    document.addEventListener('click', (e) => {
-      if (!notifPanel.contains(e.target) && !notifBtn.contains(e.target)) {
-        notifPanel.classList.add('hidden');
-        notifPanel.classList.remove('block');
-      }
-    });
-    if (notifMarkAll) {
-      notifMarkAll.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        await fetch('/api/case-notifications/read-all', { method:'POST' });
-        loadNotifications(false);
-      });
+  // Main init function
+  async function init() {
+    // Re-query all DOM elements
+    const contentArea = document.querySelector('.content-area');
+    if (!contentArea) {
+      console.warn('User cases: Content area not found');
+      return;
     }
+
+    tblBody = contentArea.querySelector('#tbl tbody') || document.querySelector('#tbl tbody');
+    pager = contentArea.querySelector('#pager') || document.getElementById('pager');
+    modal = document.getElementById('modal');
+    frm = document.getElementById('frm');
+    msg = document.getElementById('msg');
+    typeSel = document.getElementById('typeOfCase');
+    fType = document.getElementById('fType');
+    fPriority = document.getElementById('fPriority');
+
+    notifBtn = document.getElementById('notifBtn');
+    notifPanel = document.getElementById('notifPanel');
+    notifList = document.getElementById('notifList');
+    notifEmpty = document.getElementById('notifEmpty');
+    notifDot = document.getElementById('notifDot');
+    notifMarkAll = document.getElementById('notifMarkAll');
+
+    drawer = document.getElementById('drawer');
+    dBody = document.getElementById('dBody');
+    dClose = document.getElementById('dClose');
+    dCaseId = document.getElementById('dCaseId');
+    dStatus = document.getElementById('dStatus');
+
+    // Setup event listeners
+    setupEventListeners();
+
+    // Initialize user
+    await initUser();
+    
+    // Load case types
+    await loadCaseTypes();
+    
+    // Load data
+    load();
   }
 
-  // init
-  initUser();
-  loadCaseTypes();
-  refreshSummary();
-  load();
-})();
+  // Expose init function for router
+  window.initUserCases = init;
 
+  // Auto-initialize ONLY for direct page loads (not SPA navigation)
+  const isSPAMode = window.__ROUTER_INITIALIZED__;
+  
+  if (!isSPAMode) {
+    // Direct page load (not via router)
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      setTimeout(init, 50);
+    }
+  } else {
+    // SPA mode - router will call initUserCases, don't auto-init
+    console.log('User cases: SPA mode detected, waiting for router to call initUserCases');
+  }
+})();

@@ -342,5 +342,15 @@ $$('.theme-card').forEach(card=>{
     }
   }
 
-  init();
+  // Expose init function for router
+  window.initSettings = init;
+
+  // Auto-initialize for direct page loads
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    // For SPA navigation, router will call initSettings
+    // But also call it here if DOM is already ready (direct page load)
+    setTimeout(init, 50);
+  }
 })();

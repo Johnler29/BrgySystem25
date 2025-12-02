@@ -35,6 +35,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <link rel="stylesheet" href="/base.css">
 
 <style>
@@ -466,12 +467,16 @@
     overflow-x: auto;
     border: 1px solid var(--border);
     margin-bottom: 20px;
+    width: 100%;
+    position: relative;
   }
   .health-table-wrap .health-table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
     background: var(--surface);
+    table-layout: auto;
+    min-width: 100%;
   }
   .health-table-wrap .health-table thead {
     background: #f8f9fa;
@@ -497,6 +502,7 @@
   }
   .health-table-wrap .health-table thead th:last-child {
     padding-right: 20px;
+    text-align: right;
   }
   .health-table-wrap .health-table tbody tr {
     transition: all 0.2s ease;
@@ -549,6 +555,9 @@
   }
   .health-table-wrap .health-table tbody td:last-child {
     padding-right: 20px;
+  }
+  .health-table-wrap .health-table tbody td:last-child:not(.t-actions) {
+    text-align: left;
   }
   
   /* Empty State */
@@ -633,37 +642,108 @@
     display: flex;
     gap: 6px;
     align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
   }
+  .health-table-wrap .health-table tbody td.t-actions {
+    text-align: right;
+    white-space: nowrap;
+    width: auto;
+    min-width: 200px;
+    padding: 12px 16px;
+    vertical-align: middle;
+  }
+  /* Table Action Buttons - Standardized across all admin pages */
   .table-action-btn {
-    padding: 6px 12px;
-    border-radius: 6px;
-    border: 1px solid var(--border);
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1.5px solid #d1d5db;
     background: #fff;
-    color: var(--text);
-    font-size: 0.8rem;
+    color: #374151;
+    font-size: 0.8125rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
     white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
   }
   .table-action-btn:hover {
     transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0,0,0,.1);
   }
-  .table-action-btn.view:hover,
+  .table-action-btn.view {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1.5px solid #d1d5db;
+    background: #fff;
+    color: #374151;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+  }
+  .table-action-btn.view:hover {
+    background: #3498db;
+    color: #fff;
+    border-color: #3498db;
+    box-shadow: 0 2px 4px rgba(52,152,219,.2);
+  }
+  .table-action-btn.view i {
+    font-size: 0.75rem;
+  }
+  .table-action-btn.edit {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1.5px solid #d1d5db;
+    background: #fff;
+    color: #374151;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+  }
   .table-action-btn.edit:hover {
     background: #f0f7ff;
-    border-color: var(--brand);
-    color: var(--brand);
+    border-color: #3498db;
+    color: #3498db;
+    box-shadow: 0 2px 4px rgba(52,152,219,.1);
+  }
+  .table-action-btn.edit i {
+    font-size: 0.75rem;
   }
   .table-action-btn.delete {
-    background: var(--danger);
+    background: #e74c3c;
     color: #fff;
-    border-color: var(--danger);
+    border-color: #e74c3c;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
   }
   .table-action-btn.delete:hover {
     background: #c0392b;
     border-color: #c0392b;
+    box-shadow: 0 2px 4px rgba(231,76,60,.2);
+  }
+  .table-action-btn.delete i {
+    font-size: 0.75rem;
   }
 
   /* Dashboard Card - Compact */
@@ -738,7 +818,7 @@
   #drawer {
     position: fixed;
     inset: 0;
-    z-index: 50;
+    z-index: 10000;
     display: none;
   }
   #drawer:not(.hidden) {
@@ -749,32 +829,136 @@
   #drawer .drawer-backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.25);
+    background: rgba(0, 0, 0, 0.45);
+    cursor: pointer;
   }
   #drawer .drawer-content {
-    position: absolute;
-    right: 0;
-    top: 0;
+    position: relative;
     height: 100%;
     width: 100%;
-    max-width: 520px;
-    background: var(--surface);
-    box-shadow: -10px 0 30px rgba(0,0,0,0.2);
+    max-width: 600px;
+    background: #fff;
+    box-shadow: -10px 0 30px rgba(0,0,0,.2);
     display: flex;
     flex-direction: column;
+    z-index: 10001;
   }
   #drawer .drawer-header {
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--border);
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
     background: #f8f9fa;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-shrink: 0;
+  }
+  #drawer .drawer-header strong {
+    font-size: 1.125rem;
+    color: #2c3e50;
   }
   #drawer .drawer-body {
-    padding: 20px;
-    overflow: auto;
+    padding: 24px;
+    overflow-y: auto;
     flex: 1;
+    background: #fff;
+  }
+  #drawer .drawer-body h4 {
+    margin-top: 24px;
+    margin-bottom: 12px;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #2c3e50;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e5e7eb;
+  }
+  #drawer .drawer-body h4:first-child {
+    margin-top: 0;
+  }
+  .kv {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 12px;
+    margin-bottom: 14px;
+    align-items: start;
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f3f5;
+  }
+  .kv:last-child {
+    border-bottom: none;
+  }
+  .kv > div:first-child {
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 500;
+    line-height: 1.5;
+  }
+  .kv > div:last-child {
+    font-size: 0.875rem;
+    color: #2c3e50;
+    word-break: break-word;
+    line-height: 1.5;
+  }
+  .kv > div:last-child strong {
+    font-weight: 600;
+    color: #111827;
+    font-size: 0.9375rem;
+  }
+  .drawer-section {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .drawer-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+  #drawer .drawer-body hr {
+    margin: 24px 0;
+    border: none;
+    border-top: 2px solid #e5e7eb;
+  }
+  .drawer-meta-section {
+    margin-top: 24px;
+    padding: 16px;
+    background: #f9fafb;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+  }
+  .drawer-meta-section h4 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    font-size: 1rem;
+    color: #374151;
+  }
+  .drawer-meta-section .kv {
+    border-bottom: 1px solid #e5e7eb;
+    padding: 10px 0;
+    margin-bottom: 10px;
+  }
+  .drawer-meta-section .kv:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+  
+  @media (max-width: 768px) {
+    #drawer .drawer-content {
+      max-width: 100%;
+    }
+    .kv {
+      grid-template-columns: 1fr;
+      gap: 4px;
+    }
+    .kv > div:first-child {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    #drawer .drawer-body {
+      padding: 16px;
+    }
+    #drawer .drawer-header {
+      padding: 16px;
+    }
   }
 
   /* Responsive */
@@ -821,18 +1005,18 @@
     </div>
 
     <ul class="sidebar-menu" id="navList">
-      <li><a href="/admin/dashboard" data-tooltip="Admin Dashboard"><span class="icon">🏠︎</span><span class="label">Dashboard</span></a></li>
-      <li><a href="/admin/residents" data-tooltip="Resident Management"><span class="icon">👪</span><span class="label">Resident Management</span></a></li>
-      <li><a href="/admin/document-permits" data-tooltip="Document & Permit Management"><span class="icon">📄</span><span class="label">Document & Permit Management</span></a></li>
-      <li><a href="/admin/community" data-tooltip="Community Development"><span class="icon">🤝</span><span class="label">Community Development</span></a></li>
-      <li><a href="/admin/cases" data-tooltip="Cases & Incidents"><span class="icon">⚖️</span><span class="label">Case & Incident Management</span></a></li>
-      <li><a href="/admin/health" class="active" data-tooltip="Health & Social"><span class="icon">🏥</span><span class="label">Health & Social Services</span></a></li>
-      <li><a href="/admin/disaster" data-tooltip="Disaster Response"><span class="icon">🚨</span><span class="label">Disaster & Emergency Response</span></a></li>
-      <li><a href="/admin/financial" data-tooltip="Finance & Budget"><span class="icon">💰</span><span class="label">Financial & Budget</span></a></li>
-      <li><a href="/admin/logs-reports" data-tooltip="Logs & Reports"><span class="icon">📊</span><span class="label">Logs & Reports</span></a></li>
-      <li><a href="/admin/settings" data-tooltip="System Settings"><span class="icon">⚙️</span><span class="label">System Settings</span></a></li>
+      <li><a href="/admin/dashboard" data-tooltip="Admin Dashboard"><span class="icon"><i class="fas fa-home"></i></span><span class="label">Dashboard</span></a></li>
+      <li><a href="/admin/residents" data-tooltip="Resident Management"><span class="icon"><i class="fas fa-users"></i></span><span class="label">Resident Management</span></a></li>
+      <li><a href="/admin/document-permits" data-tooltip="Document & Permit Management"><span class="icon"><i class="fas fa-file-alt"></i></span><span class="label">Document & Permit Management</span></a></li>
+      <li><a href="/admin/community" data-tooltip="Community Development"><span class="icon"><i class="fas fa-handshake"></i></span><span class="label">Community Development</span></a></li>
+      <li><a href="/admin/cases" data-tooltip="Cases & Incidents"><span class="icon"><i class="fas fa-balance-scale"></i></span><span class="label">Case & Incident Management</span></a></li>
+      <li><a href="/admin/health" class="active" data-tooltip="Health & Social"><span class="icon"><i class="fas fa-hospital"></i></span><span class="label">Health & Social Services</span></a></li>
+      <li><a href="/admin/disaster" data-tooltip="Disaster Response"><span class="icon"><i class="fas fa-exclamation-triangle"></i></span><span class="label">Disaster & Emergency Response</span></a></li>
+      <li><a href="/admin/financial" data-tooltip="Finance & Budget"><span class="icon"><i class="fas fa-dollar-sign"></i></span><span class="label">Financial & Budget</span></a></li>
+      <li><a href="/admin/logs-reports" data-tooltip="Logs & Reports"><span class="icon"><i class="fas fa-chart-bar"></i></span><span class="label">Logs & Reports</span></a></li>
+      <li><a href="/admin/settings" data-tooltip="System Settings"><span class="icon"><i class="fas fa-cog"></i></span><span class="label">System Settings</span></a></li>
 
-      <li style="margin-top:50px;"><a href="#" onclick="logout()" data-tooltip="Log out"><span class="icon">🚪</span><span class="label">Log out</span></a></li>
+      <li style="margin-top:50px;"><a href="#" onclick="logout()" data-tooltip="Log out"><span class="icon"><i class="fas fa-sign-out-alt"></i></span><span class="label">Log out</span></a></li>
     </ul>
   </nav>
 
@@ -844,7 +1028,7 @@
         <h1 id="greeting">Health & Social Services</h1>
       </div>
       <div class="user-info" id="userChip">
-        <button class="btn btn-outline" id="notifBtn" title="Notifications">🔔</button>
+        <button class="btn btn-outline" id="notifBtn" title="Notifications"><i class="fas fa-bell"></i></button>
         <div class="user-avatar" id="avatar">U</div>
         <span id="username" class="user-name">User</span>
 
@@ -855,8 +1039,8 @@
 
         <div class="dropdown" id="userMenu">
           <div class="item" id="goProfile">👤 Profile</div>
-          <div class="item" id="goSettings">⚙️ Settings</div>
-          <div class="item" id="doLogout">🚪 Log out</div>
+          <div class="item" id="goSettings"><i class="fas fa-cog"></i> Settings</div>
+          <div class="item" id="doLogout"><i class="fas fa-sign-out-alt"></i> Log out</div>
         </div>
       </div>
     </header>

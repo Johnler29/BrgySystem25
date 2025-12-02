@@ -3,20 +3,9 @@
   const $ = (s,p=document)=>p.querySelector(s);
   const $$ = (s,p=document)=>p.querySelectorAll(s);
   
-  const tableHead = $('#tableHead');
-  const tableBody = $('#tableBody');
-  const pager = $('#pager');
-  const modal = $('#modal');
-  const frm = $('#frm');
-  const msg = $('#msg');
-  const formContent = $('#formContent');
-  const tabs = $('#tabs');
-  
-  const drawer = $('#drawer');
-  const dBody = $('#dBody');
-  const dClose = $('#dClose');
-  const dRecordId = $('#dRecordId');
-  const dStatus = $('#dStatus');
+  // DOM element references - will be re-queried in init()
+  let tableHead, tableBody, pager, modal, frm, msg, formContent, tabs;
+  let drawer, dBody, dClose, dRecordId, dStatus;
 
   let user = null;
   let currentTab = 'patient-data';
@@ -198,8 +187,11 @@
     
     const config = tabConfigs[tabName];
     if (config) {
-      tableHead.innerHTML = `<tr>${config.headers.map(h => `<th>${h}</th>`).join('')}<th>Actions</th></tr>`;
-      $('#dlgTitle').textContent = `Add ${config.title}`;
+      if (tableHead) {
+        tableHead.innerHTML = `<tr>${config.headers.map(h => `<th>${h}</th>`).join('')}<th>Actions</th></tr>`;
+      }
+      const dlgTitle = $('#dlgTitle');
+      if (dlgTitle) dlgTitle.textContent = `Add ${config.title}`;
       state.page = 1;
       load();
       updateFormContent();
@@ -322,7 +314,7 @@
 
   // Show loading skeleton
   function showLoading() {
-    if (!tableBody) return;
+    if (!tableBody || !tableHead) return;
     const config = tabConfigs[currentTab];
     if (!config) return;
     
@@ -608,9 +600,12 @@
           ${cells}
           <td class="t-actions">
             <div class="table-actions">
-              <button class="table-action-btn view" data-act="view" data-id="${r._id}">View</button>
-              ${isAdmin || (user && r.createdBy === (user._id || user.id)) ? '<button class="table-action-btn edit" data-act="edit" data-id="' + r._id + '">Edit</button>' : ''}
-              ${isAdmin || (user && r.createdBy === (user._id || user.id)) ? '<button class="table-action-btn delete" data-act="del" data-id="' + r._id + '">Delete</button>' : ''}
+              <button class="table-action-btn view" data-act="view" data-id="${r._id}">
+                <i class="fas fa-eye"></i>
+                <span>View</span>
+              </button>
+              ${isAdmin || (user && r.createdBy === (user._id || user.id)) ? '<button class="table-action-btn edit" data-act="edit" data-id="' + r._id + '"><i class="fas fa-edit"></i><span>Edit</span></button>' : ''}
+              ${isAdmin || (user && r.createdBy === (user._id || user.id)) ? '<button class="table-action-btn delete" data-act="del" data-id="' + r._id + '"><i class="fas fa-trash"></i><span>Delete</span></button>' : ''}
             </div>
           </td>
         `;
@@ -625,6 +620,7 @@
   }
 
   function renderPager(page, totalPages, total){
+    if (!pager) return;
     pager.innerHTML = '';
     const info = document.createElement('div');
     info.className = 'mr-auto text-sm text-[#2c3e50]';
@@ -655,7 +651,11 @@
 
   // Form content generation
   function updateFormContent() {
+    if (!formContent) return;
     formContent.innerHTML = getFormHTML(currentTab);
+
+    // Setup resident search after form content is updated
+    setTimeout(() => setupResidentSearch(), 50);
 
     // special wiring per tab
     if (currentTab === 'post-partum') {
@@ -681,56 +681,86 @@
     return forms[tab] || '<p>Form not available</p>';
   }
 
-  // Event Listeners
-  tabs.addEventListener('click', (e) => {
-    const tab = e.target.closest('.health-tab');
-    if (!tab) return;
-    const tabName = tab.getAttribute('data-tab');
-    if (tabName) switchTab(tabName);
-  });
-
-  $('#btnFilter').onclick = () => {
-    state.from = $('#fFrom').value || '';
-    state.to = $('#fTo').value || '';
-    state.q = $('#fQ').value.trim();
-    state.status = $('#fStatus').value || '';
-    state.page = 1;
-    load();
-  };
-
-  $('#btnExport').onclick = () => {
-    const config = tabConfigs[currentTab];
-    const qs = new URLSearchParams({ ...state, exportCsv: 'true' }).toString();
-    window.location = config.apiEndpoint + '?' + qs;
-  };
-
-    $('#btnAdd').onclick = () => {
-      if (!modal) {
-        console.error('Modal element not found');
-        return;
-      }
-      if (!frm) {
-        console.error('Form element not found');
-        return;
-      }
+  // Setup event listeners - called from init()
+  function setupEventListeners() {
+    // Remove old event listeners by cloning elements (for tabs)
+    if (tabs && tabs.parentNode) {
+      const newTabs = tabs.cloneNode(true);
+      tabs.parentNode.replaceChild(newTabs, tabs);
+      tabs = newTabs;
       
-      frm.reset();
-      delete frm.dataset.editId;
-      msg.textContent = '';
-      const config = tabConfigs[currentTab];
-      if (config) {
-        $('#dlgTitle').textContent = 'Add ' + config.title;
-      }
-      updateFormContent();
-      modal.classList.add('open');
-      console.log('Modal opened for tab:', currentTab);
-    };
+      tabs.addEventListener('click', (e) => {
+        const tab = e.target.closest('.health-tab');
+        if (!tab) return;
+        const tabName = tab.getAttribute('data-tab');
+        if (tabName) switchTab(tabName);
+      });
+    }
 
-  $('#btnCancel').onclick = () => {
-    modal.classList.remove('open');
-  };
+    // Filter button
+    const btnFilter = $('#btnFilter');
+    if (btnFilter) {
+      btnFilter.onclick = () => {
+        state.from = $('#fFrom')?.value || '';
+        state.to = $('#fTo')?.value || '';
+        state.q = $('#fQ')?.value.trim() || '';
+        state.status = $('#fStatus')?.value || '';
+        state.page = 1;
+        load();
+      };
+    }
 
-  $('#btnSave').onclick = async () => {
+    // Export button
+    const btnExport = $('#btnExport');
+    if (btnExport) {
+      btnExport.onclick = () => {
+        const config = tabConfigs[currentTab];
+        const qs = new URLSearchParams({ ...state, exportCsv: 'true' }).toString();
+        window.location = config.apiEndpoint + '?' + qs;
+      };
+    }
+
+    // Add button
+    const btnAdd = $('#btnAdd');
+    if (btnAdd) {
+      btnAdd.onclick = () => {
+        if (!modal) {
+          console.error('Modal element not found');
+          return;
+        }
+        if (!frm) {
+          console.error('Form element not found');
+          return;
+        }
+        
+        frm.reset();
+        delete frm.dataset.editId;
+        if (msg) msg.textContent = '';
+        const config = tabConfigs[currentTab];
+        if (config) {
+          const dlgTitle = $('#dlgTitle');
+          if (dlgTitle) dlgTitle.textContent = 'Add ' + config.title;
+        }
+        updateFormContent();
+        modal.classList.add('open');
+        console.log('Modal opened for tab:', currentTab);
+        // Setup resident search after form is loaded
+        setTimeout(() => setupResidentSearch(), 100);
+      };
+    }
+
+    // Cancel button
+    const btnCancel = $('#btnCancel');
+    if (btnCancel) {
+      btnCancel.onclick = () => {
+        if (modal) modal.classList.remove('open');
+      };
+    }
+
+    // Save button
+    const btnSave = $('#btnSave');
+    if (btnSave) {
+      btnSave.onclick = async () => {
     if (!user) {
       alert('User not authenticated. Please refresh the page.');
       return;
@@ -742,7 +772,12 @@
     body.createdBy = user._id || user.id;
     body.addedBy = user.name || user.username;
     
-    const requiredFields = $$('input[required], select[required], textarea[required]');
+    if (!frm) {
+      if (msg) msg.textContent = 'Form not found.';
+      return;
+    }
+    
+    const requiredFields = $$('input[required], select[required], textarea[required]', frm);
     let hasError = false;
     
     requiredFields.forEach(field => {
@@ -755,7 +790,7 @@
     });
     
     if (hasError) {
-      msg.textContent = 'Please fill all required fields.';
+      if (msg) msg.textContent = 'Please fill all required fields.';
       return;
     }
 
@@ -793,23 +828,32 @@
       console.log('Save response:', result);
       
       if (result.ok) {
-        modal.classList.remove('open');
-        frm.reset();
-        delete frm.dataset.editId;
+        if (modal) modal.classList.remove('open');
+        if (frm) {
+          frm.reset();
+          delete frm.dataset.editId;
+        }
         load();
         refreshSummary();
-        msg.textContent = '';
+        if (msg) msg.textContent = '';
       } else {
-        msg.textContent = result.message || 'Failed to save record.';
+        if (msg) msg.textContent = result.message || 'Failed to save record.';
       }
     } catch (error) {
       console.error('Save error:', error);
-      msg.textContent = 'Error saving record: ' + error.message;
+      if (msg) msg.textContent = 'Error saving record: ' + error.message;
     }
-  };
+      };
+    }
 
-  // Table actions with role-based permissions
-  tableBody.addEventListener('click', async (e) => {
+    // Table actions with role-based permissions
+    if (tableBody && tableBody.parentNode) {
+      // Remove old listener by cloning
+      const newTableBody = tableBody.cloneNode(true);
+      tableBody.parentNode.replaceChild(newTableBody, tableBody);
+      tableBody = newTableBody;
+      
+      tableBody.addEventListener('click', async (e) => {
     const btn = e.target.closest('button');
     if (!btn) return;
     
@@ -1044,12 +1088,65 @@
         alert('Error deleting record: ' + error.message);
       }
     }
-  });
+      });
+    }
+
+    // Drawer close button - re-query to get fresh reference
+    const currentDClose = document.getElementById('dClose');
+    if (currentDClose) {
+      const newDClose = currentDClose.cloneNode(true);
+      currentDClose.parentNode.replaceChild(newDClose, currentDClose);
+      newDClose.onclick = () => {
+        const currentDrawer = document.getElementById('drawer');
+        if (currentDrawer) {
+          currentDrawer.classList.add('hidden');
+          currentDrawer.style.removeProperty('pointer-events');
+          currentDrawer.style.removeProperty('display');
+          currentDrawer.style.removeProperty('z-index');
+        }
+      };
+    }
+    
+    // Drawer backdrop - re-query to get fresh reference
+    const currentDrawer = document.getElementById('drawer');
+    if (currentDrawer) {
+      const backdrop = currentDrawer.querySelector('.drawer-backdrop');
+      if (backdrop) {
+        const newBackdrop = backdrop.cloneNode(true);
+        backdrop.parentNode.replaceChild(newBackdrop, backdrop);
+        newBackdrop.onclick = () => {
+          const drawerEl = document.getElementById('drawer');
+          if (drawerEl) {
+            drawerEl.classList.add('hidden');
+            drawerEl.style.removeProperty('pointer-events');
+            drawerEl.style.removeProperty('display');
+            drawerEl.style.removeProperty('z-index');
+          }
+        };
+      }
+    }
+  }
 
   function showRecordDetails(record) {
+    // Re-query drawer elements to ensure fresh references
+    const currentDrawer = document.getElementById('drawer');
+    const currentDBody = document.getElementById('dBody');
+    const currentDRecordId = document.getElementById('dRecordId');
+    const currentDStatus = document.getElementById('dStatus');
+    
+    if (!currentDrawer || !currentDBody || !currentDRecordId || !currentDStatus) {
+      console.error('Health page: Drawer elements not found', {
+        drawer: !!currentDrawer,
+        dBody: !!currentDBody,
+        dRecordId: !!currentDRecordId,
+        dStatus: !!currentDStatus
+      });
+      return;
+    }
+    
     const config = tabConfigs[currentTab];
     const title = config ? config.title : 'Health Record';
-    dRecordId.textContent = title + ' #' + (record._id || 'N/A');
+    currentDRecordId.textContent = title + ' #' + (record._id || 'N/A');
     
     const statusMap = {
       'Active': 'bg-active',
@@ -1063,95 +1160,175 @@
       'Administered': 'bg-administered'
     };
     const status = record.status || 'Active';
-    dStatus.className = 'badge ' + (statusMap[status] || 'bg-pending');
-    dStatus.textContent = status;
+    currentDStatus.className = 'badge ' + (statusMap[status] || 'bg-pending');
+    currentDStatus.textContent = status;
+    
+    // Helper to escape HTML
+    const escape = (str) => {
+      if (!str) return '';
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    };
+    
+    // Helper to format dates
+    const formatDate = (dateValue) => {
+      if (!dateValue) return '-';
+      try {
+        const d = new Date(dateValue);
+        if (isNaN(d.getTime())) return String(dateValue);
+        return d.toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'short', 
+          day: 'numeric' 
+        });
+      } catch (e) {
+        return String(dateValue);
+      }
+    };
+    
+    const formatDateTime = (dateValue) => {
+      if (!dateValue) return '-';
+      try {
+        const d = new Date(dateValue);
+        if (isNaN(d.getTime())) return String(dateValue);
+        return d.toLocaleString('en-US', { 
+          year: 'numeric', 
+          month: 'short', 
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      } catch (e) {
+        return String(dateValue);
+      }
+    };
 
     // Build details HTML based on record type
     let detailsHTML = '';
     
-    // Tab-specific fields
+    // Tab-specific fields - organized into sections
     if (currentTab === 'patient-data') {
       detailsHTML += `
-        <div class="kv"><div>Coordinator</div><div>${record.coordinator || '-'}</div></div>
-        <div class="kv"><div>Program</div><div>${record.program || '-'}</div></div>
-        <div class="kv"><div>Type</div><div>${record.type || '-'}</div></div>
-        <div class="kv"><div>Location</div><div>${record.location || '-'}</div></div>
-        <div class="kv"><div>Date & Time</div><div>${record.dateTime ? new Date(record.dateTime).toLocaleString() : '-'}</div></div>
+        <div class="drawer-section">
+          <h4>Program Information</h4>
+          <div class="kv"><div>Coordinator</div><div><strong>${escape(record.coordinator || '-')}</strong></div></div>
+          <div class="kv"><div>Program</div><div>${escape(record.program || '-')}</div></div>
+          <div class="kv"><div>Type</div><div>${escape(record.type || '-')}</div></div>
+          <div class="kv"><div>Location</div><div>${escape(record.location || '-')}</div></div>
+          <div class="kv"><div>Date & Time</div><div>${escape(formatDateTime(record.dateTime))}</div></div>
+        </div>
       `;
     } else if (currentTab === 'family-planning') {
       const name = record.lastName && record.givenName ? `${record.lastName}, ${record.givenName}` : (record.name || '-');
       detailsHTML += `
-        <div class="kv"><div>Name</div><div>${name}</div></div>
-        <div class="kv"><div>Age</div><div>${record.age || '-'}</div></div>
-        <div class="kv"><div>Address</div><div>${record.address || '-'}</div></div>
-        <div class="kv"><div>Client Type</div><div>${record.clientType || '-'}</div></div>
-        <div class="kv"><div>Method</div><div>${record.fpMethod || record.method || '-'}</div></div>
-        <div class="kv"><div>Date of Birth</div><div>${record.dateOfBirth ? new Date(record.dateOfBirth).toLocaleDateString() : '-'}</div></div>
+        <div class="drawer-section">
+          <h4>Client Information</h4>
+          <div class="kv"><div>Name</div><div><strong>${escape(name)}</strong></div></div>
+          <div class="kv"><div>Age</div><div>${escape(record.age || '-')}</div></div>
+          <div class="kv"><div>Address</div><div>${escape(record.address || '-')}</div></div>
+          <div class="kv"><div>Client Type</div><div>${escape(record.clientType || '-')}</div></div>
+          <div class="kv"><div>Method</div><div>${escape(record.fpMethod || record.method || '-')}</div></div>
+          <div class="kv"><div>Date of Birth</div><div>${escape(formatDate(record.dateOfBirth))}</div></div>
+        </div>
       `;
     } else if (currentTab === 'post-partum') {
       detailsHTML += `
-        <div class="kv"><div>Mother Name</div><div>${record.motherName || '-'}</div></div>
-        <div class="kv"><div>Address</div><div>${record.address || '-'}</div></div>
-        <div class="kv"><div>Age</div><div>${record.ageOfMother || '-'}</div></div>
-        <div class="kv"><div>Delivery Date/Time</div><div>${record.deliveryDateTime ? new Date(record.deliveryDateTime).toLocaleString() : '-'}</div></div>
-        <div class="kv"><div>Place of Delivery</div><div>${record.placeOfDelivery || '-'}</div></div>
-        <div class="kv"><div>Gender</div><div>${record.gender || '-'}</div></div>
-        <div class="kv"><div>Tetanus Status</div><div>${record.tetanusStatus || '-'}</div></div>
-        ${record.details30Min ? `<div class="kv"><div>30-Min Details</div><div>${record.details30Min}</div></div>` : ''}
+        <div class="drawer-section">
+          <h4>Mother Information</h4>
+          <div class="kv"><div>Mother Name</div><div><strong>${escape(record.motherName || '-')}</strong></div></div>
+          <div class="kv"><div>Address</div><div>${escape(record.address || '-')}</div></div>
+          <div class="kv"><div>Age</div><div>${escape(record.ageOfMother || '-')}</div></div>
+        </div>
+        <div class="drawer-section">
+          <h4>Delivery Information</h4>
+          <div class="kv"><div>Delivery Date/Time</div><div>${escape(formatDateTime(record.deliveryDateTime))}</div></div>
+          <div class="kv"><div>Place of Delivery</div><div>${escape(record.placeOfDelivery || '-')}</div></div>
+          <div class="kv"><div>Gender</div><div>${escape(record.gender || '-')}</div></div>
+          <div class="kv"><div>Tetanus Status</div><div>${escape(record.tetanusStatus || '-')}</div></div>
+          ${record.details30Min ? `<div class="kv"><div>30-Min Details</div><div>${escape(record.details30Min)}</div></div>` : ''}
+        </div>
       `;
     } else if (currentTab === 'child-immunization') {
       detailsHTML += `
-        <div class="kv"><div>Child Name</div><div>${record.childName || '-'}</div></div>
-        <div class="kv"><div>Birthday</div><div>${record.birthday ? new Date(record.birthday).toLocaleDateString() : '-'}</div></div>
-        <div class="kv"><div>Age</div><div>${record.age || '-'}</div></div>
-        <div class="kv"><div>BCG</div><div>${record.bcgDate ? new Date(record.bcgDate).toLocaleDateString() : 'Not administered'}</div></div>
-        <div class="kv"><div>Hep B</div><div>${record.hepBBirthDate ? new Date(record.hepBBirthDate).toLocaleDateString() : 'Not administered'}</div></div>
-        <div class="kv"><div>Pentavalent</div><div>${record.pentavalent1Date ? new Date(record.pentavalent1Date).toLocaleDateString() : 'Not administered'}</div></div>
-        <div class="kv"><div>OPV</div><div>${record.opv1Date ? new Date(record.opv1Date).toLocaleDateString() : 'Not administered'}</div></div>
-        <div class="kv"><div>MMR</div><div>${record.mmr1Date ? new Date(record.mmr1Date).toLocaleDateString() : 'Not administered'}</div></div>
+        <div class="drawer-section">
+          <h4>Child Information</h4>
+          <div class="kv"><div>Child Name</div><div><strong>${escape(record.childName || '-')}</strong></div></div>
+          <div class="kv"><div>Birthday</div><div>${escape(formatDate(record.birthday))}</div></div>
+          <div class="kv"><div>Age</div><div>${escape(record.age || '-')}</div></div>
+        </div>
+        <div class="drawer-section">
+          <h4>Immunization Records</h4>
+          <div class="kv"><div>BCG</div><div>${escape(record.bcgDate ? formatDate(record.bcgDate) : 'Not administered')}</div></div>
+          <div class="kv"><div>Hep B</div><div>${escape(record.hepBBirthDate ? formatDate(record.hepBBirthDate) : 'Not administered')}</div></div>
+          <div class="kv"><div>Pentavalent</div><div>${escape(record.pentavalent1Date ? formatDate(record.pentavalent1Date) : 'Not administered')}</div></div>
+          <div class="kv"><div>OPV</div><div>${escape(record.opv1Date ? formatDate(record.opv1Date) : 'Not administered')}</div></div>
+          <div class="kv"><div>MMR</div><div>${escape(record.mmr1Date ? formatDate(record.mmr1Date) : 'Not administered')}</div></div>
+        </div>
       `;
     } else if (currentTab === 'individual-treatment') {
       detailsHTML += `
-        <div class="kv"><div>Patient Name</div><div>${record.patientName || record.name || '-'}</div></div>
-        <div class="kv"><div>Consultation Date</div><div>${record.consultationDate || record.date ? new Date(record.consultationDate || record.date).toLocaleDateString() : '-'}</div></div>
-        <div class="kv"><div>Age</div><div>${record.age || '-'}</div></div>
-        <div class="kv"><div>Address</div><div>${record.address || '-'}</div></div>
-        <div class="kv"><div>Chief Complaint</div><div>${record.historyOfIllness || record.chiefComplaint || '-'}</div></div>
-        <div class="kv"><div>Diagnosis</div><div>${record.diagnosis || '-'}</div></div>
-        <div class="kv"><div>Treatment</div><div>${record.treatment || '-'}</div></div>
+        <div class="drawer-section">
+          <h4>Patient Information</h4>
+          <div class="kv"><div>Patient Name</div><div><strong>${escape(record.patientName || record.name || '-')}</strong></div></div>
+          <div class="kv"><div>Age</div><div>${escape(record.age || '-')}</div></div>
+          <div class="kv"><div>Address</div><div>${escape(record.address || '-')}</div></div>
+          <div class="kv"><div>Consultation Date</div><div>${escape(formatDate(record.consultationDate || record.date))}</div></div>
+        </div>
+        <div class="drawer-section">
+          <h4>Medical Information</h4>
+          <div class="kv"><div>Chief Complaint</div><div>${escape(record.historyOfIllness || record.chiefComplaint || '-')}</div></div>
+          <div class="kv"><div>Diagnosis</div><div>${escape(record.diagnosis || '-')}</div></div>
+          <div class="kv"><div>Treatment</div><div>${escape(record.treatment || '-')}</div></div>
+        </div>
       `;
     } else if (currentTab === 'patient-data-record') {
       const name = record.surname && record.givenName ? `${record.surname}, ${record.givenName} ${(record.middleName || '')}`.trim() : (record.name || '-');
       detailsHTML += `
-        <div class="kv"><div>Patient Name</div><div>${name}</div></div>
-        <div class="kv"><div>Age</div><div>${record.age || '-'}</div></div>
-        <div class="kv"><div>Gender</div><div>${record.gender || '-'}</div></div>
-        <div class="kv"><div>Barangay</div><div>${record.barangay || '-'}</div></div>
-        <div class="kv"><div>Contact</div><div>${record.contactNumber || '-'}</div></div>
-        <div class="kv"><div>PhilHealth</div><div>${record.philhealth || '-'}</div></div>
-        <div class="kv"><div>Civil Status</div><div>${record.civilStatus || '-'}</div></div>
-        ${record.cvdStatus ? `<div class="kv"><div>CVD Status</div><div>${record.cvdStatus}</div></div>` : ''}
-        ${record.ncdStatus ? `<div class="kv"><div>NCD Status</div><div>${record.ncdStatus}</div></div>` : ''}
+        <div class="drawer-section">
+          <h4>Patient Information</h4>
+          <div class="kv"><div>Patient Name</div><div><strong>${escape(name)}</strong></div></div>
+          <div class="kv"><div>Age</div><div>${escape(record.age || '-')}</div></div>
+          <div class="kv"><div>Gender</div><div>${escape(record.gender || '-')}</div></div>
+          <div class="kv"><div>Barangay</div><div>${escape(record.barangay || '-')}</div></div>
+          <div class="kv"><div>Contact</div><div>${escape(record.contactNumber || '-')}</div></div>
+          <div class="kv"><div>PhilHealth</div><div>${escape(record.philhealth || '-')}</div></div>
+          <div class="kv"><div>Civil Status</div><div>${escape(record.civilStatus || '-')}</div></div>
+          ${record.cvdStatus ? `<div class="kv"><div>CVD Status</div><div>${escape(record.cvdStatus)}</div></div>` : ''}
+          ${record.ncdStatus ? `<div class="kv"><div>NCD Status</div><div>${escape(record.ncdStatus)}</div></div>` : ''}
+        </div>
       `;
     } else if (currentTab === 'pregnancy-tracking') {
       detailsHTML += `
-        <div class="kv"><div>Name</div><div>${record.name || '-'}</div></div>
-        <div class="kv"><div>Address</div><div>${record.completeAddress || record.address || '-'}</div></div>
-        <div class="kv"><div>Age</div><div>${record.age || '-'}</div></div>
-        <div class="kv"><div>LMP</div><div>${record.lmp ? new Date(record.lmp).toLocaleDateString() : '-'}</div></div>
-        <div class="kv"><div>EDD</div><div>${record.edd ? new Date(record.edd).toLocaleDateString() : '-'}</div></div>
-        <div class="kv"><div>Prenatal Consultation</div><div>${record.prenatalConsultation || '-'}</div></div>
-        <div class="kv"><div>Health Facility</div><div>${record.healthFacility || '-'}</div></div>
+        <div class="drawer-section">
+          <h4>Patient Information</h4>
+          <div class="kv"><div>Name</div><div><strong>${escape(record.name || '-')}</strong></div></div>
+          <div class="kv"><div>Address</div><div>${escape(record.completeAddress || record.address || '-')}</div></div>
+          <div class="kv"><div>Age</div><div>${escape(record.age || '-')}</div></div>
+        </div>
+        <div class="drawer-section">
+          <h4>Pregnancy Information</h4>
+          <div class="kv"><div>LMP</div><div>${escape(formatDate(record.lmp))}</div></div>
+          <div class="kv"><div>EDD</div><div>${escape(formatDate(record.edd))}</div></div>
+          <div class="kv"><div>Prenatal Consultation</div><div>${escape(record.prenatalConsultation || '-')}</div></div>
+          <div class="kv"><div>Health Facility</div><div>${escape(record.healthFacility || '-')}</div></div>
+        </div>
       `;
     } else if (currentTab === 'pre-natal') {
       detailsHTML += `
-        <div class="kv"><div>Patient Name</div><div>${record.patientName || '-'}</div></div>
-        <div class="kv"><div>Age</div><div>${record.age || '-'}</div></div>
-        <div class="kv"><div>Address</div><div>${record.address || '-'}</div></div>
-        <div class="kv"><div>Visit Date</div><div>${record.visitDate ? new Date(record.visitDate).toLocaleDateString() : '-'}</div></div>
-        <div class="kv"><div>Trimester</div><div>${record.trimester || '-'}</div></div>
-        <div class="kv"><div>Midwife</div><div>${record.midwifeName || '-'}</div></div>
-        <div class="kv"><div>Blood Pressure</div><div>${record.bloodPressure || '-'}</div></div>
+        <div class="drawer-section">
+          <h4>Patient Information</h4>
+          <div class="kv"><div>Patient Name</div><div><strong>${escape(record.patientName || '-')}</strong></div></div>
+          <div class="kv"><div>Age</div><div>${escape(record.age || '-')}</div></div>
+          <div class="kv"><div>Address</div><div>${escape(record.address || '-')}</div></div>
+        </div>
+        <div class="drawer-section">
+          <h4>Visit Information</h4>
+          <div class="kv"><div>Visit Date</div><div>${escape(formatDate(record.visitDate))}</div></div>
+          <div class="kv"><div>Trimester</div><div>${escape(record.trimester || '-')}</div></div>
+          <div class="kv"><div>Midwife</div><div>${escape(record.midwifeName || '-')}</div></div>
+          <div class="kv"><div>Blood Pressure</div><div>${escape(record.bloodPressure || '-')}</div></div>
+        </div>
       `;
     } else if (currentTab === 'schedules') {
       const typeMap = {
@@ -1162,76 +1339,107 @@
       };
       const typeInfo = typeMap[(record.type || '').toLowerCase()] || { icon: '📋', label: record.type || 'N/A' };
       detailsHTML += `
-        <div class="kv"><div>Type</div><div>${typeInfo.icon} ${typeInfo.label}</div></div>
-        <div class="kv"><div>Resident Name</div><div>${record.residentName || '-'}</div></div>
-        <div class="kv"><div>Preferred Date</div><div>${record.preferredDate ? new Date(record.preferredDate).toLocaleDateString() : '-'}</div></div>
-        <div class="kv"><div>Preferred Time</div><div>${record.preferredTime || '-'}</div></div>
-        <div class="kv"><div>Notes</div><div>${record.notes || '-'}</div></div>
-        ${record.midwifeName ? `<div class="kv"><div>Assigned Midwife</div><div>${record.midwifeName}</div></div>` : ''}
-        ${record.confirmedDate ? `<div class="kv"><div>Confirmed Date</div><div>${new Date(record.confirmedDate).toLocaleDateString()}</div></div>` : ''}
-        ${record.confirmedTime ? `<div class="kv"><div>Confirmed Time</div><div>${record.confirmedTime}</div></div>` : ''}
+        <div class="drawer-section">
+          <h4>Schedule Information</h4>
+          <div class="kv"><div>Type</div><div><strong>${typeInfo.icon} ${escape(typeInfo.label)}</strong></div></div>
+          <div class="kv"><div>Preferred Date</div><div>${escape(formatDate(record.preferredDate))}</div></div>
+          <div class="kv"><div>Preferred Time</div><div>${escape(record.preferredTime || '-')}</div></div>
+          <div class="kv"><div>Notes</div><div>${escape(record.notes || '-')}</div></div>
+          ${record.midwifeName ? `<div class="kv"><div>Assigned Midwife</div><div>${escape(record.midwifeName)}</div></div>` : ''}
+          ${record.confirmedDate ? `<div class="kv"><div>Confirmed Date</div><div>${escape(formatDate(record.confirmedDate))}</div></div>` : ''}
+          ${record.confirmedTime ? `<div class="kv"><div>Confirmed Time</div><div>${escape(record.confirmedTime)}</div></div>` : ''}
+        </div>
+        <div class="drawer-section">
+          <h4>Resident Information</h4>
+          <div class="kv"><div>Resident Name</div><div><strong>${escape(record.residentName || record.resident?.name || '-')}</strong></div></div>
+          <div class="kv"><div>Resident Username</div><div>${escape(record.residentUsername || record.resident?.username || '-')}</div></div>
+          <div class="kv"><div>Resident Contact</div><div>${escape(record.residentContact || record.resident?.contact || '-')}</div></div>
+        </div>
       `;
     } else if (currentTab === 'medicine-list') {
       detailsHTML += `
-        <div class="kv"><div>Medicine</div><div>${record.medicineName || record.name || '-'}</div></div>
-        <div class="kv"><div>Category</div><div>${record.category || '-'}</div></div>
-        <div class="kv"><div>Stock</div><div>${record.stock || 0} ${record.unit || ''}</div></div>
-        <div class="kv"><div>Min Stock</div><div>${record.minStock || '-'}</div></div>
-        <div class="kv"><div>Max Stock</div><div>${record.maxStock || '-'}</div></div>
+        <div class="drawer-section">
+          <h4>Medicine Information</h4>
+          <div class="kv"><div>Medicine</div><div><strong>${escape(record.medicineName || record.name || '-')}</strong></div></div>
+          <div class="kv"><div>Category</div><div>${escape(record.category || '-')}</div></div>
+        </div>
+        <div class="drawer-section">
+          <h4>Inventory Information</h4>
+          <div class="kv"><div>Stock</div><div>${escape((record.stock || 0) + ' ' + (record.unit || ''))}</div></div>
+          <div class="kv"><div>Min Stock</div><div>${escape(record.minStock || '-')}</div></div>
+          <div class="kv"><div>Max Stock</div><div>${escape(record.maxStock || '-')}</div></div>
+        </div>
       `;
     } else if (currentTab === 'midwives') {
       detailsHTML += `
-        <div class="kv"><div>Name</div><div>${record.name || '-'}</div></div>
-        <div class="kv"><div>Contact</div><div>${record.contactNumber || '-'}</div></div>
-        <div class="kv"><div>Details</div><div>${record.details || '-'}</div></div>
+        <div class="drawer-section">
+          <h4>Midwife Information</h4>
+          <div class="kv"><div>Name</div><div><strong>${escape(record.name || '-')}</strong></div></div>
+          <div class="kv"><div>Contact</div><div>${escape(record.contactNumber || '-')}</div></div>
+          <div class="kv"><div>Details</div><div>${escape(record.details || '-')}</div></div>
+        </div>
       `;
     }
 
-    // Add common metadata
-    if (record.addedBy || record.createdAt) {
-      detailsHTML += `<hr style="margin: 12px 0; border: none; border-top: 1px solid #ecf0f1;">`;
+    // Add common metadata in a styled section
+    if (record.addedBy || record.createdAt || record.createdBy || record.updatedAt || record.updatedBy || record.completedAt) {
+      detailsHTML += `<div class="drawer-meta-section">`;
+      detailsHTML += `<h4>Record Metadata</h4>`;
       if (record.addedBy) {
-        detailsHTML += `<div class="kv"><div>Added By</div><div><strong>${record.addedBy}</strong></div></div>`;
+        detailsHTML += `<div class="kv"><div>Added By</div><div><strong>${escape(record.addedBy)}</strong></div></div>`;
       }
       if (record.createdAt) {
-        detailsHTML += `<div class="kv"><div>Created</div><div>${new Date(record.createdAt).toLocaleString()}</div></div>`;
+        detailsHTML += `<div class="kv"><div>Created</div><div>${escape(formatDateTime(record.createdAt))}</div></div>`;
       }
       if (record.updatedAt) {
-        detailsHTML += `<div class="kv"><div>Last Updated</div><div>${new Date(record.updatedAt).toLocaleString()}</div></div>`;
+        detailsHTML += `<div class="kv"><div>Last Updated</div><div>${escape(formatDateTime(record.updatedAt))}</div></div>`;
       }
-      detailsHTML += `<div class="kv"><div>Can Edit/Delete</div><div>${isAdmin || (user && record.createdBy === (user._id || user.id)) ? 'Yes' : 'No'}</div></div>`;
+      if (record.updatedBy) {
+        const updatedByText = typeof record.updatedBy === 'object' ? (record.updatedBy.name || record.updatedBy.username || 'Unknown') : record.updatedBy;
+        detailsHTML += `<div class="kv"><div>Updated By</div><div>${escape(updatedByText)}</div></div>`;
+      }
+      if (record.completedAt) {
+        detailsHTML += `<div class="kv"><div>Completed At</div><div>${escape(formatDateTime(record.completedAt))}</div></div>`;
+      }
+      detailsHTML += `</div>`;
     }
 
-    dBody.innerHTML = detailsHTML || '<p>No details available.</p>';
+    currentDBody.innerHTML = detailsHTML || '<p>No details available.</p>';
 
-    drawer.classList.remove('hidden');
+    // Open drawer with proper styling
+    currentDrawer.classList.remove('hidden');
+    currentDrawer.style.setProperty('pointer-events', 'auto', 'important');
+    currentDrawer.style.setProperty('display', 'flex', 'important');
+    currentDrawer.style.setProperty('z-index', '10000', 'important');
+    console.log('Health page: Drawer opened');
   }
 
-  dClose.onclick = () => {
-    drawer.classList.add('hidden');
-  };
-  const overlay = drawer.querySelector('.drawer-backdrop');
-  if (overlay) {
-    overlay.onclick = () => {
-      drawer.classList.add('hidden');
-    };
-  }
-
-  // Initialize - ensure initUser completes before loading data
-  (async () => {
-    await initUser();
-    switchTab('patient-data');
-    refreshSummary();
-  })();
-
-  // Calendar wiring
-  const calGrid = document.getElementById('calGrid');
-  const calLabel = document.getElementById('calLabel');
-  const calPrev = document.getElementById('calPrev');
-  const calNext = document.getElementById('calNext');
+  // Calendar elements (will be initialized in init function)
+  let calGrid, calLabel, calPrev, calNext;
 
   async function refreshCalendar() {
-    if (!calGrid || !calLabel) return;
+    // Double-check elements exist before proceeding
+    if (!calGrid || !calLabel) {
+      console.warn('refreshCalendar: Calendar elements not found');
+      return;
+    }
+    
+    // Verify elements are still in the DOM
+    if (!calGrid.parentNode || !calLabel.parentNode) {
+      console.warn('refreshCalendar: Calendar elements no longer in DOM, re-querying...');
+      const contentArea = document.querySelector('.content-area');
+      if (contentArea) {
+        calGrid = contentArea.querySelector('#calGrid') || document.getElementById('calGrid');
+        calLabel = contentArea.querySelector('#calLabel') || document.getElementById('calLabel');
+        if (!calGrid || !calLabel) {
+          console.warn('refreshCalendar: Could not re-find calendar elements');
+          return;
+        }
+      } else {
+        return;
+      }
+    }
+    
     const y = calYear;
     const m = calMonth;
     calLabel.textContent = new Date(y, m, 1).toLocaleString(undefined, { month: 'long', year: 'numeric' });
@@ -1242,7 +1450,9 @@
       const head = document.createElement('div');
       head.className = 'health-calendar-dow';
       head.textContent = d;
-      calGrid.appendChild(head);
+      if (calGrid) {
+        calGrid.appendChild(head);
+      }
     });
 
     let items = [];
@@ -1265,6 +1475,8 @@
     const startDow = first.getDay();
     const daysInMonth = new Date(y, m + 1, 0).getDate();
 
+    if (!calGrid) return; // Safety check
+    
     for (let i = 0; i < startDow; i++) {
       const blank = document.createElement('div');
       blank.className = 'health-calendar-cell health-calendar-cell--muted';
@@ -1297,31 +1509,132 @@
       }
       html.push(`</div>`);
       cell.innerHTML = html.join('');
-      calGrid.appendChild(cell);
+      if (calGrid) {
+        calGrid.appendChild(cell);
+      }
     }
   }
 
-  if (calPrev && calNext) {
-    calPrev.addEventListener('click', () => {
-      calMonth -= 1;
-      if (calMonth < 0) { calMonth = 11; calYear -= 1; }
-      refreshCalendar();
-    });
-    calNext.addEventListener('click', () => {
-      calMonth += 1;
-      if (calMonth > 11) { calMonth = 0; calYear += 1; }
-      refreshCalendar();
-    });
-  }
-
-  refreshCalendar();
+  // Calendar initialization is now handled in the init() function
 
   // Form HTML functions follow...
+  // Resident search functionality
+  let residentSearchTimeout = null;
+  let selectedResidentUser = null;
+
+  function setupResidentSearch() {
+    const searchInput = frm?.querySelector('input[name="residentSearch"]');
+    const usernameInput = frm?.querySelector('input[name="residentUsername"]');
+    const dropdown = frm?.querySelector('#residentUserDropdown');
+    
+    if (!searchInput || !dropdown) return;
+
+    searchInput.addEventListener('input', (e) => {
+      const query = e.target.value.trim();
+      if (residentSearchTimeout) clearTimeout(residentSearchTimeout);
+      residentSearchTimeout = setTimeout(() => searchUsers(query), 300);
+    });
+
+    searchInput.addEventListener('focus', () => {
+      if (searchInput.value.trim().length >= 2) {
+        searchUsers(searchInput.value.trim());
+      }
+    });
+
+    // Close dropdown when clicking outside
+    const closeHandler = (e) => {
+      if (!e.target.closest('input[name="residentSearch"]') && !e.target.closest('#residentUserDropdown')) {
+        dropdown.style.display = 'none';
+      }
+    };
+    document.addEventListener('click', closeHandler);
+  }
+
+  async function searchUsers(query) {
+    const dropdown = frm?.querySelector('#residentUserDropdown');
+    if (!dropdown) return;
+
+    if (!query || query.trim().length < 2) {
+      dropdown.style.display = 'none';
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/users/search?q=${encodeURIComponent(query)}`, {
+        credentials: 'include'
+      });
+      const j = await res.json();
+      const users = j.users || [];
+      displayUserDropdown(users);
+    } catch (e) {
+      console.error('User search error:', e);
+      dropdown.style.display = 'none';
+    }
+  }
+
+  function displayUserDropdown(users) {
+    const dropdown = frm?.querySelector('#residentUserDropdown');
+    if (!dropdown) return;
+
+    if (!users.length) {
+      dropdown.innerHTML = '<div style="padding:12px;font-size:0.875rem;color:#666;">No users found</div>';
+      dropdown.style.display = 'block';
+      return;
+    }
+
+    dropdown.innerHTML = users.map(u => `
+      <div style="padding:12px;cursor:pointer;border-bottom:1px solid #eee;transition:background 0.2s;" 
+           onmouseover="this.style.background='#f0f7ff'" 
+           onmouseout="this.style.background='white'"
+           data-username="${(u.username || '').replace(/"/g, '&quot;')}" 
+           data-name="${(u.name || '').replace(/"/g, '&quot;')}">
+        <div style="font-weight:600;color:#333;">${u.name || '—'}</div>
+        <div style="font-size:0.75rem;color:#666;margin-top:2px;">Username: ${u.username || '—'}</div>
+      </div>
+    `).join('');
+
+    dropdown.querySelectorAll('[data-username]').forEach(el => {
+      el.addEventListener('click', () => {
+        const username = el.getAttribute('data-username');
+        const name = el.getAttribute('data-name');
+        selectResidentUser({ username, name });
+      });
+    });
+
+    dropdown.style.display = 'block';
+  }
+
+  function selectResidentUser(user) {
+    selectedResidentUser = user;
+    const searchInput = frm?.querySelector('input[name="residentSearch"]');
+    const usernameInput = frm?.querySelector('input[name="residentUsername"]');
+    const dropdown = frm?.querySelector('#residentUserDropdown');
+    
+    if (searchInput) searchInput.value = `${user.name} (${user.username})`;
+    if (usernameInput) usernameInput.value = user.username;
+    if (dropdown) dropdown.style.display = 'none';
+  }
+
+  function getResidentSearchField() {
+    return `
+      <div class="full" style="grid-column:1/-1;">
+        <label>Select Resident <span style="color:#999;font-weight:normal;">(Optional - search to link record)</span></label>
+        <div style="position:relative;">
+          <input name="residentSearch" type="text" placeholder="Search by name or username..." autocomplete="off" style="width:100%;">
+          <div id="residentUserDropdown" style="position:absolute;z-index:50;width:100%;margin-top:4px;background:white;border:1px solid #ddd;border-radius:4px;box-shadow:0 4px 6px rgba(0,0,0,0.1);max-height:240px;overflow-y:auto;display:none;"></div>
+        </div>
+        <input type="hidden" name="residentUsername">
+        <p style="font-size:0.75rem;color:#666;margin-top:4px;">Search and select a resident to link this record to their account.</p>
+      </div>
+    `;
+  }
+
   function getPatientDataForm() {
     return `
       <div class="form-section">
         <h4>Basic Information</h4>
         <div class="form-grid">
+          ${getResidentSearchField()}
           <div><label>Coordinator *</label><input name="coordinator" required></div>
           <div><label>Program *</label><select name="program" required>
             <option value="">Select Program</option>
@@ -1355,6 +1668,7 @@
       <div class="form-section">
         <h4>Family Planning Client Assessment Record</h4>
         <div class="form-grid">
+          ${getResidentSearchField()}
           <div><label>Last Name *</label><input name="lastName" required></div>
           <div><label>Given Name *</label><input name="givenName" required></div>
           <div><label>Middle Initial</label><input name="middleInitial" maxlength="2"></div>
@@ -1385,6 +1699,7 @@
       <div class="form-section">
         <h4>Post Partum Form - Phase 1</h4>
         <div class="form-grid" data-pp-section="main">
+          ${getResidentSearchField()}
           <div><label>Mother Name *</label><input name="motherName" required></div>
           <div><label>Address *</label><input name="address" required></div>
           <div><label>Age *</label><input type="number" name="ageOfMother" required min="15" max="60"></div>
@@ -1446,6 +1761,7 @@
       <div class="form-section">
         <h4>Child Immunization Record</h4>
         <div class="form-grid">
+          ${getResidentSearchField()}
           <div><label>Child Name *</label><input name="childName" required></div>
           <div><label>Birthday *</label><input type="date" name="birthday" required></div>
           <div><label>Age (months)</label><input type="number" name="age" min="0" max="60"></div>
@@ -1472,6 +1788,7 @@
       <div class="form-section">
         <h4>Individual Treatment Record</h4>
         <div class="form-grid">
+          ${getResidentSearchField()}
           <div><label>Patient Name *</label><input name="patientName" required></div>
           <div><label>Date *</label><input type="date" name="consultationDate" required></div>
           <div><label>Age *</label><input type="number" name="age" required min="1" max="120"></div>
@@ -1507,6 +1824,7 @@
       <div class="form-section">
         <h4>Patient Data Record</h4>
         <div class="form-grid">
+          ${getResidentSearchField()}
           <div><label>Surname *</label><input name="surname" required></div>
           <div><label>Given Name *</label><input name="givenName" required></div>
           <div><label>Middle Name</label><input name="middleName"></div>
@@ -1550,6 +1868,7 @@
       <div class="form-section">
         <h4>Pregnancy Tracking Master Listing</h4>
         <div class="form-grid">
+          ${getResidentSearchField()}
           <div><label>Name *</label><input name="name" required></div>
           <div><label>Age *</label><input type="number" name="age" required min="15" max="55"></div>
           <div class="full"><label>Complete Address *</label><input name="completeAddress" required></div>
@@ -1587,6 +1906,7 @@
       <div class="form-section">
         <h4>Pre-Natal Visit</h4>
         <div class="form-grid">
+          ${getResidentSearchField()}
           <div><label>Patient Name *</label><input name="patientName" required></div>
           <div><label>Age *</label><input type="number" name="age" required min="15" max="55"></div>
           <div class="full"><label>Address *</label><input name="address" required></div>
@@ -1668,6 +1988,176 @@
         </div>
       </div>
     `;
+  }
+
+  // Initialize - ensure initUser completes before loading data
+  let initRetryCount = 0;
+  const MAX_INIT_RETRIES = 10;
+  let initTimeoutId = null;
+  
+  async function init() {
+    // Clear any pending retries
+    if (initTimeoutId) {
+      clearTimeout(initTimeoutId);
+      initTimeoutId = null;
+    }
+    
+    // Check if we're still on the health page
+    const currentPath = window.location.pathname.toLowerCase();
+    if (!currentPath.includes('health')) {
+      console.log('Health page: No longer on health page, aborting init');
+      return;
+    }
+    
+    // Small delay to ensure DOM is ready (especially important for SPA navigation)
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Re-query all DOM elements (they may have been removed/replaced during navigation)
+    // Query within content-area to ensure we're getting the right elements
+    const contentArea = document.querySelector('.content-area');
+    if (!contentArea) {
+      if (initRetryCount < MAX_INIT_RETRIES) {
+        initRetryCount++;
+        console.warn('Health page: Content area not found, retrying...', initRetryCount);
+        initTimeoutId = setTimeout(init, 150);
+        return;
+      } else {
+        console.error('Health page: Content area not found after max retries');
+        return;
+      }
+    }
+    
+    // Verify content area has content (not just empty)
+    if (!contentArea.innerHTML || contentArea.innerHTML.trim().length < 100) {
+      if (initRetryCount < MAX_INIT_RETRIES) {
+        initRetryCount++;
+        console.warn('Health page: Content area is empty, retrying...', initRetryCount);
+        initTimeoutId = setTimeout(init, 150);
+        return;
+      } else {
+        console.error('Health page: Content area is empty after max retries');
+        return;
+      }
+    }
+    
+    tableHead = contentArea.querySelector('#tableHead') || $('#tableHead');
+    tableBody = contentArea.querySelector('#tableBody') || $('#tableBody');
+    pager = contentArea.querySelector('#pager') || $('#pager');
+    modal = document.getElementById('modal') || $('#modal');
+    frm = document.getElementById('frm') || $('#frm');
+    msg = document.getElementById('msg') || $('#msg');
+    formContent = document.getElementById('formContent') || $('#formContent');
+    tabs = contentArea.querySelector('#tabs') || $('#tabs');
+    
+    drawer = document.getElementById('drawer') || $('#drawer');
+    dBody = document.getElementById('dBody') || $('#dBody');
+    dClose = document.getElementById('dClose') || $('#dClose');
+    dRecordId = document.getElementById('dRecordId') || $('#dRecordId');
+    dStatus = document.getElementById('dStatus') || $('#dStatus');
+    
+    // Check if critical elements exist
+    if (!tableHead || !tableBody || !tabs) {
+      if (initRetryCount < MAX_INIT_RETRIES) {
+        initRetryCount++;
+        console.warn('Health page: Critical DOM elements not found, retrying...', initRetryCount);
+        initTimeoutId = setTimeout(init, 150);
+        return;
+      } else {
+        console.error('Health page: Critical DOM elements not found after max retries');
+        return;
+      }
+    }
+    
+    // Reset retry count on success
+    initRetryCount = 0;
+    initTimeoutId = null;
+    
+    // Reset loading state to allow fresh data load
+    isLoading = false;
+    
+    // Reset state to defaults
+    state = { 
+      page: 1, 
+      limit: 10, 
+      status: '', 
+      q: '', 
+      from: '', 
+      to: '', 
+      sort: 'desc' 
+    };
+    
+    await initUser();
+    
+    // Setup all event listeners (re-attach them)
+    setupEventListeners();
+    
+    // Initialize calendar elements (they may not exist when script first loads in SPA mode)
+    // Query within content area first, then fallback to document-wide search
+    calGrid = contentArea.querySelector('#calGrid') || document.getElementById('calGrid');
+    calLabel = contentArea.querySelector('#calLabel') || document.getElementById('calLabel');
+    calPrev = contentArea.querySelector('#calPrev') || document.getElementById('calPrev');
+    calNext = contentArea.querySelector('#calNext') || document.getElementById('calNext');
+    
+    // Setup calendar event listeners (remove old ones first to prevent duplicates)
+    if (calPrev && calNext && calPrev.parentNode) {
+      // Clone to remove old event listeners
+      const newPrev = calPrev.cloneNode(true);
+      const newNext = calNext.cloneNode(true);
+      calPrev.parentNode.replaceChild(newPrev, calPrev);
+      calNext.parentNode.replaceChild(newNext, calNext);
+      calPrev = newPrev;
+      calNext = newNext;
+      
+      calPrev.onclick = () => {
+        calMonth -= 1;
+        if (calMonth < 0) { calMonth = 11; calYear -= 1; }
+        refreshCalendar();
+      };
+      calNext.onclick = () => {
+        calMonth += 1;
+        if (calMonth > 11) { calMonth = 0; calYear += 1; }
+        refreshCalendar();
+      };
+    }
+    
+    // Reset calendar to current month
+    calYear = new Date().getFullYear();
+    calMonth = new Date().getMonth();
+    
+    // Refresh calendar only if elements exist
+    if (calGrid && calLabel) {
+      refreshCalendar();
+    } else {
+      console.warn('Health page: Calendar elements not found, skipping calendar initialization');
+    }
+    
+    // Reset to default tab and load data
+    currentTab = 'patient-data';
+    switchTab('patient-data');
+    
+    // Delay summary refresh to ensure DOM elements are ready
+    setTimeout(() => {
+      refreshSummary();
+    }, 100);
+  }
+
+  // Expose init function for router
+  window.initHealth = init;
+
+  // Auto-initialize ONLY for direct page loads (not SPA navigation)
+  // Check if router is active - if so, don't auto-init (router will call initHealth)
+  const isSPAMode = window.__ROUTER_INITIALIZED__ || window.location.pathname.includes('/admin/') || window.location.pathname.includes('/user/');
+  
+  if (!isSPAMode) {
+    // Direct page load (not via router)
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      setTimeout(init, 50);
+    }
+  } else {
+    // SPA mode - router will call initHealth, don't auto-init
+    console.log('Health page: SPA mode detected, waiting for router to call initHealth');
   }
 
 })();

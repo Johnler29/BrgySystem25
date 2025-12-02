@@ -102,82 +102,78 @@
 
       $id("username").textContent = currentUser.name || "User";
       $id("avatar").textContent = (currentUser.name || "U").trim().charAt(0).toUpperCase();
+      
+      // Auto-fill user's name and address in the form
+      const requesterNameInput = $id("requesterName");
+      const addressInput = $id("address");
+      if (requesterNameInput) {
+        requesterNameInput.value = currentUser.name || "";
+      }
+      if (addressInput) {
+        addressInput.value = currentUser.address || "";
+      }
+      
+      // Try to find and link resident record if user is linked to a resident
+      if (currentUser.residentId || currentUser.linkedToResident) {
+        try {
+          // Search for resident by username or name
+          const residentSearch = await fetchJSON(`/api/residents/search?q=${encodeURIComponent(currentUser.username || currentUser.name || '')}`);
+          const residents = residentSearch.residents || [];
+          const matchingResident = residents.find(r => 
+            r.username === currentUser.username?.toLowerCase() ||
+            r.name?.toLowerCase() === currentUser.name?.toLowerCase()
+          );
+          
+          if (matchingResident) {
+            const selectedResidentId = $id("selectedResidentId");
+            if (selectedResidentId) {
+              selectedResidentId.value = matchingResident._id || matchingResident.residentId || "";
+            }
+            selectedResident = matchingResident;
+          }
+        } catch (e) {
+          console.log('Could not auto-link resident:', e);
+          // Not critical, continue without resident link
+        }
+      }
     } catch {
       location.href = "/login";
     }
   }
 
-  // Resident search functionality
-  let searchTimeout = null;
+  // Resident linking - try to find resident record for the logged-in user
   let selectedResident = null;
 
-  async function searchResidents(query) {
-    if (!query || query.trim().length < 2) {
-      $id("residentDropdown").classList.add("hidden");
-      return;
-    }
-
-    try {
-      const j = await fetchJSON(`/api/residents/search?q=${encodeURIComponent(query)}`);
-      const residents = j.residents || [];
-      displayResidentDropdown(residents);
-    } catch (e) {
-      console.error("Search error:", e);
-      $id("residentDropdown").classList.add("hidden");
-    }
-  }
-
-  function displayResidentDropdown(residents) {
-    const dropdown = $id("residentDropdown");
-    if (!residents.length) {
-      dropdown.innerHTML = '<div class="px-4 py-3 text-sm text-gray-500">No residents found</div>';
-      dropdown.classList.remove("hidden");
-      return;
-    }
-
-    dropdown.innerHTML = residents.map(r => `
-      <div class="px-4 py-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0" 
-           data-resident-id="${r._id}" 
-           data-resident-name="${(r.name || '').replace(/"/g, '&quot;')}" 
-           data-resident-address="${(r.address || '').replace(/"/g, '&quot;')}"
-           data-resident-id-string="${(r.residentId || '').replace(/"/g, '&quot;')}">
-        <div class="font-semibold text-gray-900">${r.name || '—'}</div>
-        <div class="text-xs text-gray-600 mt-0.5">ID: ${r.residentId || '—'} • ${r.address || 'No address'}</div>
-      </div>
-    `).join('');
-
-    // Add click handlers
-    dropdown.querySelectorAll('[data-resident-id]').forEach(el => {
-      el.addEventListener('click', () => {
-        const residentId = el.getAttribute('data-resident-id');
-        const residentName = el.getAttribute('data-resident-name');
-        const residentAddress = el.getAttribute('data-resident-address');
-        const residentIdString = el.getAttribute('data-resident-id-string');
-        selectResident({
-          _id: residentId,
-          name: residentName,
-          address: residentAddress,
-          residentId: residentIdString
-        });
-      });
-    });
-
-    dropdown.classList.remove("hidden");
-  }
-
-  function selectResident(resident) {
-    selectedResident = resident;
-    $id("selectedResidentId").value = resident._id;
-    $id("residentSearch").value = `${resident.name} (${resident.residentId || 'ID: N/A'})`;
-    $id("requesterName").value = resident.name || "";
-    $id("address").value = resident.address || "";
-    $id("residentDropdown").classList.add("hidden");
+  async function linkUserToResident() {
+    if (!currentUser) return;
     
-    // Update help text
-    const nameHelp = $id("nameHelp");
-    const addressHelp = $id("addressHelp");
-    if (nameHelp) nameHelp.textContent = "Auto-filled from selected resident";
-    if (addressHelp) addressHelp.textContent = "Auto-filled from selected resident";
+    try {
+      // Try to find resident by username or name
+      const searchQuery = currentUser.username || currentUser.name || '';
+      if (!searchQuery) return;
+      
+      const j = await fetchJSON(`/api/residents/search?q=${encodeURIComponent(searchQuery)}`);
+      const residents = j.residents || [];
+      
+      // Find matching resident
+      const matchingResident = residents.find(r => 
+        r.username === currentUser.username?.toLowerCase() ||
+        (r.name?.toLowerCase() === currentUser.name?.toLowerCase() && 
+         r.address?.toLowerCase() === currentUser.address?.toLowerCase())
+      );
+      
+      if (matchingResident) {
+        selectedResident = matchingResident;
+        const selectedResidentId = $id("selectedResidentId");
+        if (selectedResidentId) {
+          selectedResidentId.value = matchingResident._id || matchingResident.residentId || "";
+        }
+        console.log('User document-permits: Linked to resident', matchingResident.residentId || matchingResident._id);
+      }
+    } catch (e) {
+      console.log('User document-permits: Could not link to resident:', e);
+      // Not critical, continue without resident link
+    }
   }
 
   function setupForm() {
@@ -188,81 +184,83 @@
     const form = $id("docForm");
     const requesterNameInput = $id("requesterName");
     const addressInput = $id("address");
-    const residentSearchInput = $id("residentSearch");
 
-    // Setup resident search
-    if (residentSearchInput) {
-      on(residentSearchInput, "input", (e) => {
-        const query = e.target.value.trim();
-        if (searchTimeout) clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => searchResidents(query), 300);
-      });
-
-      on(residentSearchInput, "focus", () => {
-        if (residentSearchInput.value.trim().length >= 2) {
-          searchResidents(residentSearchInput.value.trim());
-        }
-      });
+    if (!addBtn || !formModal || !form) {
+      console.warn('User document-permits: Required form elements not found');
+      return;
     }
 
-    // Close dropdown when clicking outside
-    document.addEventListener("click", (e) => {
-      const dropdown = $id("residentDropdown");
-      if (dropdown && !e.target.closest("#residentSearch") && !e.target.closest("#residentDropdown")) {
-        dropdown.classList.add("hidden");
-      }
-    });
+    // Clone buttons to remove old listeners
+    const newAddBtn = addBtn.cloneNode(true);
+    addBtn.parentNode.replaceChild(newAddBtn, addBtn);
+    
+    const newCancel = cancel ? cancel.cloneNode(true) : null;
+    if (cancel && newCancel) {
+      cancel.parentNode.replaceChild(newCancel, cancel);
+    }
+    
+    const newSave = save ? save.cloneNode(true) : null;
+    if (save && newSave) {
+      save.parentNode.replaceChild(newSave, save);
+    }
 
     const open = () => {
+      if (!form) return;
       form.reset();
-      $id("docId").value = "";
-      $id("selectedResidentId").value = "";
-      $id("formTitle").textContent = "Request New Document";
+      const docId = $id("docId");
+      if (docId) docId.value = "";
+      const formTitle = $id("formTitle");
+      if (formTitle) formTitle.textContent = "Request New Document";
       const msgEl = $id("msg");
       if (msgEl) msgEl.textContent = "";
       
-      // Reset resident selection
-      selectedResident = null;
-      residentSearchInput.value = "";
-      requesterNameInput.value = "";
-      addressInput.value = "";
+      // Auto-fill user's information (but allow editing)
+      if (currentUser) {
+        if (requesterNameInput) {
+          requesterNameInput.value = currentUser.name || "";
+          // Remove readonly and styling restrictions
+          requesterNameInput.readOnly = false;
+          requesterNameInput.style.backgroundColor = "";
+          requesterNameInput.style.cursor = "";
+        }
+        if (addressInput) {
+          addressInput.value = currentUser.address || "";
+          // Remove readonly and styling restrictions
+          addressInput.readOnly = false;
+          addressInput.style.backgroundColor = "";
+          addressInput.style.cursor = "";
+        }
+      }
       
-      // Reset fields to editable state
-      requesterNameInput.readOnly = true;
-      requesterNameInput.style.backgroundColor = "#f5f5f5";
-      requesterNameInput.style.cursor = "not-allowed";
-      addressInput.readOnly = true;
-      addressInput.style.backgroundColor = "#f5f5f5";
-      addressInput.style.cursor = "not-allowed";
-      
-      // Update help text
-      const nameHelp = $id("nameHelp");
-      const addressHelp = $id("addressHelp");
-      if (nameHelp) nameHelp.textContent = "Will be auto-filled when you select a resident";
-      if (addressHelp) addressHelp.textContent = "Will be auto-filled when you select a resident";
+      // Try to link to resident record
+      linkUserToResident();
       
       // Reset payment fields
-      $id("paymentMethod").value = "";
-      $id("paymentStatus").value = "";
+      const paymentMethod = $id("paymentMethod");
+      if (paymentMethod) paymentMethod.value = "";
+      
+      // Set default number of copies
+      const numberOfCopies = $id("numberOfCopies");
+      if (numberOfCopies) numberOfCopies.value = "1";
       
       formModal.classList.remove("hidden");
-      formModal.classList.add("flex");
+      formModal.classList.add("active");
+      formModal.style.setProperty('pointer-events', 'auto', 'important');
+      formModal.style.setProperty('display', 'flex', 'important');
+      formModal.style.setProperty('z-index', '10000', 'important');
     };
 
     const close = () => {
-      formModal.classList.remove("flex");
+      formModal.classList.remove("active", "flex");
       formModal.classList.add("hidden");
-      // Reset read-only styling when closing
-      requesterNameInput.readOnly = false;
-      requesterNameInput.style.backgroundColor = "";
-      requesterNameInput.style.cursor = "";
-      addressInput.readOnly = false;
-      addressInput.style.backgroundColor = "";
-      addressInput.style.cursor = "";
+      formModal.style.removeProperty('pointer-events');
+      formModal.style.removeProperty('display');
+      formModal.style.removeProperty('z-index');
     };
 
-    if (addBtn) on(addBtn, "click", open);
-    if (cancel) on(cancel, "click", close);
+    on(newAddBtn, "click", open);
+    if (newCancel) on(newCancel, "click", close);
+    
     // Close modal when clicking outside (on the overlay)
     on(formModal, "click", (e) => {
       if (e.target === formModal) close();
@@ -276,58 +274,88 @@
       });
     }
 
-    on(save, "click", async (e) => {
-      e.preventDefault();
-      
-      const msgEl = $id("msg");
-      const residentId = $id("selectedResidentId").value.trim();
-      
-      if (!residentId) {
-        if (msgEl) msgEl.textContent = "Please select a resident to validate the request.";
-        return;
-      }
+    if (newSave) {
+      on(newSave, "click", async (e) => {
+        e.preventDefault();
+        
+        const msgEl = $id("msg");
+        const selectedResidentIdEl = $id("selectedResidentId");
+        const residentId = selectedResidentIdEl ? selectedResidentIdEl.value.trim() : "";
 
-      const data = {
-        typeOfDocument: $id("typeOfDocument").value.trim(),
-        numberOfCopies: Math.max(1, parseInt($id("numberOfCopies").value || 1, 10)),
-        requesterName: requesterNameInput.value.trim(),
-        address: addressInput.value.trim(),
-        purpose: $id("purpose").value.trim(),
-        paymentMethod: $id("paymentMethod").value || "",
-        paymentStatus: $id("paymentStatus").value || "",
-        residentId: residentId
-      };
+        const data = {
+          typeOfDocument: ($id("typeOfDocument")?.value || "").trim(),
+          numberOfCopies: Math.max(1, parseInt($id("numberOfCopies")?.value || 1, 10)),
+          requesterName: (requesterNameInput?.value || "").trim(),
+          address: (addressInput?.value || "").trim(),
+          purpose: ($id("purpose")?.value || "").trim(),
+          paymentMethod: $id("paymentMethod")?.value || "",
+          paymentStatus: "", // Users don't set payment status, admin does
+          ...(residentId ? { residentId: residentId } : {}) // Include residentId if available
+        };
 
-      if (!data.typeOfDocument || !data.requesterName || !data.address || !data.purpose) {
-        if (msgEl) msgEl.textContent = "Please fill all required fields.";
-        return;
-      }
-
-      try {
-        const j = await fetchJSON("/api/documents/add", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        });
-
-        if (j.ok) {
-          close();
-          loadDocs();
-        } else {
-          if (msgEl) msgEl.textContent = j.message || "Failed to submit request";
+        if (!data.typeOfDocument || !data.requesterName || !data.address || !data.purpose) {
+          if (msgEl) {
+            msgEl.textContent = "Please fill all required fields.";
+            msgEl.style.color = "#dc2626";
+          }
+          return;
         }
-      } catch (e) {
-        const errorMsg = e.message || "Failed to submit request";
-        if (msgEl) msgEl.textContent = errorMsg;
-        console.error("Submit error:", e);
-      }
-    });
+
+        // Disable save button during submission
+        if (newSave) {
+          newSave.disabled = true;
+          newSave.textContent = "Submitting...";
+        }
+
+        try {
+          const j = await fetchJSON("/api/documents/add", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+
+          if (j.ok) {
+            if (msgEl) {
+              msgEl.textContent = "Request submitted successfully!";
+              msgEl.style.color = "#239b56";
+            }
+            setTimeout(() => {
+              close();
+              loadDocs();
+            }, 500);
+          } else {
+            if (msgEl) {
+              msgEl.textContent = j.message || "Failed to submit request";
+              msgEl.style.color = "#dc2626";
+            }
+          }
+        } catch (e) {
+          const errorMsg = e.message || "Failed to submit request";
+          if (msgEl) {
+            msgEl.textContent = errorMsg;
+            msgEl.style.color = "#dc2626";
+          }
+          console.error("Submit error:", e);
+        } finally {
+          if (newSave) {
+            newSave.disabled = false;
+            newSave.textContent = "Submit Request";
+          }
+        }
+      });
+    }
   }
 
   function setupSearch() {
     const input = $id("searchInput");
-    on(input, "input", () => {
-      const q = input.value.toLowerCase().trim();
+    if (!input) return;
+    
+    // Clone to remove old listeners
+    const newInput = input.cloneNode(true);
+    input.parentNode.replaceChild(newInput, input);
+    
+    on(newInput, "input", () => {
+      const q = newInput.value.toLowerCase().trim();
       VIEW = q ? ALL.filter((d) => 
         (d.typeOfDocument || "").toLowerCase().includes(q) ||
         (d.purpose || "").toLowerCase().includes(q) ||
@@ -337,11 +365,45 @@
     });
   }
 
-  document.addEventListener("DOMContentLoaded", async () => {
+  // Main init function
+  async function init() {
+    const contentArea = document.querySelector('.content-area');
+    if (!contentArea) {
+      console.warn('User document-permits: Content area not found, retrying...');
+      setTimeout(init, 100);
+      return;
+    }
+
+    // Check if content is loaded
+    if (!contentArea.innerHTML || contentArea.innerHTML.trim().length < 100) {
+      console.warn('User document-permits: Content area is empty, waiting...');
+      setTimeout(init, 100);
+      return;
+    }
+
     await initUser();
+    await linkUserToResident(); // Try to link user to resident
     setupForm();
     setupSearch();
     loadDocs();
-  });
+  }
+
+  // Expose init function for router
+  window.initDocumentPermits = init;
+
+  // Auto-initialize ONLY for direct page loads (not SPA navigation)
+  const isSPAMode = window.__ROUTER_INITIALIZED__;
+  
+  if (!isSPAMode) {
+    // Direct page load (not via router)
+    if (document.readyState === 'loading') {
+      document.addEventListener("DOMContentLoaded", init);
+    } else {
+      setTimeout(init, 50);
+    }
+  } else {
+    // SPA mode - router will call initDocumentPermits, don't auto-init
+    console.log('User document-permits: SPA mode detected, waiting for router to call initDocumentPermits');
+  }
 })();
 

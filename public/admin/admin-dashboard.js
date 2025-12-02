@@ -159,7 +159,11 @@ async function initEvents(){
       list.appendChild(div);
     });
     if (!list.children.length) throw new Error('No events');
-  }catch{
+  }catch(err){
+    // Silently handle 404 or other errors - use fallback events
+    if (err.status === 404) {
+      // API endpoint doesn't exist, use fallback
+    }
     [
       {title:'Barangay Council Meeting', date:'Oct 20, 2025 • 2:00 PM', location:'Session Hall'},
       {title:'Clean-up Drive', date:'Oct 26, 2025 • 7:00 AM', location:'Phase 2'},

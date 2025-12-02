@@ -3,30 +3,20 @@
   const $ = (s,p=document)=>p.querySelector(s);
   const $$ = (s,p=document)=>p.querySelectorAll(s);
   
-  const tableHead = $('#tableHead');
-  const tableBody = $('#tableBody');
-  const pager = $('#pager');
-  const modal = $('#modal');
-  const frm = $('#frm');
-  const msg = $('#msg');
-  const formContent = $('#formContent');
-  const tabs = $('#tabs');
-  const drawer = $('#drawer');
-  const dBody = $('#dBody');
-  const dClose = $('#dClose');
-  const dRecordId = $('#dRecordId');
-  const dStatus = $('#dStatus');
-  const announcementsSection = $('#announcementsSection');
+  // DOM element references - will be re-queried in init()
+  let tableHead, tableBody, pager, modal, frm, msg, formContent, tabs;
+  let drawer, dBody, dClose, dRecordId, dStatus, announcementsSection;
 
   let user = null;
   let currentTab = 'incidents';
   let isAdmin = false;
+  let isLoading = false;
 
   // Tab configurations
   const tabConfigs = {
     'incidents': {
       title: 'Incident Reports',
-      headers: ['Date', 'Type', 'Location', 'People Affected', 'Priority', 'Status'],
+      headers: ['Date', 'Type', 'Location', 'People Affected', 'Priority', 'Status', 'Reported By'],
       apiEndpoint: '/api/disaster/incidents'
     },
     'coordination': {
@@ -117,6 +107,8 @@
 
   // Announcements
   function renderAnnouncements() {
+    if (!announcementsSection) return;
+    
     const announcements = [
       {
         id: 1,
@@ -163,12 +155,20 @@
 
   // Summary statistics
   function setSummary(sum){
-    $('#sTotal').textContent = sum.Total || 0;
-    $('#sCritical').textContent = sum.Critical || 0;
-    $('#sOngoing').textContent = sum.Ongoing || 0;
-    $('#sResolved').textContent = sum.Resolved || 0;
-    $('#sAffected').textContent = sum.Affected || 0;
-    $('#sTeams').textContent = sum.Teams || 0;
+    const sTotal = $('#sTotal');
+    const sCritical = $('#sCritical');
+    const sOngoing = $('#sOngoing');
+    const sResolved = $('#sResolved');
+    const sAffected = $('#sAffected');
+    const sTeams = $('#sTeams');
+    
+    if (sTotal) sTotal.textContent = sum.Total || 0;
+    if (sCritical) sCritical.textContent = sum.Critical || 0;
+    if (sOngoing) sOngoing.textContent = sum.Ongoing || 0;
+    if (sResolved) sResolved.textContent = sum.Resolved || 0;
+    if (sAffected) sAffected.textContent = sum.Affected || 0;
+    if (sTeams) sTeams.textContent = sum.Teams || 0;
+    
     const popTotal = $('#popTotal');
     const popSeniors = $('#popSeniors');
     const popMinors = $('#popMinors');
@@ -221,20 +221,30 @@
 
   // Tab switching
   function switchTab(tabName) {
+    if (!tableHead || !tableBody) {
+      console.warn('Disaster page: Table elements not ready for switchTab');
+      return;
+    }
+    
     currentTab = tabName;
     
-    $$('.disaster-tab').forEach(t => {
+    const contentArea = document.querySelector('.content-area');
+    const tabs = contentArea ? (contentArea.querySelectorAll('.disaster-tab') || document.querySelectorAll('.disaster-tab')) : document.querySelectorAll('.disaster-tab');
+    tabs.forEach(t => {
       t.classList.remove('active');
     });
-    const activeTab = $(`.disaster-tab[data-tab="${tabName}"]`);
+    const activeTab = contentArea ? (contentArea.querySelector(`.disaster-tab[data-tab="${tabName}"]`) || document.querySelector(`.disaster-tab[data-tab="${tabName}"]`)) : document.querySelector(`.disaster-tab[data-tab="${tabName}"]`);
     if (activeTab) {
       activeTab.classList.add('active');
     }
     
     const config = tabConfigs[tabName];
-    if (config) {
+    if (config && tableHead) {
       tableHead.innerHTML = `<tr>${config.headers.map(h => `<th>${h}</th>`).join('')}<th style="min-width: 180px;">Actions</th></tr>`;
-      $('#dlgTitle').textContent = `Add ${config.title}`;
+      const dlgTitle = document.getElementById('dlgTitle');
+      if (dlgTitle) {
+        dlgTitle.textContent = `Add ${config.title}`;
+      }
       state.page = 1;
       load();
       updateFormContent();
@@ -274,8 +284,16 @@
 
   // Data loading with role-based filtering
   async function load(){
+    if (!tableHead || !tableBody) {
+      console.warn('Disaster page: Cannot load data, table elements not ready');
+      return;
+    }
+    
     const config = tabConfigs[currentTab];
-    if (!config) return;
+    if (!config) {
+      console.warn('Disaster page: No config for current tab:', currentTab);
+      return;
+    }
 
     // Show loading state
     showLoading();
@@ -447,13 +465,18 @@
         case 'incidents':
           const priorityClass = r.priority?.toLowerCase() === 'high' || r.priority === 'HIGH' ? 'priority-high' : 
                                r.priority?.toLowerCase() === 'medium' || r.priority === 'MEDIUM' ? 'priority-medium' : 'priority-low';
+          // Extract reporter name - can be object or string
+          const reportedByName = typeof r.reportedBy === 'object' 
+            ? (r.reportedBy.name || r.reportedBy.username || r.reporterName || 'N/A')
+            : (r.reportedBy || r.reporterName || 'N/A');
           cells = `
             <td>${fmt(r.incidentDate)}</td>
             <td>${r.type || 'N/A'}</td>
             <td>${r.location || 'N/A'}</td>
-            <td>${r.peopleAffected || 'N/A'}</td>
+            <td>${r.peopleAffected || (r.affectedCount ? `${r.affectedCount} ${r.affectedCount === 1 ? 'person' : 'people'}` : 'N/A')}</td>
             <td><span class="${priorityClass}">${r.priority || 'LOW'}</span></td>
             <td>${badge(r.status || 'Pending')}</td>
+            <td>${reportedByName}</td>
           `;
           break;
         case 'coordination':
@@ -533,9 +556,12 @@
           ${cells}
           <td class="t-actions">
             <div class="table-actions">
-              <button class="table-action-btn view" data-act="view" data-id="${r._id}">View</button>
-              ${canEditDelete ? '<button class="table-action-btn edit" data-act="edit" data-id="' + r._id + '">Edit</button>' : ''}
-              ${canEditDelete ? '<button class="table-action-btn delete" data-act="del" data-id="' + r._id + '">Delete</button>' : ''}
+              <button class="table-action-btn view" data-act="view" data-id="${r._id}">
+                <i class="fas fa-eye"></i>
+                <span>View</span>
+              </button>
+              ${canEditDelete ? '<button class="table-action-btn edit" data-act="edit" data-id="' + r._id + '"><i class="fas fa-edit"></i><span>Edit</span></button>' : ''}
+              ${canEditDelete ? '<button class="table-action-btn delete" data-act="del" data-id="' + r._id + '"><i class="fas fa-trash"></i><span>Delete</span></button>' : ''}
             </div>
           </td>
         `;
@@ -619,7 +645,12 @@
 
   // Event Listeners - setup after DOM is ready
   function setupEventListeners() {
-    if (tabs) {
+    // Remove old event listeners by cloning elements (for tabs)
+    if (tabs && tabs.parentNode) {
+      const newTabs = tabs.cloneNode(true);
+      tabs.parentNode.replaceChild(newTabs, tabs);
+      tabs = newTabs;
+      
       tabs.addEventListener('click', (e) => {
         const tab = e.target.closest('.disaster-tab');
         if (!tab) return;
@@ -628,21 +659,30 @@
       });
     }
 
-    const btnFilter = $('#btnFilter');
+    // Query filter and export buttons within content area
+    const contentArea = document.querySelector('.content-area');
+    const btnFilter = contentArea ? (contentArea.querySelector('#btnFilter') || document.getElementById('btnFilter')) : document.getElementById('btnFilter');
     if (btnFilter) {
-      btnFilter.onclick = () => {
-        state.from = $('#fFrom')?.value || '';
-        state.to = $('#fTo')?.value || '';
-        state.q = $('#fQ')?.value?.trim() || '';
-        state.status = $('#fStatus')?.value || '';
-        state.type = $('#fType')?.value || '';
+      const newBtnFilter = btnFilter.cloneNode(true);
+      btnFilter.parentNode.replaceChild(newBtnFilter, btnFilter);
+      newBtnFilter.onclick = () => {
+        const fFrom = contentArea ? (contentArea.querySelector('#fFrom') || document.getElementById('fFrom')) : document.getElementById('fFrom');
+        const fTo = contentArea ? (contentArea.querySelector('#fTo') || document.getElementById('fTo')) : document.getElementById('fTo');
+        const fQ = contentArea ? (contentArea.querySelector('#fQ') || document.getElementById('fQ')) : document.getElementById('fQ');
+        const fStatus = contentArea ? (contentArea.querySelector('#fStatus') || document.getElementById('fStatus')) : document.getElementById('fStatus');
+        const fType = contentArea ? (contentArea.querySelector('#fType') || document.getElementById('fType')) : document.getElementById('fType');
+        state.from = fFrom?.value || '';
+        state.to = fTo?.value || '';
+        state.q = fQ?.value?.trim() || '';
+        state.status = fStatus?.value || '';
+        state.type = fType?.value || '';
         state.page = 1;
         load();
       };
     }
 
     // Search on Enter key
-    const searchInput = $('#fQ');
+    const searchInput = contentArea ? (contentArea.querySelector('#fQ') || document.getElementById('fQ')) : document.getElementById('fQ');
     if (searchInput) {
       searchInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
@@ -652,45 +692,66 @@
       });
     }
 
-    const btnExport = $('#btnExport');
+    const btnExport = contentArea ? (contentArea.querySelector('#btnExport') || document.getElementById('btnExport')) : document.getElementById('btnExport');
     if (btnExport) {
-      btnExport.onclick = () => {
+      const newBtnExport = btnExport.cloneNode(true);
+      btnExport.parentNode.replaceChild(newBtnExport, btnExport);
+      newBtnExport.onclick = () => {
         const config = tabConfigs[currentTab];
         const qs = new URLSearchParams({ ...state, exportCsv: 'true' }).toString();
         window.location = config.apiEndpoint + '?' + qs;
       };
     }
 
-    const btnAdd = $('#btnAdd');
+    // Query buttons within content area first, then fallback to document-wide search
+    // (contentArea already declared above)
+    const btnAdd = contentArea ? (contentArea.querySelector('#btnAdd') || document.getElementById('btnAdd')) : document.getElementById('btnAdd');
     if (btnAdd) {
-      btnAdd.onclick = () => openModal();
+      // Clone to remove old listeners
+      const newBtnAdd = btnAdd.cloneNode(true);
+      btnAdd.parentNode.replaceChild(newBtnAdd, btnAdd);
+      newBtnAdd.onclick = () => {
+        console.log('Disaster page: Add button clicked');
+        openModal();
+      };
+      console.log('Disaster page: btnAdd event listener attached');
+    } else {
+      console.warn('Disaster page: btnAdd not found');
     }
 
-    const btnEmergency = $('#btnEmergency');
+    const btnEmergency = contentArea ? (contentArea.querySelector('#btnEmergency') || document.getElementById('btnEmergency')) : document.getElementById('btnEmergency');
     if (btnEmergency) {
-      btnEmergency.onclick = () => openModal('emergency');
+      const newBtnEmergency = btnEmergency.cloneNode(true);
+      btnEmergency.parentNode.replaceChild(newBtnEmergency, btnEmergency);
+      newBtnEmergency.onclick = () => openModal('emergency');
     }
 
-    const btnIncident = $('#btnIncident');
+    const btnIncident = contentArea ? (contentArea.querySelector('#btnIncident') || document.getElementById('btnIncident')) : document.getElementById('btnIncident');
     if (btnIncident) {
-      btnIncident.onclick = () => openModal('incident');
+      const newBtnIncident = btnIncident.cloneNode(true);
+      btnIncident.parentNode.replaceChild(newBtnIncident, btnIncident);
+      newBtnIncident.onclick = () => openModal('incident');
     }
 
-    const btnCoordination = $('#btnCoordination');
+    const btnCoordination = contentArea ? (contentArea.querySelector('#btnCoordination') || document.getElementById('btnCoordination')) : document.getElementById('btnCoordination');
     if (btnCoordination) {
-      btnCoordination.onclick = () => openModal('coordination');
+      const newBtnCoordination = btnCoordination.cloneNode(true);
+      btnCoordination.parentNode.replaceChild(newBtnCoordination, btnCoordination);
+      newBtnCoordination.onclick = () => openModal('coordination');
     }
 
-    const btnPreparedness = $('#btnPreparedness');
+    const btnPreparedness = contentArea ? (contentArea.querySelector('#btnPreparedness') || document.getElementById('btnPreparedness')) : document.getElementById('btnPreparedness');
     if (btnPreparedness) {
-      btnPreparedness.onclick = (e) => {
+      const newBtnPreparedness = btnPreparedness.cloneNode(true);
+      btnPreparedness.parentNode.replaceChild(newBtnPreparedness, btnPreparedness);
+      newBtnPreparedness.onclick = (e) => {
         e.preventDefault();
         e.stopPropagation();
         // Switch to preparedness tab (this will call load() internally)
         switchTab('preparedness');
         // Scroll to the tabs section to make it visible after a short delay
         setTimeout(() => {
-          const tabsElement = $('#tabs');
+          const tabsElement = contentArea ? (contentArea.querySelector('#tabs') || document.getElementById('tabs')) : document.getElementById('tabs');
           if (tabsElement) {
             tabsElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }
@@ -698,10 +759,12 @@
       };
     }
 
-    const btnCancel = $('#btnCancel');
+    const btnCancel = document.getElementById('btnCancel') || $('#btnCancel');
     if (btnCancel) {
-      btnCancel.onclick = () => {
-        const modalEl = $('#modal');
+      const newBtnCancel = btnCancel.cloneNode(true);
+      btnCancel.parentNode.replaceChild(newBtnCancel, btnCancel);
+      newBtnCancel.onclick = () => {
+        const modalEl = document.getElementById('modal') || $('#modal');
         if (modalEl) {
           modalEl.classList.remove('open');
           modalEl.classList.add('hidden');
@@ -714,19 +777,21 @@
           }
           // Reset title
           const config = tabConfigs[currentTab];
-          const dlgTitle = $('#dlgTitle');
+          const dlgTitle = document.getElementById('dlgTitle') || $('#dlgTitle');
           if (dlgTitle && config) {
             dlgTitle.textContent = 'Add ' + config.title;
           }
         }
-        const msgEl = $('#msg');
+        const msgEl = document.getElementById('msg') || $('#msg');
         if (msgEl) msgEl.textContent = '';
       };
     }
 
-    const btnSave = $('#btnSave');
+    const btnSave = document.getElementById('btnSave') || $('#btnSave');
     if (btnSave) {
-      btnSave.onclick = async () => {
+      const newBtnSave = btnSave.cloneNode(true);
+      btnSave.parentNode.replaceChild(newBtnSave, btnSave);
+      newBtnSave.onclick = async () => {
         if (!frm) return;
         const formData = new FormData(frm);
 
@@ -761,14 +826,56 @@
           const method = (isEdit && currentTab === 'incidents') ? 'PUT' : 'POST';
           const url = (isEdit && currentTab === 'incidents') ? `${config.apiEndpoint}/${editId}` : config.apiEndpoint;
           
+          // For incidents tab, use FormData (for file uploads)
+          // For all other tabs, convert to JSON
+          let requestBody;
+          let requestHeaders = {};
+          
+          if (currentTab === 'incidents') {
+            // Use FormData for incidents (supports file uploads)
+            requestBody = formData;
+            // Don't set Content-Type header - browser will set it with boundary for multipart/form-data
+          } else {
+            // Convert FormData to JSON for other tabs
+            const jsonData = {};
+            for (const [key, value] of formData.entries()) {
+              // Skip file inputs (not used in non-incidents tabs)
+              const field = frm.querySelector(`[name="${key}"]`);
+              if (field && field.type === 'file') {
+                continue;
+              }
+              // Include all form fields (backend will handle empty strings)
+              jsonData[key] = value;
+            }
+            requestBody = JSON.stringify(jsonData);
+            requestHeaders['Content-Type'] = 'application/json';
+            
+            console.log('Disaster page: Submitting JSON data', {
+              url,
+              method,
+              currentTab,
+              data: jsonData
+            });
+          }
+          
           const response = await fetch(url, {
             method: method,
-            body: formData
+            headers: requestHeaders,
+            body: requestBody,
+            credentials: 'include'
           });
-          const result = await response.json();
+          
+          let result;
+          try {
+            result = await response.json();
+          } catch (e) {
+            console.error('Failed to parse response:', e);
+            if (msg) msg.textContent = 'Server error: Invalid response.';
+            return;
+          }
 
           if (response.ok && result.ok) {
-            const modalEl = $('#modal');
+            const modalEl = document.getElementById('modal') || $('#modal');
             if (modalEl) {
               modalEl.classList.remove('open');
               modalEl.classList.add('hidden');
@@ -780,39 +887,300 @@
             // Reset form
             frm.reset();
             // Update title back to "Add"
-            const dlgTitle = $('#dlgTitle');
+            const dlgTitle = document.getElementById('dlgTitle') || $('#dlgTitle');
             if (dlgTitle && config) {
               dlgTitle.textContent = 'Add ' + config.title;
             }
             load();
-            const msgEl = $('#msg');
+            const msgEl = document.getElementById('msg') || $('#msg');
             if (msgEl) msgEl.textContent = '';
           } else {
-            const msgEl = $('#msg');
-            if (msgEl) msgEl.textContent = result.message || 'Failed to save record.';
+            const msgEl = document.getElementById('msg') || $('#msg');
+            const errorMsg = result.message || result.error || `Failed to save record. (${response.status})`;
+            if (msgEl) msgEl.textContent = errorMsg;
+            console.error('Save failed:', {
+              status: response.status,
+              statusText: response.statusText,
+              result: result
+            });
           }
         } catch (error) {
           console.error('Save error:', error);
-          if (msg) msg.textContent = 'Failed to save record. Please try again.';
+          const msgEl = document.getElementById('msg') || $('#msg');
+          if (msgEl) {
+            msgEl.textContent = `Failed to save record: ${error.message || 'Network error'}`;
+          }
         }
       };
+    }
+    
+    // Table actions with role-based permissions
+    if (tableBody && tableBody.parentNode) {
+      // Remove old listener by cloning
+      const newTableBody = tableBody.cloneNode(true);
+      tableBody.parentNode.replaceChild(newTableBody, tableBody);
+      tableBody = newTableBody;
+      
+      tableBody.addEventListener('click', async (e) => {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        
+        const id = btn.getAttribute('data-id');
+        const act = btn.getAttribute('data-act');
+
+        if (act === 'view') {
+          try {
+            const config = tabConfigs[currentTab];
+            if (!config || !config.apiEndpoint) {
+              const record = getSampleDataForTab(currentTab).rows.find(r => r._id === id);
+              if (record) showRecordDetails(record);
+              return;
+            }
+            
+            const response = await fetch(`${config.apiEndpoint}/${id}`, {
+              credentials: 'include'
+            });
+            
+            if (!response.ok) {
+              const record = getSampleDataForTab(currentTab).rows.find(r => r._id === id);
+              if (record) {
+                showRecordDetails(record);
+              } else {
+                alert('Failed to load record details.');
+              }
+              return;
+            }
+            
+            const result = await response.json();
+            if (result.ok && result.row) {
+              showRecordDetails(result.row);
+            } else {
+              const record = getSampleDataForTab(currentTab).rows.find(r => r._id === id);
+              if (record) {
+                showRecordDetails(record);
+              } else {
+                alert('Record not found.');
+              }
+            }
+          } catch (error) {
+            console.error('View error:', error);
+            const record = getSampleDataForTab(currentTab).rows.find(r => r._id === id);
+            if (record) {
+              showRecordDetails(record);
+            } else {
+              alert('Error loading record: ' + error.message);
+            }
+          }
+        }
+
+        if (act === 'edit') {
+          if (!isAdmin) {
+            const record = getSampleDataForTab(currentTab).rows.find(r => r._id === id);
+            if (record && record.createdBy !== (user._id || user.id)) {
+              alert('You can only edit records that you created.');
+              return;
+            }
+          }
+          
+          try {
+            const config = tabConfigs[currentTab];
+            if (!config || !config.apiEndpoint) {
+              alert('Cannot edit: No API endpoint configured.');
+              return;
+            }
+            
+            if (currentTab !== 'incidents') {
+              alert('Edit functionality is currently only available for Incident Reports.');
+              return;
+            }
+            
+            const response = await fetch(`${config.apiEndpoint}/${id}`, {
+              credentials: 'include'
+            });
+            
+            if (!response.ok) {
+              alert('Failed to load record for editing.');
+              return;
+            }
+            
+            const result = await response.json();
+            if (!result.ok || !result.row) {
+              alert('Record not found.');
+              return;
+            }
+            
+            const record = result.row;
+            frm.dataset.editId = id;
+            $('#dlgTitle').textContent = 'Edit ' + (config.title || 'Record');
+            updateFormContent();
+            
+            setTimeout(() => {
+              frm.reset();
+              const fieldNameMap = {
+                'incidentDate': 'incidentDate',
+                'dateTime': 'incidentDate',
+                'peopleAffected': 'affectedCount'
+              };
+              
+              Object.keys(record).forEach(key => {
+                const formFieldName = fieldNameMap[key] || key;
+                let field = frm.querySelector(`[name="${formFieldName}"]`);
+                if (!field) {
+                  field = frm.querySelector(`[name="${key}"]`);
+                }
+                
+                if (field) {
+                  if (field.type === 'date') {
+                    const dateValue = record[key];
+                    if (dateValue) {
+                      const d = new Date(dateValue);
+                      if (!isNaN(d.getTime())) {
+                        field.value = d.toISOString().split('T')[0];
+                      }
+                    }
+                  } else if (field.type === 'datetime-local') {
+                    const dateValue = record[key];
+                    if (dateValue) {
+                      const d = new Date(dateValue);
+                      if (!isNaN(d.getTime())) {
+                        const year = d.getFullYear();
+                        const month = String(d.getMonth() + 1).padStart(2, '0');
+                        const day = String(d.getDate()).padStart(2, '0');
+                        const hours = String(d.getHours()).padStart(2, '0');
+                        const minutes = String(d.getMinutes()).padStart(2, '0');
+                        field.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+                      }
+                    }
+                  } else if (field.tagName === 'SELECT') {
+                    const value = String(record[key] || '').trim();
+                    field.value = value;
+                    if (!field.value && value) {
+                      const options = Array.from(field.options);
+                      const match = options.find(opt => 
+                        opt.text.toLowerCase().includes(value.toLowerCase()) ||
+                        opt.value.toLowerCase() === value.toLowerCase()
+                      );
+                      if (match) field.value = match.value;
+                    }
+                  } else if (field.type === 'checkbox') {
+                    field.checked = !!record[key];
+                  } else {
+                    field.value = record[key] || '';
+                  }
+                }
+              });
+              
+              const hasPlanSelect = frm.querySelector('#hasPlanSelect');
+              const planRow = frm.querySelector('#planUploadRow');
+              if (hasPlanSelect) {
+                hasPlanSelect.value = record.hasPreparednessPlan ? 'Yes' : 'No';
+                if (planRow) {
+                  if (record.hasPreparednessPlan) {
+                    planRow.classList.remove('hidden');
+                  } else {
+                    planRow.classList.add('hidden');
+                  }
+                }
+              }
+            }, 100);
+            
+            const modalEl = $('#modal');
+            if (modalEl) {
+              modalEl.classList.remove('hidden');
+              modalEl.classList.add('open');
+            }
+          } catch (error) {
+            console.error('Edit error:', error);
+            alert('Error loading record: ' + error.message);
+          }
+        }
+
+        if (act === 'del') {
+          if (!confirm('Delete this record? This action cannot be undone.')) return;
+          
+          try {
+            const config = tabConfigs[currentTab];
+            if (!config || !config.apiEndpoint) {
+              alert('Cannot delete: No API endpoint configured.');
+              return;
+            }
+            
+            if (currentTab !== 'incidents') {
+              alert('Delete functionality is currently only available for Incident Reports.');
+              return;
+            }
+            
+            if (!isAdmin) {
+              const checkResponse = await fetch(`${config.apiEndpoint}/${id}`, {
+                credentials: 'include'
+              });
+              
+              if (checkResponse.ok) {
+                const checkResult = await checkResponse.json();
+                if (checkResult.ok && checkResult.row) {
+                  const record = checkResult.row;
+                  const reporterUsername = record.reportedBy?.username || '';
+                  if (reporterUsername !== (user.username || '').toLowerCase()) {
+                    alert('You can only delete records that you created.');
+                    return;
+                  }
+                }
+              }
+            }
+            
+            const response = await fetch(`${config.apiEndpoint}/${id}`, {
+              method: 'DELETE',
+              credentials: 'include'
+            });
+            
+            if (!response.ok) {
+              const result = await response.json().catch(() => ({}));
+              alert(result.message || 'Failed to delete record.');
+              return;
+            }
+            
+            const result = await response.json();
+            if (result.ok) {
+              alert('Record deleted successfully.');
+              load();
+              refreshSummary();
+            } else {
+              alert(result.message || 'Failed to delete record.');
+            }
+          } catch (error) {
+            console.error('Delete error:', error);
+            alert('Error deleting record: ' + error.message);
+          }
+        }
+      });
     }
   }
 
   function openModal(quickType) {
-    const modalEl = $('#modal');
-    const formEl = $('#frm');
-    if (!modalEl || !formEl) {
-      console.error('Modal or form element not found');
+    console.log('Disaster page: openModal called', { quickType });
+    const modalEl = document.getElementById('modal');
+    const formEl = document.getElementById('frm');
+    if (!modalEl) {
+      console.error('Disaster page: Modal element not found');
       return;
     }
+    if (!formEl) {
+      console.error('Disaster page: Form element not found');
+      return;
+    }
+    console.log('Disaster page: Opening modal', { 
+      modal: !!modalEl, 
+      form: !!formEl,
+      modalClasses: modalEl.className,
+      modalDisplay: window.getComputedStyle(modalEl).display
+    });
     
     formEl.reset();
     // Clear edit ID when opening for new record
     if (formEl.dataset.editId) {
       delete formEl.dataset.editId;
     }
-    const msgEl = $('#msg');
+    const msgEl = document.getElementById('msg') || $('#msg');
     if (msgEl) msgEl.textContent = '';
     
     // Determine which tab to switch to
@@ -832,10 +1200,43 @@
     }
     
     const config = tabConfigs[targetTab];
-    const dlgTitle = $('#dlgTitle');
+    const dlgTitle = document.getElementById('dlgTitle') || $('#dlgTitle');
     if (dlgTitle && config) {
       dlgTitle.textContent = 'Add ' + config.title;
     }
+    
+    // Open modal immediately (don't wait for form content update)
+    // Verify modal is still in DOM
+    const currentModal = document.getElementById('modal');
+    if (!currentModal) {
+      console.error('Disaster page: Modal was removed from DOM');
+      return;
+    }
+    
+    // Open the modal now
+    currentModal.classList.remove('hidden');
+    currentModal.classList.add('open');
+    // Remove any inline display styles that might override CSS
+    currentModal.style.removeProperty('display');
+    
+    // Force a reflow to ensure CSS is applied
+    void currentModal.offsetHeight;
+    
+    // Verify it's visible
+    const computedDisplay = window.getComputedStyle(currentModal).display;
+    if (computedDisplay === 'none') {
+      console.warn('Disaster page: Modal display is still none, forcing flex');
+      currentModal.style.display = 'flex';
+    }
+    
+    console.log('Disaster page: Modal opened', {
+      hasOpen: currentModal.classList.contains('open'),
+      hasHidden: currentModal.classList.contains('hidden'),
+      inlineDisplay: currentModal.style.display,
+      computedDisplay: computedDisplay,
+      zIndex: window.getComputedStyle(currentModal).zIndex,
+      isInBody: document.body.contains(currentModal)
+    });
     
     // Wait a bit for form content to update (especially if tab was switched)
     setTimeout(() => {
@@ -846,273 +1247,8 @@
           priorityField.value = 'HIGH';
         }
       }
-      
-      // Ensure modal is visible
-      modalEl.classList.remove('hidden');
-      modalEl.classList.add('open');
-    }, 200); // Delay to ensure form content is fully updated after tab switch
+    }, 100);
   }
-
-
-  // Table actions with role-based permissions
-  tableBody.addEventListener('click', async (e) => {
-    const btn = e.target.closest('button');
-    if (!btn) return;
-    
-    const id = btn.getAttribute('data-id');
-    const act = btn.getAttribute('data-act');
-
-    if (act === 'view') {
-      // Fetch record from API
-      try {
-        const config = tabConfigs[currentTab];
-        if (!config || !config.apiEndpoint) {
-          // Fallback to sample data if no API endpoint
-          const record = getSampleDataForTab(currentTab).rows.find(r => r._id === id);
-          if (record) showRecordDetails(record);
-          return;
-        }
-        
-        const response = await fetch(`${config.apiEndpoint}/${id}`, {
-          credentials: 'include'
-        });
-        
-        if (!response.ok) {
-          // Fallback to sample data on error
-          const record = getSampleDataForTab(currentTab).rows.find(r => r._id === id);
-          if (record) {
-            showRecordDetails(record);
-          } else {
-            alert('Failed to load record details.');
-          }
-          return;
-        }
-        
-        const result = await response.json();
-        if (result.ok && result.row) {
-          showRecordDetails(result.row);
-        } else {
-          // Fallback to sample data
-          const record = getSampleDataForTab(currentTab).rows.find(r => r._id === id);
-          if (record) {
-            showRecordDetails(record);
-          } else {
-            alert('Record not found.');
-          }
-        }
-      } catch (error) {
-        console.error('View error:', error);
-        // Fallback to sample data
-        const record = getSampleDataForTab(currentTab).rows.find(r => r._id === id);
-        if (record) {
-          showRecordDetails(record);
-        } else {
-          alert('Error loading record: ' + error.message);
-        }
-      }
-    }
-
-    if (act === 'edit') {
-      if (!isAdmin) {
-        const record = getSampleDataForTab(currentTab).rows.find(r => r._id === id);
-        if (record && record.createdBy !== (user._id || user.id)) {
-          alert('You can only edit records that you created.');
-          return;
-        }
-      }
-      
-      // Load record for editing
-      try {
-        const config = tabConfigs[currentTab];
-        if (!config || !config.apiEndpoint) {
-          alert('Cannot edit: No API endpoint configured.');
-          return;
-        }
-        
-        // Only incidents tab has edit support for now
-        if (currentTab !== 'incidents') {
-          alert('Edit functionality is currently only available for Incident Reports.');
-          return;
-        }
-        
-        const response = await fetch(`${config.apiEndpoint}/${id}`, {
-          credentials: 'include'
-        });
-        
-        if (!response.ok) {
-          alert('Failed to load record for editing.');
-          return;
-        }
-        
-        const result = await response.json();
-        if (!result.ok || !result.row) {
-          alert('Record not found.');
-          return;
-        }
-        
-        const record = result.row;
-        
-        // Store record ID for update BEFORE updating form content
-        frm.dataset.editId = id;
-        $('#dlgTitle').textContent = 'Edit ' + (config.title || 'Record');
-        
-        // First, update form content to generate the form HTML
-        updateFormContent();
-        
-        // Then populate form with record data AFTER form is generated
-        setTimeout(() => {
-          frm.reset();
-          
-          // Field name mapping for cases where DB field names differ from form field names
-          const fieldNameMap = {
-            'incidentDate': 'incidentDate',
-            'dateTime': 'incidentDate',
-            'peopleAffected': 'affectedCount'
-          };
-          
-          Object.keys(record).forEach(key => {
-            // Check if there's a mapped field name
-            const formFieldName = fieldNameMap[key] || key;
-            let field = frm.querySelector(`[name="${formFieldName}"]`);
-            
-            // If not found, try the original key
-            if (!field) {
-              field = frm.querySelector(`[name="${key}"]`);
-            }
-            
-            if (field) {
-              if (field.type === 'date') {
-                const dateValue = record[key];
-                if (dateValue) {
-                  const d = new Date(dateValue);
-                  if (!isNaN(d.getTime())) {
-                    field.value = d.toISOString().split('T')[0];
-                  }
-                }
-              } else if (field.type === 'datetime-local') {
-                const dateValue = record[key];
-                if (dateValue) {
-                  const d = new Date(dateValue);
-                  if (!isNaN(d.getTime())) {
-                    // Format for datetime-local: YYYY-MM-DDTHH:mm
-                    const year = d.getFullYear();
-                    const month = String(d.getMonth() + 1).padStart(2, '0');
-                    const day = String(d.getDate()).padStart(2, '0');
-                    const hours = String(d.getHours()).padStart(2, '0');
-                    const minutes = String(d.getMinutes()).padStart(2, '0');
-                    field.value = `${year}-${month}-${day}T${hours}:${minutes}`;
-                  }
-                }
-              } else if (field.tagName === 'SELECT') {
-                // For select dropdowns
-                const value = String(record[key] || '').trim();
-                field.value = value;
-                // If value doesn't match, try to find by text
-                if (!field.value && value) {
-                  const options = Array.from(field.options);
-                  const match = options.find(opt => 
-                    opt.text.toLowerCase().includes(value.toLowerCase()) ||
-                    opt.value.toLowerCase() === value.toLowerCase()
-                  );
-                  if (match) field.value = match.value;
-                }
-              } else if (field.type === 'checkbox') {
-                field.checked = !!record[key];
-              } else {
-                field.value = record[key] || '';
-              }
-            }
-          });
-          
-          // Handle special case for hasPlan select
-          const hasPlanSelect = frm.querySelector('#hasPlanSelect');
-          const planRow = frm.querySelector('#planUploadRow');
-          if (hasPlanSelect) {
-            hasPlanSelect.value = record.hasPreparednessPlan ? 'Yes' : 'No';
-            if (planRow) {
-              if (record.hasPreparednessPlan) {
-                planRow.classList.remove('hidden');
-              } else {
-                planRow.classList.add('hidden');
-              }
-            }
-          }
-          
-        }, 100); // Small delay to ensure DOM is ready
-        
-        // Open modal
-        const modalEl = $('#modal');
-        if (modalEl) {
-          modalEl.classList.remove('hidden');
-          modalEl.classList.add('open');
-        }
-      } catch (error) {
-        console.error('Edit error:', error);
-        alert('Error loading record: ' + error.message);
-      }
-    }
-
-    if (act === 'del') {
-      if (!confirm('Delete this record? This action cannot be undone.')) return;
-      
-      // Delete record via API
-      try {
-        const config = tabConfigs[currentTab];
-        if (!config || !config.apiEndpoint) {
-          alert('Cannot delete: No API endpoint configured.');
-          return;
-        }
-        
-        // Only incidents tab has delete support for now
-        if (currentTab !== 'incidents') {
-          alert('Delete functionality is currently only available for Incident Reports.');
-          return;
-        }
-        
-        // Check permission by fetching the record first (for non-admin users)
-        if (!isAdmin) {
-          const checkResponse = await fetch(`${config.apiEndpoint}/${id}`, {
-            credentials: 'include'
-          });
-          
-          if (checkResponse.ok) {
-            const checkResult = await checkResponse.json();
-            if (checkResult.ok && checkResult.row) {
-              const record = checkResult.row;
-              const reporterUsername = record.reportedBy?.username || '';
-              if (reporterUsername !== (user.username || '').toLowerCase()) {
-                alert('You can only delete records that you created.');
-                return;
-              }
-            }
-          }
-        }
-        
-        const response = await fetch(`${config.apiEndpoint}/${id}`, {
-          method: 'DELETE',
-          credentials: 'include'
-        });
-        
-        if (!response.ok) {
-          const result = await response.json().catch(() => ({}));
-          alert(result.message || 'Failed to delete record.');
-          return;
-        }
-        
-        const result = await response.json();
-        if (result.ok) {
-          alert('Record deleted successfully.');
-          load();
-          refreshSummary();
-        } else {
-          alert(result.message || 'Failed to delete record.');
-        }
-      } catch (error) {
-        console.error('Delete error:', error);
-        alert('Error deleting record: ' + error.message);
-      }
-    }
-  });
 
   function showRecordDetails(record) {
     dRecordId.textContent = getRecordTitle(record);
@@ -1240,8 +1376,106 @@
   }
 
   // Initialize
+  let initRetryCount = 0;
+  const MAX_INIT_RETRIES = 10;
+  let initTimeoutId = null;
+  
   async function init() {
+    // Clear any pending retries
+    if (initTimeoutId) {
+      clearTimeout(initTimeoutId);
+      initTimeoutId = null;
+    }
+    
+    // Check if we're still on the disaster page
+    const currentPath = window.location.pathname.toLowerCase();
+    if (!currentPath.includes('disaster')) {
+      console.log('Disaster page: No longer on disaster page, aborting init');
+      return;
+    }
+    
+    // Small delay to ensure DOM is ready (especially important for SPA navigation)
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Re-query all DOM elements (they may have been removed/replaced during navigation)
+    // Query within content-area to ensure we're getting the right elements
+    const contentArea = document.querySelector('.content-area');
+    if (!contentArea) {
+      if (initRetryCount < MAX_INIT_RETRIES) {
+        initRetryCount++;
+        console.warn('Disaster page: Content area not found, retrying...', initRetryCount);
+        initTimeoutId = setTimeout(init, 150);
+        return;
+      } else {
+        console.error('Disaster page: Content area not found after max retries');
+        return;
+      }
+    }
+    
+    // Verify content area has content (not just empty)
+    if (!contentArea.innerHTML || contentArea.innerHTML.trim().length < 100) {
+      if (initRetryCount < MAX_INIT_RETRIES) {
+        initRetryCount++;
+        console.warn('Disaster page: Content area is empty, retrying...', initRetryCount);
+        initTimeoutId = setTimeout(init, 150);
+        return;
+      } else {
+        console.error('Disaster page: Content area is empty after max retries');
+        return;
+      }
+    }
+    
+    tableHead = contentArea.querySelector('#tableHead') || $('#tableHead');
+    tableBody = contentArea.querySelector('#tableBody') || $('#tableBody');
+    pager = contentArea.querySelector('#pager') || $('#pager');
+    modal = document.getElementById('modal') || $('#modal');
+    frm = document.getElementById('frm') || $('#frm');
+    msg = document.getElementById('msg') || $('#msg');
+    formContent = document.getElementById('formContent') || $('#formContent');
+    tabs = contentArea.querySelector('#tabs') || $('#tabs');
+    
+    drawer = document.getElementById('drawer') || $('#drawer');
+    dBody = document.getElementById('dBody') || $('#dBody');
+    dClose = document.getElementById('dClose') || $('#dClose');
+    dRecordId = document.getElementById('dRecordId') || $('#dRecordId');
+    dStatus = document.getElementById('dStatus') || $('#dStatus');
+    announcementsSection = contentArea.querySelector('#announcementsSection') || $('#announcementsSection');
+    
+    // Check if critical elements exist
+    if (!tableHead || !tableBody || !tabs) {
+      if (initRetryCount < MAX_INIT_RETRIES) {
+        initRetryCount++;
+        console.warn('Disaster page: Critical DOM elements not found, retrying...', initRetryCount);
+        initTimeoutId = setTimeout(init, 150);
+        return;
+      } else {
+        console.error('Disaster page: Critical DOM elements not found after max retries');
+        return;
+      }
+    }
+    
+    // Reset retry count on success
+    initRetryCount = 0;
+    initTimeoutId = null;
+    
+    // Reset loading state
+    isLoading = false;
+    
+    // Reset state to defaults
+    state = { 
+      page: 1, 
+      limit: 10, 
+      status: '', 
+      type: '',
+      q: '', 
+      from: '', 
+      to: '', 
+      sort: 'desc' 
+    };
+    
     await initUser();
+    
+    // Setup all event listeners (re-attach them)
     setupEventListeners();
     
     // Setup drawer close handlers with null checks (after DOM is ready)
@@ -1264,15 +1498,47 @@
     }
     
     renderAnnouncements();
-    switchTab('incidents');
-    refreshSummary();
+    
+    // Reset to default tab and reload data
+    // Ensure table elements are ready before switching tabs
+    if (tableHead && tableBody) {
+      currentTab = 'incidents';
+      switchTab('incidents');
+    } else {
+      console.warn('Disaster page: Table elements not ready, delaying switchTab');
+      setTimeout(() => {
+        if (tableHead && tableBody) {
+          currentTab = 'incidents';
+          switchTab('incidents');
+        } else {
+          console.error('Disaster page: Table elements still not ready after delay');
+        }
+      }, 200);
+    }
+    
+    // Delay summary refresh to ensure DOM elements are ready
+    setTimeout(() => {
+      refreshSummary();
+    }, 100);
   }
 
-  // Wait for DOM to be ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+  // Expose init function for router
+  window.initDisaster = init;
+
+  // Auto-initialize ONLY for direct page loads (not SPA navigation)
+  // Check if router is active - if so, don't auto-init (router will call initDisaster)
+  const isSPAMode = window.__ROUTER_INITIALIZED__ || window.location.pathname.includes('/admin/') || window.location.pathname.includes('/user/');
+  
+  if (!isSPAMode) {
+    // Direct page load (not via router)
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      setTimeout(init, 50);
+    }
   } else {
-    init();
+    // SPA mode - router will call initDisaster, don't auto-init
+    console.log('Disaster page: SPA mode detected, waiting for router to call initDisaster');
   }
 
   // Form HTML functions

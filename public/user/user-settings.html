@@ -35,27 +35,251 @@
 })();
 </script>
 
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        fontFamily: {
-          'inter': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        }
-      }
-    }
-  }
-</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <link rel="stylesheet" href="/base.css">
 <style>
-  .bg-primary-btn { background-color: #3498db; }
-  .bg-ghost-btn { background-color: #ecf0f1; }
-  .text-primary-btn { color: #2c3e50; }
-  .border-input { border-color: #dfe6e9; }
+  body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+  
+  /* Settings Layout */
+  .settings-grid {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 20px;
+    max-width: 1400px;
+  }
+  @media (max-width: 1024px) {
+    .settings-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  /* Settings Navigation */
+  .settings-nav {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    padding: 16px;
+    position: sticky;
+    top: 20px;
+    height: fit-content;
+  }
+  .settings-nav h3 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 10px;
+  }
+  .settings-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    color: var(--text);
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    margin-bottom: 4px;
+  }
+  .settings-nav-item:hover {
+    background: rgba(0,0,0,.02);
+  }
+  .settings-nav-item.active {
+    background: color-mix(in oklab, var(--brand) 12%, var(--surface));
+    border: 1px solid var(--brand);
+  }
+  
+  /* Settings Content */
+  .settings-main {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    padding: 24px;
+  }
+  .settings-section {
+    display: none;
+  }
+  .settings-section.active {
+    display: block;
+  }
+  .settings-section-header {
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .settings-section-header h2 {
+    margin: 0 0 6px;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .settings-section-header p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.875rem;
+  }
+  .settings-group {
+    margin-bottom: 22px;
+  }
+  .settings-group h3 {
+    margin: 0 0 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .settings-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+    padding: 14px;
+    background: color-mix(in oklab, var(--surface) 94%, #000);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    margin-bottom: 10px;
+  }
+  .settings-row-info h4 {
+    margin: 0 0 4px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .settings-row-info p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.875rem;
+  }
+  .settings-row-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .settings-input {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+  .settings-input:focus {
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(52,152,219,.1);
+  }
+  .settings-select {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+  .settings-select:focus {
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(52,152,219,.1);
+  }
+  
+  /* Toggle Switch */
+  .toggle-switch {
+    position: relative;
+    width: 50px;
+    height: 26px;
+    background: #c7c7c7;
+    border-radius: 26px;
+    cursor: pointer;
+    transition: background 0.25s ease;
+  }
+  .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .toggle-switch-slider {
+    position: absolute;
+    inset: 0;
+    border-radius: 26px;
+    transition: 0.25s;
+  }
+  .toggle-switch-slider::before {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    left: 3px;
+    top: 3px;
+    border-radius: 50%;
+    background: #fff;
+    transition: 0.25s;
+  }
+  .toggle-switch input:checked + .toggle-switch-slider {
+    background: var(--brand);
+  }
+  .toggle-switch input:checked + .toggle-switch-slider::before {
+    transform: translateX(24px);
+  }
+  
+  /* Theme Cards */
+  .theme-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+  }
+  .theme-card {
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .theme-card:hover {
+    border-color: var(--brand);
+  }
+  .theme-preview {
+    height: 60px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    display: flex;
+    gap: 6px;
+    padding: 8px;
+  }
+  .theme-preview > div {
+    flex: 1;
+    border-radius: 8px;
+  }
+  
+  /* Buttons */
+  .btn-save {
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-weight: 700;
+    background: var(--brand);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(52,152,219,.2);
+    font-size: 0.875rem;
+  }
+  .btn-save:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
 </style>
 </head>
 
@@ -109,21 +333,21 @@
     </header>
 
     <div class="content-area">
-      <p class="muted mb-3.5">Adjust your preferences for appearance, account, privacy, and notifications.</p>
+      <p class="muted" style="margin-bottom: 14px;">Adjust your preferences for appearance, account, privacy, and notifications.</p>
 
-      <div class="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-5 max-w-[1400px]">
+      <div class="settings-grid">
         <!-- Left: nav -->
-        <aside class="bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius)] shadow-[var(--shadow-sm)] p-4 sticky top-5 h-fit">
-          <h3 class="font-semibold text-[0.9rem] leading-tight text-[var(--muted)] uppercase tracking-wider mb-2.5">Settings</h3>
-          <div class="settings-nav-item active flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold bg-[color-mix(in_oklab,var(--brand)_12%,var(--surface))] border border-[var(--brand)]" data-section="general">⚙️ General</div>
-          <div class="settings-nav-item flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold hover:bg-[color-mix(in_oklab,var(--surface)_90%,#000_0%)] transition-colors" data-section="appearance">🎨 Appearance</div>
-          <div class="settings-nav-item flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold hover:bg-[color-mix(in_oklab,var(--surface)_90%,#000_0%)] transition-colors" data-section="account">👤 Account</div>
-          <div class="settings-nav-item flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold hover:bg-[color-mix(in_oklab,var(--surface)_90%,#000_0%)] transition-colors" data-section="security">🔒 Security & Privacy</div>
-          <div class="settings-nav-item flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold hover:bg-[color-mix(in_oklab,var(--surface)_90%,#000_0%)] transition-colors" data-section="notifications">🔔 Notifications</div>
+        <aside class="settings-nav">
+          <h3>Settings</h3>
+          <div class="settings-nav-item active" data-section="general">⚙️ General</div>
+          <div class="settings-nav-item" data-section="appearance">🎨 Appearance</div>
+          <div class="settings-nav-item" data-section="account">👤 Account</div>
+          <div class="settings-nav-item" data-section="security">🔒 Security & Privacy</div>
+          <div class="settings-nav-item" data-section="notifications">🔔 Notifications</div>
         </aside>
 
         <!-- Right: sections -->
-        <div class="bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius)] shadow-[var(--shadow-sm)] p-6">
+        <div class="settings-main">
           <!-- GENERAL -->
           <section class="settings-section active" id="general">
             <div class="mb-4.5 pb-3 border-b border-[var(--border)]">

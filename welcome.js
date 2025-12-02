@@ -1288,19 +1288,20 @@ app.get('/dashboard', requireAuth, (req, res) => {
   }
 });
 
-// Admin dashboard routes
+// Admin dashboard routes - all serve admin-dashboard.html (SPA)
 app.get('/admin/dashboard', requireAuth, requireAdmin, (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin', 'admin-dashboard.html')));
-app.get('/admin/residents', requireAuth, requireAdmin, (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin', 'admin-residents.html')));
-app.get('/admin/document-permits', requireAuth, requireAdmin, (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin', 'admin-document-permits.html')));
-app.get('/admin/community', requireAuth, requireAdmin, (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin', 'admin-community.html')));
-app.get('/admin/cases', requireAuth, requireAdmin, (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin', 'admin-cases.html')));
-app.get('/admin/health', requireAuth, requireAdmin, (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin', 'admin-health.html')));
-app.get('/admin/disaster', requireAuth, requireAdmin, (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin', 'admin-disaster.html')));
-app.get('/admin/financial', requireAuth, requireAdmin, (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin', 'admin-financial.html')));
-app.get('/admin/logs-reports', requireAuth, requireAdmin, (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin', 'admin-logs-reports.html')));
-app.get('/admin/settings', requireAuth, requireAdmin, (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin', 'admin-settings.html')));
+app.get('/admin/residents', requireAuth, requireAdmin, (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin', 'admin-dashboard.html')));
+app.get('/admin/document-permits', requireAuth, requireAdmin, (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin', 'admin-dashboard.html')));
+app.get('/admin/community', requireAuth, requireAdmin, (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin', 'admin-dashboard.html')));
+app.get('/admin/cases', requireAuth, requireAdmin, (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin', 'admin-dashboard.html')));
+app.get('/admin/health', requireAuth, requireAdmin, (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin', 'admin-dashboard.html')));
+app.get('/admin/disaster', requireAuth, requireAdmin, (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin', 'admin-dashboard.html')));
+app.get('/admin/financial', requireAuth, requireAdmin, (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin', 'admin-dashboard.html')));
+app.get('/admin/logs-reports', requireAuth, requireAdmin, (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin', 'admin-dashboard.html')));
+app.get('/admin/users', requireAuth, requireAdmin, (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin', 'admin-dashboard.html')));
+app.get('/admin/settings', requireAuth, requireAdmin, (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin', 'admin-dashboard.html')));
 
-// User dashboard routes
+// User dashboard routes - all serve user-dashboard.html (SPA)
 app.get('/user/dashboard', requireAuth, (req, res) => {
   const user = req.session.user;
   const isAdmin = /^(admin)$/i.test(user?.role||'') || user?.isAdmin===true || user?.type==='admin' || user?.accountType==='admin';
@@ -1313,37 +1314,37 @@ app.get('/user/document-permits', requireAuth, (req, res) => {
   const user = req.session.user;
   const isAdmin = /^(admin)$/i.test(user?.role||'') || user?.isAdmin===true || user?.type==='admin' || user?.accountType==='admin';
   if (isAdmin) return res.redirect('/admin/document-permits');
-  res.sendFile(path.join(__dirname, 'public', 'user', 'user-document-permits.html'));
+  res.sendFile(path.join(__dirname, 'public', 'user', 'user-dashboard.html'));
 });
 app.get('/user/community', requireAuth, (req, res) => {
   const user = req.session.user;
   const isAdmin = /^(admin)$/i.test(user?.role||'') || user?.isAdmin===true || user?.type==='admin' || user?.accountType==='admin';
   if (isAdmin) return res.redirect('/admin/community');
-  res.sendFile(path.join(__dirname, 'public', 'user', 'user-community.html'));
+  res.sendFile(path.join(__dirname, 'public', 'user', 'user-dashboard.html'));
 });
 app.get('/user/cases', requireAuth, (req, res) => {
   const user = req.session.user;
   const isAdmin = /^(admin)$/i.test(user?.role||'') || user?.isAdmin===true || user?.type==='admin' || user?.accountType==='admin';
   if (isAdmin) return res.redirect('/admin/cases');
-  res.sendFile(path.join(__dirname, 'public', 'user', 'user-cases.html'));
+  res.sendFile(path.join(__dirname, 'public', 'user', 'user-dashboard.html'));
 });
 app.get('/user/health', requireAuth, (req, res) => {
   const user = req.session.user;
   const isAdmin = /^(admin)$/i.test(user?.role||'') || user?.isAdmin===true || user?.type==='admin' || user?.accountType==='admin';
   if (isAdmin) return res.redirect('/admin/health');
-  res.sendFile(path.join(__dirname, 'public', 'user', 'user-health.html'));
+  res.sendFile(path.join(__dirname, 'public', 'user', 'user-dashboard.html'));
 });
 app.get('/user/disaster', requireAuth, (req, res) => {
   const user = req.session.user;
   const isAdmin = /^(admin)$/i.test(user?.role||'') || user?.isAdmin===true || user?.type==='admin' || user?.accountType==='admin';
   if (isAdmin) return res.redirect('/admin/disaster');
-  res.sendFile(path.join(__dirname, 'public', 'user', 'user-disaster.html'));
+  res.sendFile(path.join(__dirname, 'public', 'user', 'user-dashboard.html'));
 });
 app.get('/user/settings', requireAuth, (req, res) => {
   const user = req.session.user;
   const isAdmin = /^(admin)$/i.test(user?.role||'') || user?.isAdmin===true || user?.type==='admin' || user?.accountType==='admin';
   if (isAdmin) return res.redirect('/admin/settings');
-  res.sendFile(path.join(__dirname, 'public', 'user', 'user-settings.html'));
+  res.sendFile(path.join(__dirname, 'public', 'user', 'user-dashboard.html'));
 });
 
 // ---------- Auth APIs ----------
@@ -1491,6 +1492,299 @@ app.post('/api/forgot-password', (req, res) => {
   return res.json({ ok: true, message: 'If the account exists, a reset link has been sent.' });
 });
 
+// Admin: Create user account with custom role (admin only)
+app.post('/api/admin/create-user', requireAdmin, async (req, res) => {
+  try {
+    const { firstName, middleName = '', lastName, username, email, password, address, role = 'user', verified = false } = req.body || {};
+
+    // Validation
+    if (!firstName || !lastName || !username || !email || !password || !address) {
+      return res.status(400).json({ ok: false, message: 'Please fill all required fields.' });
+    }
+
+    const emailRE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const usernameRE = /^[a-zA-Z0-9._-]{3,20}$/;
+    const strongPwRE = /^(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/;
+
+    if (!emailRE.test(String(email).trim())) {
+      return res.status(400).json({ ok: false, message: 'Please enter a valid email address.' });
+    }
+    if (!usernameRE.test(String(username).trim())) {
+      return res.status(400).json({ ok: false, message: 'Invalid username format.' });
+    }
+    if (!strongPwRE.test(password)) {
+      return res.status(400).json({ ok: false, message: 'Password is not strong enough.' });
+    }
+
+    // Validate role
+    const validRoles = ['user', 'admin', 'super_admin', 'moderator', 'clerk', 'health_officer', 'emergency_officer'];
+    const roleLower = (role || 'user').toLowerCase();
+    if (!validRoles.includes(roleLower)) {
+      return res.status(400).json({ ok: false, message: `Invalid role. Allowed roles: ${validRoles.join(', ')}` });
+    }
+
+    const name = [firstName.trim(), (middleName || '').trim(), lastName.trim()].filter(Boolean).join(' ');
+    const usernameLower = String(username).toLowerCase().trim();
+    const emailLower = String(email).toLowerCase().trim();
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    await withDb(async (db) => {
+      const users = db.collection('users');
+
+      // Check if user already exists
+      const existing = await users.findOne({ $or: [{ username: usernameLower }, { email: emailLower }] });
+      if (existing) {
+        return res.status(409).json({ ok: false, message: 'Username or email already registered.' });
+      }
+
+      // Create user with specified role
+      await users.insertOne({
+        username: usernameLower,
+        email: emailLower,
+        firstName: firstName.trim(),
+        middleName: (middleName || '').trim(),
+        lastName: lastName.trim(),
+        name,
+        role: roleLower,
+        verified: verified === true || verified === 'true' || verified === 1,
+        address: address.trim(),
+        passwordHash,
+        createdAt: new Date(),
+        createdBy: req.session.user?.username || 'admin'
+      });
+    });
+
+    return res.json({ 
+      ok: true, 
+      message: `Account created successfully with role: ${roleLower}`,
+      user: {
+        username: usernameLower,
+        name,
+        role: roleLower,
+        verified: verified === true || verified === 'true' || verified === 1
+      }
+    });
+  } catch (e) {
+    if (e && e.code === 11000) {
+      return res.status(409).json({ ok: false, message: 'Username or email already registered.' });
+    }
+    console.error('Create user error:', e);
+    return res.status(500).json({ ok: false, message: 'Failed to create account' });
+  }
+});
+
+// Admin: Get all users (admin only)
+app.get('/api/admin/users', requireAdmin, async (req, res) => {
+  try {
+    const { verified, role, search } = req.query;
+    
+    const filter = {};
+    if (verified !== undefined) {
+      filter.verified = verified === 'true' || verified === true || verified === '1';
+    }
+    if (role) {
+      filter.role = role;
+    }
+    if (search) {
+      const searchRegex = new RegExp(search, 'i');
+      filter.$or = [
+        { username: searchRegex },
+        { name: searchRegex },
+        { email: searchRegex },
+        { firstName: searchRegex },
+        { lastName: searchRegex }
+      ];
+    }
+
+    const users = await withDb(async (db) => {
+      return await db.collection('users')
+        .find(filter)
+        .sort({ createdAt: -1 })
+        .toArray();
+    });
+
+    // Remove password hash from response
+    const safeUsers = (users || []).map(u => ({
+      _id: u._id,
+      username: u.username,
+      name: u.name,
+      firstName: u.firstName,
+      middleName: u.middleName,
+      lastName: u.lastName,
+      email: u.email,
+      role: u.role || 'user',
+      verified: u.verified === true,
+      address: u.address,
+      createdAt: u.createdAt,
+      createdBy: u.createdBy,
+      updatedAt: u.updatedAt,
+      updatedBy: u.updatedBy,
+      residentId: u.residentId || null,
+      linkedToResident: u.linkedToResident || false
+    }));
+
+    return res.json({ ok: true, users: safeUsers });
+  } catch (e) {
+    console.error('Get users error:', e);
+    return res.status(500).json({ ok: false, message: 'Failed to fetch users' });
+  }
+});
+
+// Admin: Update user role (admin only)
+app.put('/api/admin/users/:username/role', requireAdmin, async (req, res) => {
+  try {
+    const { username } = req.params;
+    const { role, verified } = req.body || {};
+
+    if (!role) {
+      return res.status(400).json({ ok: false, message: 'Role is required.' });
+    }
+
+    const validRoles = ['user', 'admin', 'super_admin', 'moderator', 'clerk', 'health_officer', 'emergency_officer'];
+    const roleLower = role.toLowerCase();
+    if (!validRoles.includes(roleLower)) {
+      return res.status(400).json({ ok: false, message: `Invalid role. Allowed roles: ${validRoles.join(', ')}` });
+    }
+
+    let userData = null;
+    let wasVerified = false;
+    let isNowVerified = false;
+
+    await withDb(async (db) => {
+      const users = db.collection('users');
+      const usernameLower = username.toLowerCase().trim();
+
+      // Get current user data
+      userData = await users.findOne({ username: usernameLower });
+      if (!userData) {
+        return res.status(404).json({ ok: false, message: 'User not found.' });
+      }
+
+      wasVerified = userData.verified === true;
+      isNowVerified = verified === true || verified === 'true' || verified === 1;
+
+      const updateData = { role: roleLower };
+      if (verified !== undefined) {
+        updateData.verified = isNowVerified;
+      }
+      updateData.updatedAt = new Date();
+      updateData.updatedBy = req.session.user?.username || 'admin';
+
+      const result = await users.updateOne(
+        { username: usernameLower },
+        { $set: updateData }
+      );
+
+      if (result.matchedCount === 0) {
+        return res.status(404).json({ ok: false, message: 'User not found.' });
+      }
+    });
+
+    // If user is being verified for the first time AND is a regular user (not staff), create resident record
+    // Only regular "user" role should become residents - staff (admin, clerk, etc.) are not residents
+    const isRegularUser = roleLower === 'user';
+    
+    if (!wasVerified && isNowVerified && userData && isRegularUser) {
+      try {
+        // Check if resident already exists for this user
+        const existingResident = await withDb(async (db) => {
+          return await db.collection('residents').findOne({ 
+            $or: [
+              { username: userData.username.toLowerCase() },
+              { name: { $regex: new RegExp(`^${(userData.name || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } },
+              { email: userData.email?.toLowerCase() }
+            ]
+          });
+        });
+
+        if (!existingResident) {
+          // Generate residentId
+          const lastResident = await withDb(async (db) => {
+            return await db.collection('residents')
+              .findOne({}, { sort: { residentId: -1 } });
+          });
+          
+          let residentId = 'R-0001';
+          if (lastResident && lastResident.residentId) {
+            const match = lastResident.residentId.match(/R-(\d+)/);
+            if (match) {
+              const nextNum = parseInt(match[1], 10) + 1;
+              residentId = `R-${String(nextNum).padStart(4, '0')}`;
+            }
+          }
+
+          // Create resident from user data
+          const resident = {
+            name: userData.name || `${userData.firstName || ''} ${userData.lastName || ''}`.trim(),
+            residentId: residentId,
+            gender: '', // Will need to be filled by admin
+            nearbyAnnex: '',
+            contactNumber: '', // Can be extracted from email or added later
+            dateOfBirth: null,
+            civilStatus: '',
+            voter: 'Unknown',
+            occupation: '',
+            indigent: 'No',
+            singleParent: 'No',
+            fourPs: 'No',
+            address: userData.address || '',
+            username: userData.username.toLowerCase(),
+            email: userData.email || '',
+            createdAt: new Date(),
+            createdFromUser: true,
+            userId: userData._id,
+            needsCompletion: true, // Flag to indicate admin needs to complete details
+            autoCreatedAt: new Date() // Track when it was auto-created
+          };
+
+          await withDb(async (db) => {
+            await db.collection('residents').insertOne(resident);
+          });
+
+          // Link user to resident
+          await withDb(async (db) => {
+            await db.collection('users').updateOne(
+              { username: userData.username.toLowerCase() },
+              { $set: { residentId: residentId, linkedToResident: true } }
+            );
+          });
+
+          console.log(`[User Verification] Created resident ${residentId} for user ${userData.username}`);
+        } else {
+          // Link existing resident to user
+          await withDb(async (db) => {
+            await db.collection('users').updateOne(
+              { username: userData.username.toLowerCase() },
+              { $set: { 
+                residentId: existingResident.residentId || existingResident._id.toString(),
+                linkedToResident: true 
+              } }
+            );
+            
+            // Also link resident to user if not already linked
+            if (!existingResident.username) {
+              await db.collection('residents').updateOne(
+                { _id: existingResident._id },
+                { $set: { username: userData.username.toLowerCase() } }
+              );
+            }
+          });
+
+          console.log(`[User Verification] Linked existing resident ${existingResident.residentId || existingResident._id} to user ${userData.username}`);
+        }
+      } catch (residentError) {
+        console.error('[User Verification] Error creating/linking resident:', residentError);
+        // Don't fail the verification if resident creation fails
+      }
+    }
+
+    return res.json({ ok: true, message: `User role updated to: ${roleLower}` });
+  } catch (e) {
+    console.error('Update role error:', e);
+    return res.status(500).json({ ok: false, message: 'Failed to update user role' });
+  }
+});
+
 // ---------- Data APIs used by dashboard ----------
 app.get('/api/stats', requireAuth, async (req, res) => {
   const data = await withDb(async (db) => {
@@ -1522,6 +1816,89 @@ app.get('/api/residents', requireAuth, async (req, res) => {
   res.json({ ok: true, residents: residents || [] });
 });
 
+// Create a new resident
+app.post('/api/residents', requireAuth, async (req, res) => {
+  try {
+    const {
+      name,
+      residentId,
+      gender,
+      nearbyAnnex,
+      contactNumber,
+      dateOfBirth,
+      civilStatus,
+      voter,
+      occupation,
+      indigent,
+      singleParent,
+      fourPs,
+      address,
+      username // Link to user account
+    } = req.body || {};
+
+    if (!name || !address) {
+      return res.status(400).json({ ok: false, message: 'Name and address are required.' });
+    }
+
+    // Generate residentId if not provided
+    let finalResidentId = residentId;
+    if (!finalResidentId) {
+      const lastResident = await withDb(async (db) => {
+        return await db.collection('residents')
+          .findOne({}, { sort: { residentId: -1 } });
+      });
+      
+      if (lastResident && lastResident.residentId) {
+        const match = lastResident.residentId.match(/R-(\d+)/);
+        if (match) {
+          const nextNum = parseInt(match[1], 10) + 1;
+          finalResidentId = `R-${String(nextNum).padStart(4, '0')}`;
+        } else {
+          finalResidentId = 'R-0001';
+        }
+      } else {
+        finalResidentId = 'R-0001';
+      }
+    }
+
+    // Check if residentId already exists
+    const existing = await withDb(async (db) => {
+      return await db.collection('residents').findOne({ residentId: finalResidentId });
+    });
+    
+    if (existing) {
+      return res.status(409).json({ ok: false, message: 'Resident ID already exists.' });
+    }
+
+    const resident = {
+      name: String(name).trim(),
+      residentId: finalResidentId,
+      gender: gender ? String(gender).trim() : '',
+      nearbyAnnex: nearbyAnnex ? String(nearbyAnnex).trim() : '',
+      contactNumber: contactNumber ? String(contactNumber).trim() : '',
+      dateOfBirth: dateOfBirth || null,
+      civilStatus: civilStatus ? String(civilStatus).trim() : '',
+      voter: voter ? String(voter).trim() : 'Unknown',
+      occupation: occupation ? String(occupation).trim() : '',
+      indigent: indigent ? String(indigent).trim() : 'No',
+      singleParent: singleParent ? String(singleParent).trim() : 'No',
+      fourPs: fourPs ? String(fourPs).trim() : 'No',
+      address: String(address).trim(),
+      createdAt: new Date(),
+      ...(username ? { username: String(username).toLowerCase().trim() } : {})
+    };
+
+    await withDb(async (db) => {
+      await db.collection('residents').insertOne(resident);
+    });
+
+    res.json({ ok: true, resident });
+  } catch (e) {
+    console.error('Create resident error:', e);
+    res.status(500).json({ ok: false, message: 'Failed to create resident.' });
+  }
+});
+
 // Search/validate residents by name or residentId
 app.get('/api/residents/search', requireAuth, async (req, res) => {
   const { q = '' } = req.query;
@@ -1541,6 +1918,37 @@ app.get('/api/residents/search', requireAuth, async (req, res) => {
   });
   
   res.json({ ok: true, residents: residents || [] });
+});
+
+// Search users by name (for linking health records)
+app.get('/api/users/search', requireAuth, async (req, res) => {
+  const { q = '' } = req.query;
+  if (!q || q.trim().length < 2) {
+    return res.json({ ok: true, users: [] });
+  }
+  
+  const searchTerm = q.trim();
+  const users = await withDb(async (db) => {
+    return await db.collection('users').find({
+      role: { $ne: 'admin' }, // Exclude admins
+      $or: [
+        { name: { $regex: searchTerm, $options: 'i' } },
+        { username: { $regex: searchTerm, $options: 'i' } },
+        { email: { $regex: searchTerm, $options: 'i' } }
+      ]
+    }).limit(20).toArray();
+  });
+  
+  // Return only necessary fields (no password hash)
+  const safeUsers = (users || []).map(u => ({
+    _id: u._id,
+    username: u.username,
+    name: u.name,
+    email: u.email,
+    role: u.role
+  }));
+  
+  res.json({ ok: true, users: safeUsers });
 });
 
 // Get resident by ID
@@ -1566,6 +1974,139 @@ app.get('/api/residents/:id', requireAuth, async (req, res) => {
   }
   
   res.json({ ok: true, resident });
+});
+
+// Update resident by ID (PATCH)
+app.patch('/api/residents/:id', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      name,
+      residentId,
+      gender,
+      nearbyAnnex,
+      contactNumber,
+      dateOfBirth,
+      civilStatus,
+      voter,
+      occupation,
+      indigent,
+      singleParent,
+      fourPs,
+      address
+    } = req.body || {};
+
+    if (!name || !address) {
+      return res.status(400).json({ ok: false, message: 'Name and address are required.' });
+    }
+
+    let resident = null;
+    
+    // Find resident by _id or residentId
+    if (ObjectId.isValid(id)) {
+      resident = await withDb(async (db) => 
+        await db.collection('residents').findOne({ _id: new ObjectId(id) })
+      );
+    }
+    
+    if (!resident) {
+      // Try by residentId field
+      resident = await withDb(async (db) => 
+        await db.collection('residents').findOne({ residentId: id })
+      );
+    }
+    
+    if (!resident) {
+      return res.status(404).json({ ok: false, message: 'Resident not found.' });
+    }
+
+    // Check if new residentId conflicts with existing resident
+    if (residentId && residentId !== resident.residentId) {
+      const existing = await withDb(async (db) => {
+        return await db.collection('residents').findOne({ 
+          residentId: residentId,
+          _id: { $ne: resident._id }
+        });
+      });
+      
+      if (existing) {
+        return res.status(409).json({ ok: false, message: 'Resident ID already exists.' });
+      }
+    }
+
+    const updateData = {
+      name: String(name).trim(),
+      gender: gender ? String(gender).trim() : '',
+      nearbyAnnex: nearbyAnnex ? String(nearbyAnnex).trim() : '',
+      contactNumber: contactNumber ? String(contactNumber).trim() : '',
+      dateOfBirth: dateOfBirth || null,
+      civilStatus: civilStatus ? String(civilStatus).trim() : '',
+      voter: voter ? String(voter).trim() : 'Unknown',
+      occupation: occupation ? String(occupation).trim() : '',
+      indigent: indigent ? String(indigent).trim() : 'No',
+      singleParent: singleParent ? String(singleParent).trim() : 'No',
+      fourPs: fourPs ? String(fourPs).trim() : 'No',
+      address: String(address).trim(),
+      updatedAt: new Date(),
+      updatedBy: req.session.user?.username || 'admin'
+    };
+
+    // Update residentId if provided and different
+    if (residentId && residentId !== resident.residentId) {
+      updateData.residentId = String(residentId).trim();
+    }
+
+    await withDb(async (db) => {
+      await db.collection('residents').updateOne(
+        { _id: resident._id },
+        { $set: updateData }
+      );
+    });
+
+    // Fetch updated resident
+    const updatedResident = await withDb(async (db) => {
+      return await db.collection('residents').findOne({ _id: resident._id });
+    });
+
+    res.json({ ok: true, resident: updatedResident });
+  } catch (e) {
+    console.error('Update resident error:', e);
+    res.status(500).json({ ok: false, message: 'Failed to update resident.' });
+  }
+});
+
+// Delete resident by ID
+app.delete('/api/residents/:id', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    let resident = null;
+    if (ObjectId.isValid(id)) {
+      resident = await withDb(async (db) => 
+        await db.collection('residents').findOne({ _id: new ObjectId(id) })
+      );
+    }
+    
+    if (!resident) {
+      // Try by residentId
+      resident = await withDb(async (db) => 
+        await db.collection('residents').findOne({ residentId: id })
+      );
+    }
+    
+    if (!resident) {
+      return res.status(404).json({ ok: false, message: 'Resident not found.' });
+    }
+
+    await withDb(async (db) => {
+      await db.collection('residents').deleteOne({ _id: resident._id });
+    });
+
+    res.json({ ok: true, message: 'Resident deleted successfully.' });
+  } catch (e) {
+    console.error('Delete resident error:', e);
+    res.status(500).json({ ok: false, message: 'Failed to delete resident.' });
+  }
 });
 
 app.get('/api/documents', requireAuth, async (req, res) => {

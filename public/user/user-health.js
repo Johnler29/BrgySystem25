@@ -3,17 +3,8 @@
   const $ = (s,p=document)=>p.querySelector(s);
   const $$ = (s,p=document)=>p.querySelectorAll(s);
   
-  const tableHead = $('#tableHead');
-  const tableBody = $('#tableBody');
-  const pager = $('#pager');
-  const drawer = $('#drawer');
-  const dBody = $('#dBody');
-  const dClose = $('#dClose');
-  const dRecordId = $('#dRecordId');
-  const dStatus = $('#dStatus');
-  const tabs = $('#tabs');
-  const scheduleForm = $('#frmSchedule');
-  const scheduleMsg = $('#scheduleMsg');
+  // DOM element references - will be re-queried in init()
+  let tableHead, tableBody, pager, drawer, dBody, dClose, dRecordId, dStatus, tabs, scheduleForm, scheduleMsg;
 
   let user = null;
   let currentTab = 'patient-data';
@@ -22,7 +13,7 @@
   // Tab configurations
   const tabConfigs = {
     'patient-data': {
-      title: 'Patient Data Records',
+      title: 'Health Programs',
       headers: ['Program', 'Type', 'Location', 'Date & Time', 'Status'],
       apiEndpoint: '/api/health/patient-data'
     },
@@ -133,8 +124,10 @@
         return;
       }
       
-      $('#username').textContent = user.name || 'User';
-      $('#avatar').textContent = (user.name || 'U').trim().charAt(0).toUpperCase();
+      const usernameEl = document.getElementById('username');
+      const avatarEl = document.getElementById('avatar');
+      if (usernameEl) usernameEl.textContent = user.name || 'User';
+      if (avatarEl) avatarEl.textContent = (user.name || 'U').trim().charAt(0).toUpperCase();
       
     }catch{ location.href='/login'; }
   }
@@ -147,10 +140,14 @@
 
   // Summary statistics
   function setSummary(sum){
-    $('#sTotal').textContent = sum.Total || 0;
-    $('#sActive').textContent = sum.Active || 0;
-    $('#sScheduled').textContent = sum.Scheduled || 0;
-    $('#sCompleted').textContent = sum.Completed || 0;
+    const sTotal = document.getElementById('sTotal');
+    const sActive = document.getElementById('sActive');
+    const sScheduled = document.getElementById('sScheduled');
+    const sCompleted = document.getElementById('sCompleted');
+    if (sTotal) sTotal.textContent = sum.Total || 0;
+    if (sActive) sActive.textContent = sum.Active || 0;
+    if (sScheduled) sScheduled.textContent = sum.Scheduled || 0;
+    if (sCompleted) sCompleted.textContent = sum.Completed || 0;
   }
 
   async function refreshSummary(){
@@ -164,7 +161,7 @@
   function switchTab(tabName) {
     currentTab = tabName;
     
-    // Remove active state from all tabs (CSS handles the styling via .active class)
+    // Remove active state from all tabs
     $$('.tab').forEach(t => {
       t.classList.remove('active');
     });
@@ -181,6 +178,8 @@
 
   // Load data
   async function load(){
+    if (!tableHead || !tableBody) return;
+    
     const config = tabConfigs[currentTab];
     if (!config) return;
 
@@ -202,11 +201,15 @@
       refreshSummary();
     } catch(e) {
       console.error('Load error:', e);
-      tableBody.innerHTML = '<tr><td colspan="' + config.headers.length + '" class="text-center p-4 text-muted">No records found.</td></tr>';
+      if (tableBody) {
+        tableBody.innerHTML = '<tr><td colspan="' + config.headers.length + '" class="text-center p-4 text-muted">No records found.</td></tr>';
+      }
     }
   }
 
   function renderTable(headers, rows){
+    if (!tableHead || !tableBody) return;
+    
     tableHead.innerHTML = '<tr>' + headers.map(h => `<th class="px-3 py-3 text-left text-xs text-[#7f8c8d] font-semibold">${h}</th>`).join('') + '<th class="px-3 py-3 text-left text-xs text-[#7f8c8d] font-semibold w-[100px]">Actions</th></tr>';
     
     tableBody.innerHTML = '';
@@ -250,12 +253,13 @@
         cells = `<td><span style="font-size:1.1rem;">${typeInfo.icon}</span> ${typeInfo.label}</td><td>${formatDate(r.preferredDate)}</td><td>${r.preferredTime || '-'}</td><td>${badge(r.status || 'Pending')}</td><td>${r.notes || '-'}</td>`;
       }
       
-      tr.innerHTML = cells + `<td><button class="px-3 py-1.5 rounded-lg border-none cursor-pointer bg-ghost-btn text-primary-btn font-medium hover:opacity-90 transition-opacity text-sm" data-act="view" data-id="${r._id}">View</button></td>`;
+      tr.innerHTML = cells + `<td><button class="action-btn-view" data-act="view" data-id="${r._id}"><i class="fas fa-eye"></i><span>View</span></button></td>`;
       tableBody.appendChild(tr);
     });
   }
 
   function renderPager(page, totalPages, total){
+    if (!pager) return;
     pager.innerHTML = '';
     const info = document.createElement('div');
     info.style.marginRight='auto';
@@ -281,79 +285,362 @@
     mk('Next', ()=>{ if(state.page<totalPages){ state.page++; load(); }}, page>=totalPages);
   }
 
-  // Event listeners
-  tabs.addEventListener('click', (e) => {
-    const tab = e.target.closest('.tab');
-    if (!tab) return;
-    switchTab(tab.getAttribute('data-tab'));
-  });
+  function setupEventListeners() {
+    // Tabs
+    if (tabs) {
+      // Clone to remove old listeners
+      const newTabs = tabs.cloneNode(true);
+      tabs.parentNode.replaceChild(newTabs, tabs);
+      tabs = newTabs;
+      
+      newTabs.addEventListener('click', (e) => {
+        const tab = e.target.closest('.tab');
+        if (!tab) return;
+        switchTab(tab.getAttribute('data-tab'));
+      });
+    }
 
-  $('#btnFilter').onclick = () => {
-    state.from = $('#fFrom').value || '';
-    state.to = $('#fTo').value || '';
-    state.q = $('#fQ').value.trim();
-    state.status = $('#fStatus').value || '';
-    state.page = 1;
-    load();
-  };
+    // Filter function (shared by button and Enter key)
+    const applyFilter = () => {
+      const fFrom = document.getElementById('fFrom');
+      const fTo = document.getElementById('fTo');
+      const fQ = document.getElementById('fQ');
+      const fStatus = document.getElementById('fStatus');
+      state.from = fFrom ? (fFrom.value || '') : '';
+      state.to = fTo ? (fTo.value || '') : '';
+      state.q = fQ ? fQ.value.trim() : '';
+      state.status = fStatus ? (fStatus.value || '') : '';
+      state.page = 1;
+      load();
+    };
 
-  tableBody.addEventListener('click', async (e) => {
-    const btn = e.target.closest('button');
-    if (!btn) return;
-    const id = btn.getAttribute('data-id');
-    const act = btn.getAttribute('data-act');
+    // Filter button
+    const btnFilter = document.getElementById('btnFilter');
+    if (btnFilter) {
+      const newBtnFilter = btnFilter.cloneNode(true);
+      btnFilter.parentNode.replaceChild(newBtnFilter, btnFilter);
+      newBtnFilter.onclick = applyFilter;
+    }
 
-    if (act === 'view') {
-      try {
-        // Map tab names to API endpoint names
-        const endpointMap = {
-          'patient-data': 'patient-data',
-          'family-planning': 'family-planning',
-          'post-partum': 'post-partum',
-          'child-immunization': 'child-immunization',
-          'individual-treatment': 'individual-treatment',
-          'patient-data-record': 'patient-records',
-          'pregnancy-tracking': 'pregnancy-tracking',
-          'pre-natal': 'prenatal',
-          'schedules': 'schedules'
-        };
-        const endpoint = endpointMap[currentTab] || currentTab;
-        const j = await fetchJSON(`/api/health/${endpoint}/${id}`);
-        if (!j.ok) return alert('Record not found');
-        const r = j.row;
+    // Search input - Enter key to apply filter
+    const fQ = document.getElementById('fQ');
+    if (fQ) {
+      const newFQ = fQ.cloneNode(true);
+      fQ.parentNode.replaceChild(newFQ, fQ);
+      newFQ.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          applyFilter();
+        }
+      });
+    }
+
+    // Date inputs - Enter key to apply filter
+    const fFrom = document.getElementById('fFrom');
+    if (fFrom) {
+      const newFFrom = fFrom.cloneNode(true);
+      fFrom.parentNode.replaceChild(newFFrom, fFrom);
+      newFFrom.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          applyFilter();
+        }
+      });
+    }
+
+    const fTo = document.getElementById('fTo');
+    if (fTo) {
+      const newFTo = fTo.cloneNode(true);
+      fTo.parentNode.replaceChild(newFTo, fTo);
+      newFTo.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          applyFilter();
+        }
+      });
+    }
+
+    // Status select - change event to apply filter
+    const fStatus = document.getElementById('fStatus');
+    if (fStatus) {
+      const newFStatus = fStatus.cloneNode(true);
+      fStatus.parentNode.replaceChild(newFStatus, fStatus);
+      newFStatus.addEventListener('change', () => {
+        applyFilter();
+      });
+    }
+
+    // Table actions - use event delegation
+    if (tableBody && tableBody.parentNode) {
+      const tableWrapper = tableBody.closest('table') || tableBody.closest('.border-2');
+      if (tableWrapper) {
+        const newTableWrapper = tableWrapper.cloneNode(true);
+        tableWrapper.parentNode.replaceChild(newTableWrapper, tableWrapper);
         
-        dRecordId.textContent = r.recordId || r._id;
-        dStatus.className = 'px-2 py-1 rounded-2xl text-xs font-bold ' + (badge(r.status || 'Active').match(/class="([^"]+)"/)?.[1] || 'bg-active');
-        dStatus.textContent = r.status || 'Active';
+        // Re-query tableBody after cloning
+        const newTableBody = newTableWrapper.querySelector('#tableBody') || newTableWrapper.querySelector('tbody');
+        if (newTableBody) {
+          tableBody = newTableBody;
+        }
+        
+        // Re-query tableHead after cloning
+        const newTableHead = newTableWrapper.querySelector('#tableHead') || newTableWrapper.querySelector('thead');
+        if (newTableHead) {
+          tableHead = newTableHead;
+        }
+        
+        newTableWrapper.addEventListener('click', async (e) => {
+          const btn = e.target.closest('button[data-act]');
+          if (!btn) return;
+          const id = btn.getAttribute('data-id');
+          const act = btn.getAttribute('data-act');
 
-        dBody.innerHTML = Object.entries(r).filter(([k]) => !k.startsWith('_') && k !== 'recordId').map(([k, v]) => 
-          `<div class="grid grid-cols-[140px_1fr] gap-2 mb-2">
-            <div class="text-[#7f8c8d] text-sm">${k.replace(/([A-Z])/g, ' $1').trim()}</div>
-            <div class="text-[#2c3e50]">${v || '-'}</div>
-          </div>`
-        ).join('');
+          if (act === 'view') {
+            try {
+              // Map tab names to API endpoint names
+              const endpointMap = {
+                'patient-data': 'patient-data',
+                'family-planning': 'family-planning',
+                'post-partum': 'post-partum',
+                'child-immunization': 'child-immunization',
+                'individual-treatment': 'individual-treatment',
+                'patient-data-record': 'patient-records',
+                'pregnancy-tracking': 'pregnancy-tracking',
+                'pre-natal': 'prenatal',
+                'schedules': 'schedules'
+              };
+              const endpoint = endpointMap[currentTab] || currentTab;
+              const j = await fetchJSON(`/api/health/${endpoint}/${id}`);
+              if (!j.ok) return alert('Record not found');
+              const r = j.row;
+              
+              if (dRecordId) dRecordId.textContent = r.recordId || r._id;
+              if (dStatus) {
+                const badgeClass = badge(r.status || 'Active').match(/class="([^"]+)"/)?.[1] || 'bg-active';
+                dStatus.className = 'px-2 py-1 rounded-2xl text-xs font-bold ' + badgeClass;
+                dStatus.textContent = r.status || 'Active';
+              }
 
-        drawer.classList.remove('hidden');
-        drawer.classList.add('flex');
-      } catch(e) {
-        alert('Failed to load record details');
+              if (dBody) {
+                // Helper function to format field names
+                const formatFieldName = (key) => {
+                  return key
+                    .replace(/([A-Z])/g, ' $1')
+                    .replace(/^./, str => str.toUpperCase())
+                    .trim();
+                };
+                
+                // Helper function to format values
+                const formatValue = (key, value) => {
+                  if (value === null || value === undefined || value === '') return '-';
+                  
+                  // Handle dates
+                  if (key.toLowerCase().includes('date') || key.toLowerCase().includes('time') || key.toLowerCase().includes('at')) {
+                    if (typeof value === 'string' && value.match(/^\d{4}-\d{2}-\d{2}/)) {
+                      try {
+                        const date = new Date(value);
+                        if (!isNaN(date.getTime())) {
+                          if (key.toLowerCase().includes('time') || key.toLowerCase().includes('at')) {
+                            return date.toLocaleString('en-US', { 
+                              year: 'numeric', 
+                              month: 'short', 
+                              day: 'numeric', 
+                              hour: '2-digit', 
+                              minute: '2-digit' 
+                            });
+                          }
+                          return date.toLocaleDateString('en-US', { 
+                            year: 'numeric', 
+                            month: 'short', 
+                            day: 'numeric' 
+                          });
+                        }
+                      } catch (e) {
+                        // Fall through to default
+                      }
+                    }
+                  }
+                  
+                  // Handle objects
+                  if (typeof value === 'object' && value !== null) {
+                    if (Array.isArray(value)) {
+                      return value.length > 0 ? value.join(', ') : '-';
+                    }
+                    // Try to extract meaningful info from objects
+                    if (value.name) return value.name;
+                    if (value.username) return value.username;
+                    if (value.email) return value.email;
+                    return JSON.stringify(value);
+                  }
+                  
+                  return String(value);
+                };
+                
+                // Helper to escape HTML
+                const escape = (str) => {
+                  if (!str) return '';
+                  const div = document.createElement('div');
+                  div.textContent = str;
+                  return div.innerHTML;
+                };
+                
+                // Filter and organize fields
+                const excludedFields = ['_id', 'recordId', '__v'];
+                const fields = Object.entries(r)
+                  .filter(([k]) => !k.startsWith('_') && !excludedFields.includes(k))
+                  .map(([k, v]) => ({
+                    key: k,
+                    label: formatFieldName(k),
+                    value: formatValue(k, v),
+                    isImportant: ['type', 'status', 'preferredDate', 'preferredTime', 'notes'].includes(k)
+                  }));
+                
+                // Group fields by category
+                const scheduleFields = fields.filter(f => 
+                  ['type', 'preferredDate', 'preferredTime', 'notes', 'status'].includes(f.key)
+                );
+                const residentFields = fields.filter(f => 
+                  f.key.toLowerCase().includes('resident') || f.key.toLowerCase().includes('name') || f.key.toLowerCase().includes('contact')
+                );
+                const dateFields = fields.filter(f => 
+                  (f.key.toLowerCase().includes('date') || f.key.toLowerCase().includes('time') || f.key.toLowerCase().includes('at')) &&
+                  !scheduleFields.includes(f) && !residentFields.includes(f)
+                );
+                const otherFields = fields.filter(f => 
+                  !scheduleFields.includes(f) && !residentFields.includes(f) && !dateFields.includes(f)
+                );
+                
+                let html = '';
+                
+                // Schedule Information
+                if (scheduleFields.length > 0) {
+                  html += '<h4>Schedule Information</h4>';
+                  scheduleFields.forEach(f => {
+                    html += `
+                      <div class="drawer-field-health">
+                        <div class="drawer-field-label-health">${escape(f.label)}</div>
+                        <div class="drawer-field-value-health">${escape(f.value)}</div>
+                      </div>
+                    `;
+                  });
+                }
+                
+                // Resident Information
+                if (residentFields.length > 0) {
+                  html += '<h4>Resident Information</h4>';
+                  residentFields.forEach(f => {
+                    html += `
+                      <div class="drawer-field-health">
+                        <div class="drawer-field-label-health">${escape(f.label)}</div>
+                        <div class="drawer-field-value-health">${escape(f.value)}</div>
+                      </div>
+                    `;
+                  });
+                }
+                
+                // Other Important Fields
+                if (otherFields.length > 0) {
+                  html += '<h4>Additional Information</h4>';
+                  otherFields.forEach(f => {
+                    html += `
+                      <div class="drawer-field-health">
+                        <div class="drawer-field-label-health">${escape(f.label)}</div>
+                        <div class="drawer-field-value-health">${escape(f.value)}</div>
+                      </div>
+                    `;
+                  });
+                }
+                
+                // Date Information
+                if (dateFields.length > 0) {
+                  html += '<h4>Timeline</h4>';
+                  dateFields.forEach(f => {
+                    html += `
+                      <div class="drawer-field-health">
+                        <div class="drawer-field-label-health">${escape(f.label)}</div>
+                        <div class="drawer-field-value-health">${escape(f.value)}</div>
+                      </div>
+                    `;
+                  });
+                }
+                
+                // Metadata
+                const metaFields = fields.filter(f => 
+                  f.key.toLowerCase().includes('created') || f.key.toLowerCase().includes('updated')
+                );
+                if (metaFields.length > 0) {
+                  html += '<div class="drawer-meta-health">';
+                  metaFields.forEach(f => {
+                    html += `
+                      <div class="drawer-meta-item-health">
+                        <div class="drawer-meta-label-health">${escape(f.label)}</div>
+                        <div class="drawer-meta-value-health">${escape(f.value)}</div>
+                      </div>
+                    `;
+                  });
+                  html += '</div>';
+                }
+                
+                dBody.innerHTML = html || '<p class="text-muted">No information available.</p>';
+              }
+
+              if (drawer) {
+                drawer.classList.remove('hidden');
+                drawer.classList.add('active');
+                drawer.style.setProperty('pointer-events', 'auto', 'important');
+                drawer.style.setProperty('display', 'flex', 'important');
+                drawer.style.setProperty('z-index', '10000', 'important');
+              }
+            } catch(e) {
+              console.error('View error:', e);
+              alert('Failed to load record details');
+            }
+          }
+        });
       }
     }
-  });
 
-  dClose.onclick = () => {
-    drawer.classList.remove('flex');
-    drawer.classList.add('hidden');
-  };
+    // Drawer close
+    if (dClose) {
+      const newDClose = dClose.cloneNode(true);
+      dClose.parentNode.replaceChild(newDClose, dClose);
+      dClose = newDClose;
+      newDClose.onclick = () => {
+        const currentDrawer = document.getElementById('drawer');
+        if (currentDrawer) {
+          currentDrawer.classList.remove('active');
+          currentDrawer.classList.add('hidden');
+          currentDrawer.style.removeProperty('pointer-events');
+          currentDrawer.style.removeProperty('display');
+          currentDrawer.style.removeProperty('z-index');
+        }
+      };
+    }
 
-  drawer.querySelector('.overlay').onclick = () => {
-    drawer.classList.remove('flex');
-    drawer.classList.add('hidden');
-  };
+    // Drawer overlay
+    const currentDrawer = document.getElementById('drawer');
+    if (currentDrawer) {
+      const backdrop = currentDrawer.querySelector('.drawer-backdrop-health');
+      if (backdrop) {
+        const newBackdrop = backdrop.cloneNode(true);
+        backdrop.parentNode.replaceChild(newBackdrop, backdrop);
+        newBackdrop.onclick = () => {
+          const drawerEl = document.getElementById('drawer');
+          if (drawerEl) {
+            drawerEl.classList.remove('active');
+            drawerEl.classList.add('hidden');
+            drawerEl.style.removeProperty('pointer-events');
+            drawerEl.style.removeProperty('display');
+            drawerEl.style.removeProperty('z-index');
+          }
+        };
+      }
+    }
 
-  // Schedule preference submit
-  if (scheduleForm && scheduleMsg) {
-    $('#btnSubmitSchedule')?.addEventListener('click', async () => {
+    // Schedule preference submit function (shared by button and Enter key)
+    const submitSchedule = async () => {
+      if (!scheduleForm || !scheduleMsg) return;
+      
       scheduleMsg.textContent = '';
       const fd = new FormData(scheduleForm);
       const body = Object.fromEntries(fd.entries());
@@ -368,7 +655,7 @@
         const res = await fetch('/api/health/schedules', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          credentials: 'include', // Important for session cookies
+          credentials: 'include',
           body: JSON.stringify(body)
         });
         
@@ -387,17 +674,135 @@
         scheduleMsg.textContent = 'Your schedule preference has been submitted. The health center will confirm your final schedule.';
         scheduleMsg.style.color = '#2563eb';
         scheduleForm.reset();
+        // Reload schedules tab if currently viewing it
+        if (currentTab === 'schedules') {
+          load();
+        }
       } catch (e) {
         console.error('Schedule submit error:', e);
         scheduleMsg.textContent = e.message || 'Failed to submit schedule preference.';
         scheduleMsg.style.color = '#1e40af';
       }
-    });
+    };
+
+    // Schedule preference submit button
+    const btnSubmitSchedule = document.getElementById('btnSubmitSchedule');
+    if (scheduleForm && scheduleMsg) {
+      if (btnSubmitSchedule) {
+        // Clone to remove old listeners
+        const newBtnSubmit = btnSubmitSchedule.cloneNode(true);
+        btnSubmitSchedule.parentNode.replaceChild(newBtnSubmit, btnSubmitSchedule);
+        
+        // Force button to be visible with inline styles (override any CSS)
+        newBtnSubmit.style.cssText = `
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          padding: 10px 20px !important;
+          background-color: #3498db !important;
+          color: white !important;
+          border: none !important;
+          border-radius: 10px !important;
+          font-size: 0.875rem !important;
+          font-weight: 500 !important;
+          cursor: pointer !important;
+          transition: all 0.2s ease !important;
+          pointer-events: auto !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          z-index: 1 !important;
+          min-width: 150px !important;
+        `;
+        
+        newBtnSubmit.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('User health: Submit schedule button clicked');
+          submitSchedule();
+        });
+        
+        console.log('User health: Submit schedule button initialized');
+      } else {
+        console.warn('User health: btnSubmitSchedule not found');
+      }
+      
+      // Add Enter key support to all form fields
+      if (scheduleForm) {
+        const formFields = scheduleForm.querySelectorAll('input, select, textarea');
+        formFields.forEach(field => {
+          // Clone to remove old listeners
+          const newField = field.cloneNode(true);
+          field.parentNode.replaceChild(newField, field);
+          
+          newField.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              submitSchedule();
+            }
+          });
+        });
+      }
+      
+      // Also handle form submit event (in case form is submitted normally)
+      if (scheduleForm) {
+        scheduleForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          submitSchedule();
+        });
+      }
+    }
   }
 
-  // Init
-  initUser();
-  refreshSummary();
-  load();
-})();
+  // Main init function
+  async function init() {
+    const contentArea = document.querySelector('.content-area');
+    if (!contentArea) {
+      console.warn('User health: Content area not found');
+      return;
+    }
 
+    // Re-query all DOM elements
+    tableHead = contentArea.querySelector('#tableHead') || document.getElementById('tableHead');
+    tableBody = contentArea.querySelector('#tableBody') || document.getElementById('tableBody');
+    pager = contentArea.querySelector('#pager') || document.getElementById('pager');
+    drawer = document.getElementById('drawer');
+    dBody = document.getElementById('dBody');
+    dClose = document.getElementById('dClose');
+    dRecordId = document.getElementById('dRecordId');
+    dStatus = document.getElementById('dStatus');
+    tabs = contentArea.querySelector('#tabs') || document.getElementById('tabs');
+    scheduleForm = document.getElementById('frmSchedule');
+    scheduleMsg = document.getElementById('scheduleMsg');
+
+    // Setup event listeners
+    setupEventListeners();
+
+    // Initialize user
+    await initUser();
+    
+    // Reset to default tab
+    currentTab = 'patient-data';
+    
+    // Load data
+    refreshSummary();
+    load();
+  }
+
+  // Expose init function for router
+  window.initUserHealth = init;
+
+  // Auto-initialize ONLY for direct page loads (not SPA navigation)
+  const isSPAMode = window.__ROUTER_INITIALIZED__;
+  
+  if (!isSPAMode) {
+    // Direct page load (not via router) - auto-initialize
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      setTimeout(init, 50);
+    }
+  } else {
+    // SPA mode - router will call initUserHealth, don't auto-init
+    console.log('User health: SPA mode detected, waiting for router to call initUserHealth');
+  }
+})();

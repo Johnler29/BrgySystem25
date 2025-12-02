@@ -79,3 +79,6 @@ node -e "const puppeteer = require('puppeteer'); (async () => { const browser = 
 **Recommended:** Use Method 1 (Browser Print to PDF) for the easiest and best results!
 
 
+
+
+

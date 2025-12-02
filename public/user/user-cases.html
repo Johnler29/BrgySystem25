@@ -4,34 +4,657 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Report Cases — Barangay Langkaan II</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        fontFamily: {
-          'inter': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        }
-      }
-    }
-  }
-</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <link rel="stylesheet" href="/base.css">
 <style>
-  .bg-primary-btn { background-color: #3498db; }
-  .bg-ghost-btn { background-color: #ecf0f1; }
-  .text-primary-btn { color: #2c3e50; }
-  .border-input { border-color: #dfe6e9; }
-  .bg-pending { background-color: #fff4e5; color: #b9770e; }
-  .bg-ongoing { background-color: #eaf4ff; color: #1b73c7; }
-  .bg-resolved { background-color: #e9f9ef; color: #239b56; }
-  .bg-cancelled { background-color: #fdecea; color: #c0392b; }
-  .bg-notif-unread { background-color: #f5f9ff; border-color: #d0e3ff; }
-  .text-muted-meta { color: #95a5a6; }
-  .bg-note-box { background-color: #fff4e5; color: #8e5b13; border-color: #f5cba7; }
+  body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+  
+  /* Info Banner */
+  .info-banner {
+    background: #1a237e;
+    color: #fff;
+    padding: 16px 20px;
+    border-radius: 10px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.1);
+  }
+  .info-banner-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .info-banner-icon {
+    font-size: 1.25rem;
+    margin-top: 2px;
+  }
+  .info-banner-title {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 4px;
+  }
+  .info-banner-text {
+    font-size: 0.875rem;
+    margin: 0;
+    line-height: 1.5;
+    opacity: 0.95;
+  }
+  
+  /* Dashboard Card */
+  .dashboard-card-user {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .dashboard-card-header-user {
+    padding: 18px 24px;
+    background: #e3f2fd;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .dashboard-card-header-user h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #111827;
+  }
+  .dashboard-card-content-user {
+    padding: 24px;
+  }
+  
+  /* Filter Chips */
+  .chips-container {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  .chip {
+    padding: 10px 18px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    border: 1.5px solid transparent;
+  }
+  .chip:not(.active) {
+    background: #f3f4f6;
+    color: #374151;
+    border-color: #e5e7eb;
+  }
+  .chip:not(.active):hover {
+    background: #e5e7eb;
+    border-color: #d1d5db;
+    transform: translateY(-1px);
+  }
+  .chip.active {
+    background: #3498db;
+    color: #fff;
+    border-color: #3498db;
+    box-shadow: 0 2px 4px rgba(52,152,219,.2);
+  }
+  
+  /* Toolbar */
+  .toolbar-user {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 16px;
+    background: #f9fafb;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+  }
+  .toolbar-user input,
+  .toolbar-user select {
+    padding: 10px 14px;
+    border: 1.5px solid #d1d5db;
+    border-radius: 10px;
+    background: #fff;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+  .toolbar-user input:focus,
+  .toolbar-user select:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52,152,219,.1);
+  }
+  .toolbar-user input {
+    flex: 1;
+    min-width: 200px;
+  }
+  .toolbar-user input::placeholder {
+    color: #9ca3af;
+  }
+  .toolbar-user select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M4 6l4 4 4-4' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+  }
+  .toolbar-user button {
+    padding: 10px 18px;
+    border-radius: 10px;
+    border: 1.5px solid #d1d5db;
+    background: #fff;
+    color: #374151;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .toolbar-user button:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+    transform: translateY(-1px);
+  }
+  
+  /* Table */
+  .table-wrap-user {
+    background: #fff;
+    border-radius: 12px;
+    border: 1.5px solid #e5e7eb;
+    overflow: hidden;
+  }
+  .table-user {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  .table-user thead {
+    background: #f8f9fa;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .table-user thead th {
+    padding: 14px 20px;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #374151;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #e5e7eb;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .table-user thead th:hover {
+    color: #3498db;
+  }
+  .table-user tbody tr {
+    transition: all 0.2s ease;
+    background: #fff;
+    border-bottom: 1px solid #f1f3f5;
+  }
+  .table-user tbody tr:nth-child(even) {
+    background: #fafbfc;
+  }
+  .table-user tbody tr:hover {
+    background: #f0f7ff;
+    box-shadow: 0 1px 3px rgba(52,152,219,.08);
+  }
+  .table-user tbody td {
+    padding: 14px 20px;
+    font-size: 0.875rem;
+    color: #374151;
+    vertical-align: middle;
+  }
+  
+  /* Badges */
+  .badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: inline-block;
+  }
+  .bg-pending { background: #fff4e5; color: #b9770e; }
+  .bg-ongoing { background: #eaf4ff; color: #1b73c7; }
+  .bg-resolved { background: #e9f9ef; color: #239b56; }
+  .bg-cancelled { background: #fdecea; color: #c0392b; }
+  
+  /* Buttons */
+  .btn-primary-user {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: 12px;
+    background: #3498db;
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(52,152,219,.2);
+  }
+  .btn-primary-user:hover {
+    background: #2980b9;
+    box-shadow: 0 4px 8px rgba(52,152,219,.3);
+    transform: translateY(-1px);
+  }
+  /* Table Action Buttons - Standardized across all user pages */
+  .action-btn-view {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    border: 1.5px solid #d1d5db;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #fff;
+    color: #374151;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+  }
+  .action-btn-view:hover {
+    background: #3498db;
+    color: #fff;
+    border-color: #3498db;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(52,152,219,.2);
+  }
+  .action-btn-view:active {
+    transform: translateY(0);
+  }
+  .action-btn-view i {
+    font-size: 0.75rem;
+  }
+  .table-user .action-btn-view {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    border: 1.5px solid #d1d5db;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #fff;
+    color: #374151;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+  }
+  .table-user .action-btn-view:hover {
+    background: #3498db;
+    color: #fff;
+    border-color: #3498db;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(52,152,219,.2);
+  }
+  .table-user .action-btn-view:active {
+    transform: translateY(0);
+  }
+  .table-user .action-btn-view i {
+    font-size: 0.75rem;
+  }
+  
+  /* Modal */
+  .modal-user {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 1000;
+    overflow-y: auto;
+  }
+  .modal-user.active {
+    display: flex;
+  }
+  .modal-content-user {
+    width: 100%;
+    max-width: 700px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,.2);
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    margin: 20px 0;
+  }
+  .modal-header-user {
+    padding: 16px 20px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e5e7eb;
+    font-weight: 600;
+    font-size: 1.125rem;
+    color: #2c3e50;
+  }
+  .modal-body-user {
+    padding: 20px;
+    max-height: calc(100vh - 180px);
+    overflow-y: auto;
+  }
+  .modal-footer-user {
+    padding: 16px 20px;
+    background: #f8f9fa;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+  .form-grid-user {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  .form-grid-user .full {
+    grid-column: 1 / -1;
+  }
+  .form-field-user label {
+    display: block;
+    color: #7f8c8d;
+    margin-bottom: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  .form-field-user input,
+  .form-field-user select,
+  .form-field-user textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #dfe6e9;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 0.875rem;
+    font-family: inherit;
+    transition: all 0.2s ease;
+  }
+  .form-field-user input:focus,
+  .form-field-user select:focus,
+  .form-field-user textarea:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52,152,219,.1);
+  }
+  .form-field-user textarea {
+    min-height: 80px;
+    resize: vertical;
+  }
+  .form-field-user small {
+    color: #7f8c8d;
+    font-size: 0.75rem;
+    margin-top: 4px;
+    display: block;
+  }
+  .btn-secondary-user {
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: 1.5px solid #d1d5db;
+    background: #ecf0f1;
+    color: #2c3e50;
+    font-weight: 500;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .btn-secondary-user:hover {
+    opacity: 0.9;
+  }
+  
+  /* Drawer */
+  .drawer-user {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: none;
+  }
+  .drawer-user.active {
+    display: flex;
+    align-items: stretch;
+    justify-content: flex-end;
+  }
+  .drawer-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    cursor: pointer;
+  }
+  .drawer-content-user {
+    position: relative;
+    height: 100%;
+    width: 100%;
+    max-width: 600px;
+    background: #fff;
+    box-shadow: -10px 0 30px rgba(0,0,0,.2);
+    display: flex;
+    flex-direction: column;
+    z-index: 10001;
+  }
+  .drawer-header-user {
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f8f9fa;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .drawer-header-user strong {
+    font-size: 1.125rem;
+    color: #2c3e50;
+  }
+  .drawer-body-user {
+    padding: 24px;
+    overflow-y: auto;
+    flex: 1;
+  }
+  .drawer-body-user h4 {
+    margin-top: 24px;
+    margin-bottom: 12px;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #2c3e50;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e5e7eb;
+  }
+  .drawer-body-user h4:first-child {
+    margin-top: 0;
+  }
+  .drawer-field {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+    align-items: start;
+  }
+  .drawer-field-label {
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 500;
+  }
+  .drawer-field-value {
+    font-size: 0.875rem;
+    color: #2c3e50;
+    word-break: break-word;
+  }
+  .drawer-field-value strong {
+    font-weight: 600;
+    color: #111827;
+  }
+  .drawer-description {
+    white-space: pre-wrap;
+    color: #2c3e50;
+    line-height: 1.6;
+    padding: 12px;
+    background: #f9fafb;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 16px;
+  }
+  .drawer-list {
+    list-style: none;
+    padding: 0;
+    margin: 12px 0;
+  }
+  .drawer-list-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f3f5;
+  }
+  .drawer-list-item:last-child {
+    border-bottom: none;
+  }
+  .drawer-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .drawer-badge-file {
+    background: #e5e7eb;
+    color: #374151;
+  }
+  .drawer-link {
+    color: #3498db;
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .drawer-link:hover {
+    text-decoration: underline;
+  }
+  .drawer-note {
+    padding: 12px 16px;
+    border-radius: 8px;
+    background: #fff4e5;
+    border: 1px solid #f5cba7;
+    font-size: 0.875rem;
+    color: #92400e;
+    margin: 16px 0;
+  }
+  .drawer-meta {
+    margin-top: 24px;
+    padding-left: 16px;
+    border-left: 2px solid #e5e7eb;
+  }
+  .drawer-meta-item {
+    margin-bottom: 12px;
+  }
+  .drawer-meta-label {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 0.875rem;
+    margin-bottom: 4px;
+  }
+  .drawer-meta-value {
+    font-size: 0.75rem;
+    color: #6b7280;
+  }
+  .drawer-actions {
+    margin-top: 24px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .drawer-btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: 1.5px solid #d1d5db;
+    background: #fff;
+    color: #374151;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .drawer-btn:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+  }
+  
+  /* Pagination */
+  .pager-user {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 16px 0 0;
+    margin-top: 16px;
+  }
+  .pager-user button {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1.5px solid #d1d5db;
+    background: #fff;
+    color: #374151;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .pager-user button:hover:not(:disabled) {
+    background: #f0f7ff;
+    border-color: #3498db;
+    color: #3498db;
+  }
+  .pager-user button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .pager-user button.active {
+    background: #3498db;
+    color: #fff;
+    border-color: #3498db;
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .form-grid-user {
+      grid-template-columns: 1fr;
+    }
+    .toolbar-user {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .toolbar-user input,
+    .toolbar-user select,
+    .toolbar-user button {
+      width: 100%;
+    }
+    .chips-container {
+      justify-content: center;
+    }
+    .drawer-content-user {
+      max-width: 100%;
+    }
+    .drawer-field {
+      grid-template-columns: 1fr;
+      gap: 4px;
+    }
+    .drawer-field-label {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .drawer-body-user {
+      padding: 16px;
+    }
+    .drawer-header-user {
+      padding: 16px;
+    }
+  }
 </style>
 </head>
 <script defer src="/base-header.js"></script>
@@ -86,114 +709,72 @@
 
     <div class="content-area">
       <!-- Info Banner -->
-      <div class="bg-[#1a237e] text-white px-5 py-4 rounded-lg mb-6 shadow-sm">
-        <div class="flex items-start gap-3">
-          <div class="text-xl mt-0.5">ℹ️</div>
+      <div class="info-banner">
+        <div class="info-banner-content">
+          <div class="info-banner-icon">ℹ️</div>
           <div>
-            <strong class="font-semibold block mb-1">Resident Portal</strong>
-            <p class="text-sm m-0 leading-relaxed opacity-95">You can view and report your own cases here. Only your submitted reports are visible.</p>
+            <strong class="info-banner-title">Resident Portal</strong>
+            <p class="info-banner-text">You can view and report your own cases here. Only your submitted reports are visible.</p>
           </div>
-        </div>
-      </div>
-
-      <!-- Stats Grid -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
-        <div class="bg-white border-2 border-[#e3f2fd] rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all">
-          <div class="flex items-center justify-between mb-3">
-            <div class="w-10 h-10 rounded-xl bg-[#3498db] flex items-center justify-center shadow-md">
-              <span class="text-xl">📋</span>
-            </div>
-          </div>
-          <h4 class="text-xs text-gray-600 mb-1.5 font-semibold uppercase tracking-wide">My Cases</h4>
-          <div class="text-3xl font-bold text-gray-900" id="sTotal">0</div>
-        </div>
-        <div class="bg-white border-2 border-[#dbeafe] rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all">
-          <div class="flex items-center justify-between mb-3">
-            <div class="w-10 h-10 rounded-xl bg-[#2980b9] flex items-center justify-center shadow-md">
-              <span class="text-xl">⏳</span>
-            </div>
-          </div>
-          <h4 class="text-xs text-gray-600 mb-1.5 font-semibold uppercase tracking-wide">Reported</h4>
-          <div class="text-3xl font-bold text-gray-900" id="sPending">0</div>
-        </div>
-        <div class="bg-white border-2 border-[#e1f5fe] rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all">
-          <div class="flex items-center justify-between mb-3">
-            <div class="w-10 h-10 rounded-xl bg-[#3498db] flex items-center justify-center shadow-md">
-              <span class="text-xl">🔄</span>
-            </div>
-          </div>
-          <h4 class="text-xs text-gray-600 mb-1.5 font-semibold uppercase tracking-wide">Ongoing</h4>
-          <div class="text-3xl font-bold text-gray-900" id="sOngoing">0</div>
-        </div>
-        <div class="bg-white border-2 border-[#e3f2fd] rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all">
-          <div class="flex items-center justify-between mb-3">
-            <div class="w-10 h-10 rounded-xl bg-[#2980b9] flex items-center justify-center shadow-md">
-              <span class="text-xl">✅</span>
-            </div>
-          </div>
-          <h4 class="text-xs text-gray-600 mb-1.5 font-semibold uppercase tracking-wide">Resolved</h4>
-          <div class="text-3xl font-bold text-gray-900" id="sResolved">0</div>
         </div>
       </div>
 
       <!-- Main Card -->
-      <div class="bg-white rounded-2xl shadow-lg border-2 border-gray-100 overflow-hidden">
-          <div class="px-6 py-5 border-b border-gray-200 bg-[#e3f2fd] flex justify-between items-center">
-          <h3 class="text-xl text-gray-900 m-0 font-bold">My Reports</h3>
-          <button class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#3498db] hover:bg-[#2980b9] text-white font-semibold transition-all shadow-lg hover:shadow-xl" id="btnAdd">
+      <div class="dashboard-card-user">
+        <div class="dashboard-card-header-user">
+          <h3>My Reports</h3>
+          <button class="btn-primary-user" id="btnAdd">
             <span>+</span>
             <span>Report New Case</span>
           </button>
         </div>
-        <div class="p-6">
+        <div class="dashboard-card-content-user">
           <!-- Filter Chips -->
-          <div class="flex gap-2.5 flex-wrap mb-5" id="chips">
-            <div class="chip active px-4 py-2.5 rounded-xl bg-[#3498db] hover:bg-[#2980b9] text-white cursor-pointer text-sm font-semibold transition-all duration-200 hover:shadow-lg" data-status="">All</div>
-            <div class="chip px-4 py-2.5 rounded-xl bg-gray-100 text-gray-700 cursor-pointer text-sm font-semibold transition-all duration-200 hover:bg-gray-200 hover:shadow-md" data-status="Pending">Pending</div>
-            <div class="chip px-4 py-2.5 rounded-xl bg-gray-100 text-gray-700 cursor-pointer text-sm font-semibold transition-all duration-200 hover:bg-gray-200 hover:shadow-md" data-status="Ongoing">Ongoing</div>
-            <div class="chip px-4 py-2.5 rounded-xl bg-gray-100 text-gray-700 cursor-pointer text-sm font-semibold transition-all duration-200 hover:bg-gray-200 hover:shadow-md" data-status="Resolved">Resolved</div>
-            <div class="chip px-4 py-2.5 rounded-xl bg-gray-100 text-gray-700 cursor-pointer text-sm font-semibold transition-all duration-200 hover:bg-gray-200 hover:shadow-md" data-status="Cancelled">Cancelled</div>
+          <div class="chips-container" id="chips">
+            <div class="chip active" data-status="">All</div>
+            <div class="chip" data-status="Pending">Pending</div>
+            <div class="chip" data-status="Ongoing">Ongoing</div>
+            <div class="chip" data-status="Resolved">Resolved</div>
+            <div class="chip" data-status="Cancelled">Cancelled</div>
           </div>
 
           <!-- Toolbar -->
-          <div class="flex flex-wrap gap-3 items-center mb-5 p-4 bg-gray-50 rounded-xl">
-            <input id="fQ" class="flex-1 min-w-[200px] px-4 py-3 border-2 border-gray-200 rounded-xl bg-white focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 transition-all shadow-sm" placeholder="Search case ID, type…">
-            <select id="fType" class="px-4 py-3 border-2 border-gray-200 rounded-xl bg-white focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 transition-all shadow-sm">
+          <div class="toolbar-user">
+            <input id="fQ" placeholder="Search case ID, type…">
+            <select id="fType">
               <option value="">All types</option>
             </select>
-            <select id="fPriority" class="px-4 py-3 border-2 border-gray-200 rounded-xl bg-white focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 transition-all shadow-sm">
+            <select id="fPriority">
               <option value="">Priority</option>
               <option value="Low">Low</option>
               <option value="Medium">Medium</option>
               <option value="High">High</option>
               <option value="Critical">Critical</option>
             </select>
-            <input id="fFrom" type="date" class="px-4 py-3 border-2 border-gray-200 rounded-xl bg-white focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 transition-all shadow-sm">
-            <input id="fTo" type="date" class="px-4 py-3 border-2 border-gray-200 rounded-xl bg-white focus:outline-none focus:border-[#3498db] focus:ring-4 focus:ring-[#3498db]/10 transition-all shadow-sm">
-            <button class="px-5 py-3 rounded-xl border-2 border-gray-300 bg-white text-gray-700 font-semibold hover:bg-gray-50 hover:border-gray-400 transition-all shadow-sm" id="btnFilter">Apply</button>
+            <input id="fFrom" type="date">
+            <input id="fTo" type="date">
+            <button id="btnFilter">Apply</button>
           </div>
 
           <!-- Table -->
-          <div class="bg-white rounded-xl border-2 border-gray-100 overflow-hidden">
-            <div class="overflow-x-auto">
-              <table class="w-full" id="tbl">
-            <thead class="bg-gray-50">
-                  <tr>
-                    <th class="sticky top-0 bg-gray-50 border-b border-gray-200 px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider select-none cursor-pointer hover:text-[#3498db] transition-colors">Case/Report ID</th>
-                    <th class="sticky top-0 bg-gray-50 border-b border-gray-200 px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider select-none cursor-pointer hover:text-[#3498db] transition-colors">Type of Incident</th>
-                    <th class="sticky top-0 bg-gray-50 border-b border-gray-200 px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider select-none cursor-pointer hover:text-[#3498db] transition-colors">Date & Time Reported</th>
-                    <th class="sticky top-0 bg-gray-50 border-b border-gray-200 px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider select-none cursor-pointer hover:text-[#3498db] transition-colors">Date & Time of Incident</th>
-                    <th class="sticky top-0 bg-gray-50 border-b border-gray-200 px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider select-none cursor-pointer hover:text-[#3498db] transition-colors">Status</th>
-                    <th class="sticky top-0 bg-gray-50 border-b border-gray-200 px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider select-none w-[120px]">Actions</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100 [&_tr:hover]:bg-blue-50/50 transition-colors"></tbody>
-              </table>
-            </div>
+          <div class="table-wrap-user">
+            <table class="table-user" id="tbl">
+              <thead>
+                <tr>
+                  <th>Case/Report ID</th>
+                  <th>Type of Incident</th>
+                  <th>Date & Time Reported</th>
+                  <th>Date & Time of Incident</th>
+                  <th>Status</th>
+                  <th style="width: 120px;">Actions</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
           </div>
 
           <!-- Pagination -->
-          <div class="flex gap-1.5 justify-end items-center p-2.5 mt-4" id="pager"></div>
+          <div class="pager-user" id="pager"></div>
         </div>
       </div>
     </div>
@@ -201,69 +782,65 @@
 </div>
 
 <!-- Add/Edit Modal -->
-<div class="fixed inset-0 bg-black/25 hidden items-center justify-center p-4 z-50 overflow-y-auto" id="modal">
-  <div class="w-full max-w-[700px] bg-white rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.2)] overflow-hidden my-4">
-    <header class="px-4 py-3 bg-[#f8f9fa] border-b border-[#ecf0f1] font-semibold text-[#2c3e50] text-lg" id="dlgTitle">Report New Case</header>
-    <div class="p-4 max-h-[calc(100vh-180px)] overflow-y-auto">
-      <div class="text-[#7f8c8d] mb-2.5" id="msg"></div>
+<div class="modal-user" id="modal">
+  <div class="modal-content-user">
+    <header class="modal-header-user" id="dlgTitle">Report New Case</header>
+    <div class="modal-body-user">
+      <div style="color: #7f8c8d; margin-bottom: 10px;" id="msg"></div>
       <form id="frm" novalidate>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div>
-            <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Type of Case *</label>
-            <select name="typeOfCase" id="typeOfCase" required class="w-full px-3 py-2 border border-input rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all text-sm"></select>
+        <div class="form-grid-user">
+          <div class="form-field-user">
+            <label>Type of Case *</label>
+            <select name="typeOfCase" id="typeOfCase" required></select>
           </div>
-          <div>
-            <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Date & Time of Incident *</label>
-            <input type="datetime-local" name="dateOfIncident" required class="w-full px-3 py-2 border border-input rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all text-sm">
+          <div class="form-field-user">
+            <label>Date & Time of Incident *</label>
+            <input type="datetime-local" name="dateOfIncident" required>
           </div>
-
-          <div class="md:col-span-2">
-            <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Description *</label>
-            <textarea name="description" required placeholder="Describe what happened" class="w-full px-3 py-2 border border-input rounded-lg bg-white min-h-[80px] resize-y focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all text-sm"></textarea>
+          <div class="form-field-user full">
+            <label>Description *</label>
+            <textarea name="description" required placeholder="Describe what happened"></textarea>
           </div>
-
-          <div class="md:col-span-2">
-            <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Place of Incident</label>
-            <input name="placeOfIncident" placeholder="Blk/Lot/Phase/Subdivision or landmark" class="w-full px-3 py-2 border border-input rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all text-sm">
+          <div class="form-field-user full">
+            <label>Place of Incident</label>
+            <input name="placeOfIncident" placeholder="Blk/Lot/Phase/Subdivision or landmark">
           </div>
-
-          <div>
-            <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Complainant's Name *</label>
-            <input name="complainantName" required class="w-full px-3 py-2 border border-input rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all text-sm">
+          <div class="form-field-user">
+            <label>Complainant's Name *</label>
+            <input name="complainantName" required>
           </div>
-          <div>
-            <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Complainant's Address *</label>
-            <input name="complainantAddress" required class="w-full px-3 py-2 border border-input rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all text-sm">
+          <div class="form-field-user">
+            <label>Complainant's Address *</label>
+            <input name="complainantAddress" required>
           </div>
-          <div>
-            <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Complainant's Contact</label>
-            <input name="complainantContact" class="w-full px-3 py-2 border border-input rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all text-sm">
+          <div class="form-field-user">
+            <label>Complainant's Contact</label>
+            <input name="complainantContact">
           </div>
-
-          <div>
-            <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Respondent's Name</label>
-            <input name="respondentName" class="w-full px-3 py-2 border border-input rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all text-sm">
+          <div class="form-field-user">
+            <label>Respondent's Name</label>
+            <input name="respondentName">
           </div>
-          <div>
-            <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Respondent's Address</label>
-            <input name="respondentAddress" class="w-full px-3 py-2 border border-input rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all text-sm">
+          <div class="form-field-user">
+            <label>Respondent's Address</label>
+            <input name="respondentAddress">
           </div>
-          <div>
-            <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Respondent's Contact</label>
-            <input name="respondentContact" class="w-full px-3 py-2 border border-input rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all text-sm">
+          <div class="form-field-user">
+            <label>Respondent's Contact</label>
+            <input name="respondentContact">
           </div>
-          <div class="md:col-span-2">
-            <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Priority</label>
-            <select name="priority" class="w-full px-3 py-2 border border-input rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all text-sm">
+          <div class="form-field-user full">
+            <label>Priority</label>
+            <select name="priority">
               <option value="Medium">Normal / Medium</option>
               <option value="Low">Low</option>
               <option value="High">High</option>
               <option value="Critical">Critical</option>
             </select>
           </div>
-          <div class="md:col-span-2 hidden" id="harassmentTypeWrap">
-            <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Harassment Type *</label>
-            <select name="harassmentType" id="harassmentType" class="w-full px-3 py-2 border border-input rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all text-sm">
+          <div class="form-field-user full hidden" id="harassmentTypeWrap">
+            <label>Harassment Type *</label>
+            <select name="harassmentType" id="harassmentType">
               <option value="">Select type</option>
               <option value="Verbal">Verbal</option>
               <option value="Physical">Physical</option>
@@ -274,9 +851,9 @@
               <option value="Other">Other</option>
             </select>
           </div>
-          <div class="md:col-span-2">
-            <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Senior-Involved Category</label>
-            <select name="seniorCategory" id="seniorCategory" class="w-full px-3 py-2 border border-input rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all text-sm">
+          <div class="form-field-user full">
+            <label>Senior-Involved Category</label>
+            <select name="seniorCategory" id="seniorCategory">
               <option value="">None / Not specified</option>
               <option value="Complainant">Complainant is a Senior</option>
               <option value="Respondent">Respondent is a Senior</option>
@@ -284,41 +861,41 @@
               <option value="Witness">Senior Witness</option>
             </select>
           </div>
-          <div class="md:col-span-2">
-            <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Evidence Files (minimum 3) *</label>
-            <input type="file" name="evidenceFiles" id="evidenceFiles" multiple accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,image/*,application/pdf" class="w-full px-3 py-2 border border-input rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all text-sm">
-            <div class="text-[#7f8c8d] mt-1.5 text-xs">
-              Upload at least 3 supporting evidence files. For Physical Assault cases, a medico-legal
-              or physical exam file is required. For Vandalism cases, clear image proof is required.
-            </div>
+          <div class="form-field-user full">
+            <label>Evidence Files (minimum 3) *</label>
+            <input type="file" name="evidenceFiles" id="evidenceFiles" multiple accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,image/*,application/pdf">
+            <small>Upload at least 3 supporting evidence files. For Physical Assault cases, a medico-legal or physical exam file is required. For Vandalism cases, clear image proof is required.</small>
           </div>
-          <div class="md:col-span-2 hidden" id="medicoWrap">
-            <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Medico-Legal / Physical Exam (Physical Assault cases)</label>
-            <input type="file" name="medicoLegalFile" id="medicoLegalFile" accept=".pdf,image/*" class="w-full px-3 py-2 border border-input rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all text-sm">
+          <div class="form-field-user full hidden" id="medicoWrap">
+            <label>Medico-Legal / Physical Exam (Physical Assault cases)</label>
+            <input type="file" name="medicoLegalFile" id="medicoLegalFile" accept=".pdf,image/*">
           </div>
-          <div class="md:col-span-2 hidden" id="vandalWrap">
-            <label class="block text-[#7f8c8d] mb-1 text-sm font-medium">Image Proof (Vandalism cases)</label>
-            <input type="file" name="vandalismImage" id="vandalismImage" accept="image/*" multiple class="w-full px-3 py-2 border border-input rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#3498db]/30 focus:border-[#3498db] transition-all text-sm">
+          <div class="form-field-user full hidden" id="vandalWrap">
+            <label>Image Proof (Vandalism cases)</label>
+            <input type="file" name="vandalismImage" id="vandalismImage" accept="image/*" multiple>
           </div>
         </div>
       </form>
     </div>
-    <footer class="flex justify-end gap-2 px-4 py-3 bg-[#f8f9fa] border-t border-[#ecf0f1]">
-      <button class="px-4 py-2 rounded-lg border-none cursor-pointer bg-ghost-btn text-primary-btn font-medium hover:opacity-90 transition-opacity text-sm" id="btnCancel">Cancel</button>
-      <button class="px-4 py-2 rounded-lg border-none cursor-pointer bg-primary-btn text-white font-semibold hover:opacity-90 transition-opacity shadow-sm text-sm" id="btnSave">Submit Report</button>
+    <footer class="modal-footer-user">
+      <button class="btn-secondary-user" id="btnCancel">Cancel</button>
+      <button class="btn-primary-user" id="btnSave">Submit Report</button>
     </footer>
   </div>
 </div>
 
 <!-- Details Drawer -->
-<div class="fixed inset-0 hidden" id="drawer">
-  <div class="absolute inset-0 bg-black/25" onclick="document.getElementById('drawer').classList.add('hidden'); document.getElementById('drawer').classList.remove('block');"></div>
-  <div class="absolute right-0 top-0 h-full w-full md:w-[520px] bg-white shadow-[-10px_0_30px_rgba(0,0,0,0.2)] flex flex-col">
-    <header class="px-5 py-4 border-b border-[#ecf0f1] bg-[#f8f9fa] flex justify-between items-center">
-      <div class="flex items-center gap-2"><strong id="dCaseId" class="text-[#2c3e50]">Case</strong> <span id="dStatus" class="px-2 py-1 rounded-2xl text-xs font-bold bg-pending ml-2">Pending</span></div>
-      <button class="px-4 py-2.5 rounded-lg border-none cursor-pointer bg-ghost-btn text-primary-btn font-medium hover:opacity-90 transition-opacity" id="dClose">Close</button>
+<div class="drawer-user" id="drawer">
+  <div class="drawer-backdrop" onclick="document.getElementById('drawer').classList.remove('active');"></div>
+  <div class="drawer-content-user">
+    <header class="drawer-header-user">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <strong id="dCaseId" style="color: #2c3e50;">Case</strong>
+        <span id="dStatus" class="badge bg-pending" style="margin-left: 8px;">Pending</span>
+      </div>
+      <button class="btn-secondary-user" id="dClose">Close</button>
     </header>
-    <div class="p-5 overflow-auto flex-1" id="dBody">
+    <div class="drawer-body-user" id="dBody">
       <!-- filled by JS -->
     </div>
   </div>
@@ -331,55 +908,16 @@
   const drawer = document.getElementById('drawer');
   
   document.getElementById('btnAdd')?.addEventListener('click', () => {
-    modal.classList.add('flex');
-    modal.classList.remove('hidden');
+    modal.classList.add('active');
   });
   
   document.getElementById('btnCancel')?.addEventListener('click', () => {
-    modal.classList.remove('flex');
-    modal.classList.add('hidden');
-  });
-  
-  document.getElementById('btnSave')?.addEventListener('click', () => {
-    // Form submission handled by user-cases.js
+    modal.classList.remove('active');
   });
   
   // Drawer toggle
   document.getElementById('dClose')?.addEventListener('click', () => {
     drawer.classList.remove('active');
-    drawer.classList.add('hidden');
-  });
-  
-  // Notification panel toggle
-  document.getElementById('notifBtn')?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const panel = document.getElementById('notifPanel');
-    panel.classList.toggle('hidden');
-    panel.classList.toggle('block');
-  });
-  
-  document.addEventListener('click', (e) => {
-    const panel = document.getElementById('notifPanel');
-    const btn = document.getElementById('notifBtn');
-    if (!panel.contains(e.target) && !btn.contains(e.target)) {
-      panel.classList.add('hidden');
-      panel.classList.remove('block');
-    }
-  });
-  
-  // Chip active state - handled by user-cases.js, but ensure Tailwind classes are applied
-  document.getElementById('chips')?.addEventListener('click', (e) => {
-    const chip = e.target.closest('.chip');
-    if (!chip) return;
-    document.querySelectorAll('.chip').forEach(c => {
-      if (c === chip) {
-        c.classList.add('active', 'bg-primary-btn', 'text-white');
-        c.classList.remove('bg-ghost-btn', 'text-primary-btn');
-      } else {
-        c.classList.remove('active', 'bg-primary-btn', 'text-white');
-        c.classList.add('bg-ghost-btn', 'text-primary-btn');
-      }
-    });
   });
   
   // Badge classes for status
@@ -390,7 +928,7 @@
       'Resolved': 'bg-resolved',
       'Cancelled': 'bg-cancelled'
     };
-    return map[status] || 'bg-ghost-btn text-primary-btn';
+    return map[status] || 'bg-pending';
   };
 </script>
 </body>

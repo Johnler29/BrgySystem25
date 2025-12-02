@@ -156,8 +156,14 @@
         <td><span class="badge s-${st}">${r.status}</span></td>
         <td>${r.recordCount ?? '—'}</td>
         <td>
-          <button class="btn btn-outline" onclick="viewReport('${r._id}')">View</button>
-          <button class="btn btn-outline" onclick="downloadReport('${r._id}')">Download</button>
+          <button class="table-action-btn view" onclick="viewReport('${r._id}')">
+            <i class="fas fa-eye"></i>
+            <span>View</span>
+          </button>
+          <button class="table-action-btn edit" onclick="downloadReport('${r._id}')">
+            <i class="fas fa-download"></i>
+            <span>Download</span>
+          </button>
         </td>`;
       tbody.appendChild(tr);
     });
@@ -298,8 +304,11 @@
         <td>${u.loginCount}</td>
         <td><span class="badge s-${st}">${u.status}</span></td>
         <td>
-          <button class="btn btn-outline" onclick="viewUserDetails('${u._id}')">Details</button>
-          ${isAdmin ? `<button class="btn btn-outline" onclick="editUser('${u._id}')">Edit</button>` : ''}
+          <button class="table-action-btn view" onclick="viewUserDetails('${u._id}')">
+            <i class="fas fa-eye"></i>
+            <span>Details</span>
+          </button>
+          ${isAdmin ? `<button class="table-action-btn edit" onclick="editUser('${u._id}')"><i class="fas fa-edit"></i><span>Edit</span></button>` : ''}
         </td>`;
       tbody.appendChild(tr);
     });
@@ -364,7 +373,7 @@
         <td>${log.event}</td>
         <td>${log.component}</td>
         <td>${log.message}</td>
-        <td><button class="btn btn-outline" onclick="viewSystemLogDetails('${log._id}')">View</button></td>`;
+        <td><button class="table-action-btn view" onclick="viewSystemLogDetails('${log._id}')"><i class="fas fa-eye"></i><span>View</span></button></td>`;
       tbody.appendChild(tr);
     });
   }

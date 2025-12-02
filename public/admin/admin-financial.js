@@ -243,9 +243,18 @@ function renderTable() {
         ${cells.map(c => `<td>${c}</td>`).join('')}
         <td>
           <div class="actions">
-            <button class="btn btn-primary" onclick="viewDetails('${record._id}')">View</button>
-            <button class="btn btn-ghost" onclick="editRecord('${record._id}')">Edit</button>
-            <button class="btn btn-danger" onclick="deleteRecord('${record._id}')">Delete</button>
+            <button class="table-action-btn view" onclick="viewDetails('${record._id}')">
+              <i class="fas fa-eye"></i>
+              <span>View</span>
+            </button>
+            <button class="table-action-btn edit" onclick="editRecord('${record._id}')">
+              <i class="fas fa-edit"></i>
+              <span>Edit</span>
+            </button>
+            <button class="table-action-btn delete" onclick="deleteRecord('${record._id}')">
+              <i class="fas fa-trash"></i>
+              <span>Delete</span>
+            </button>
           </div>
         </td>
       </tr>
