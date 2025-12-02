@@ -101,18 +101,56 @@ app.set('views', path.join(__dirname, 'views'));
 })();
 
 // ---------- DB Helpers ----------
+// Cached MongoDB client for connection reuse (critical for serverless performance)
+let cachedClient = null;
+let clientPromise = null;
+
+async function getDbClient() {
+  // If we have a cached client that's still connected, reuse it
+  if (cachedClient && cachedClient.topology && cachedClient.topology.isConnected()) {
+    return cachedClient;
+  }
+
+  // If a connection is already in progress, wait for it
+  if (clientPromise) {
+    return await clientPromise;
+  }
+
+  // Create a new connection
+  clientPromise = MongoClient.connect(MONGO_URI, {
+    ignoreUndefined: true,
+    maxPoolSize: 10, // Connection pool size
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+  }).then(client => {
+    cachedClient = client;
+    clientPromise = null;
+    return client;
+  }).catch(err => {
+    clientPromise = null;
+    throw err;
+  });
+
+  return await clientPromise;
+}
+
 async function withDb(fn) {
   let client;
   try {
-    client = await MongoClient.connect(MONGO_URI, { ignoreUndefined: true });
+    // Reuse cached connection instead of creating new one each time
+    client = await getDbClient();
     const db = client.db();
     return await fn(db);
   } catch (err) {
     console.error('[DB] Error:', err.message);
+    // If connection failed, clear cache to force reconnect on next request
+    if (cachedClient === client) {
+      cachedClient = null;
+    }
     return null;
-  } finally {
-    if (client) await client.close();
   }
+  // NOTE: We DON'T close the client here - it's cached for reuse
+  // The connection will be reused across multiple requests in the same function instance
 }
 
 // Create safe unique indexes for users (ignore null/missing values)
