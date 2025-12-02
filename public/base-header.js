@@ -10,7 +10,7 @@
 
       const { name, username, role = "user" } = j.user;
 
-      const nameEl   = document.getElementById("username");
+      const nameEl   = document.getElementById("adminUsername");
       const avatarEl = document.getElementById("avatar");
       const chip     = document.getElementById("userChip");
 

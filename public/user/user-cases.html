@@ -321,6 +321,9 @@
   .modal-user.active {
     display: flex;
   }
+  .hidden {
+    display: none !important;
+  }
   .modal-content-user {
     width: 100%;
     max-width: 700px;
@@ -760,17 +763,17 @@
           <div class="table-wrap-user">
             <table class="table-user" id="tbl">
               <thead>
-                <tr>
+                  <tr>
                   <th>Case/Report ID</th>
                   <th>Type of Incident</th>
                   <th>Date & Time Reported</th>
                   <th>Date & Time of Incident</th>
                   <th>Status</th>
                   <th style="width: 120px;">Actions</th>
-                </tr>
-              </thead>
+                  </tr>
+                </thead>
               <tbody></tbody>
-            </table>
+              </table>
           </div>
 
           <!-- Pagination -->
@@ -839,7 +842,7 @@
             </select>
           </div>
           <div class="form-field-user full hidden" id="harassmentTypeWrap">
-            <label>Harassment Type *</label>
+            <label>Harassment Type <span style="color: #dc2626;">*</span></label>
             <select name="harassmentType" id="harassmentType">
               <option value="">Select type</option>
               <option value="Verbal">Verbal</option>
@@ -850,6 +853,7 @@
               <option value="Stalking">Stalking</option>
               <option value="Other">Other</option>
             </select>
+            <small style="color: #7f8c8d;">Required when reporting Harassment cases</small>
           </div>
           <div class="form-field-user full">
             <label>Senior-Involved Category</label>

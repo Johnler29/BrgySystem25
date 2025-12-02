@@ -18,12 +18,29 @@
     const isAdmin = window.location.pathname.startsWith('/admin/');
     const basePath = isUser ? '/user' : '/admin';
     
+    // Keep body hidden until router is ready
+    document.body.classList.remove('router-ready');
+    
     // Content container
     const contentArea = document.querySelector('.content-area');
     if (!contentArea) {
       console.error('Content area not found, retrying...');
       setTimeout(initRouter, 100);
       return;
+    }
+    
+    // Hide content area for non-dashboard routes immediately
+    const initialPath = window.location.pathname;
+    const isDashboardRoute = initialPath === basePath + '/dashboard';
+    
+    if (!isDashboardRoute) {
+      // Hide content area immediately to prevent dashboard flash
+      contentArea.style.opacity = '0';
+      contentArea.style.visibility = 'hidden';
+      contentArea.removeAttribute('data-route-loaded');
+    } else {
+      // Dashboard route - mark as loaded but keep body hidden until router initializes
+      contentArea.setAttribute('data-route-loaded', 'true');
     }
     
     startRouter(isUser, isAdmin, basePath, contentArea);
@@ -477,6 +494,10 @@
           </div>
         </div>
       `;
+      // Show body for access denied page
+      contentArea.style.opacity = '1';
+      contentArea.style.visibility = 'visible';
+      document.body.classList.add('router-ready');
       return;
     }
     
@@ -514,13 +535,25 @@
     loadingPath = normalizedPath;
     // Don't set currentPage here - set it after content is loaded to allow re-loading
     
-    // Show loading state
+    // Hide content area and show loading state
+    contentArea.style.opacity = '0';
+    contentArea.style.visibility = 'hidden';
+    contentArea.removeAttribute('data-route-loaded');
     contentArea.innerHTML = '<div style="padding: 40px; text-align: center;"><div style="border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div><p>Loading...</p></div>';
     
     try {
       // Check cache first (use normalized path)
       if (pageCache.has(normalizedPath)) {
         const cached = pageCache.get(normalizedPath);
+        // Inject cached styles FIRST to prevent FOUC
+        if (cached.styles && cached.styles.length > 0) {
+          cached.styles.forEach(style => {
+            const styleEl = document.createElement('style');
+            styleEl.textContent = style;
+            document.head.appendChild(styleEl);
+          });
+        }
+        
         // Sanitize cached content too
         const tempContainer = document.createElement('div');
         tempContainer.innerHTML = cached.html;
@@ -528,6 +561,11 @@
           script.remove();
         });
         contentArea.innerHTML = tempContainer.innerHTML;
+        
+        // Show content area now that styles are loaded
+        contentArea.style.opacity = '1';
+        contentArea.style.visibility = 'visible';
+        contentArea.setAttribute('data-route-loaded', 'true');
         
         // Inject cached modals
         if (cached.modals && cached.modals.length > 0) {
@@ -566,6 +604,15 @@
         updateTitle(cached.title);
         updateActiveNav(normalizedPath);
         currentPage = normalizedPath;
+        
+        // Remove the inline hide style if it exists
+        const hideStyle = document.getElementById('router-hide-style');
+        if (hideStyle) {
+          hideStyle.remove();
+        }
+        
+        // Show body after cached content is loaded
+        document.body.classList.add('router-ready');
         
         // Reset loading state IMMEDIATELY after content is loaded
         // This allows navigation to proceed even if init functions take time
@@ -608,9 +655,30 @@
                 try { window.initSettings(); } catch (e) { console.error('Error calling initSettings:', e); }
               }
               // Community page
-              if (path.includes('community') && window.initCommunity) {
-                try { window.initCommunity(); } catch (e) { console.error('Error calling initCommunity:', e); }
+            if (path.includes('community') && window.initCommunity) {
+              try { window.initCommunity(); } catch (e) { console.error('Error calling initCommunity:', e); }
+            }
+            
+            if (path.includes('financial') && window.initFinancial) {
+              // Ensure content is injected before calling init
+              const contentArea = document.querySelector('.content-area');
+              if (contentArea && contentArea.innerHTML.trim()) {
+                // Force reflow
+                void contentArea.offsetHeight;
+                try { 
+                  window.initFinancial(); 
+                } catch (e) { 
+                  console.error('Error calling initFinancial:', e); 
+                }
+              } else {
+                console.warn('Router: Content area not ready for financial page, retrying...');
+                setTimeout(() => {
+                  if (window.initFinancial) {
+                    try { window.initFinancial(); } catch (e) { console.error('Error calling initFinancial (retry):', e); }
+                  }
+                }, 200);
               }
+            }
             }, 150);
           });
         });
@@ -664,6 +732,15 @@
       // Cache it (use normalized path)
       pageCache.set(normalizedPath, content);
       
+      // Inject inline styles FIRST to prevent FOUC
+      if (content.styles.length > 0) {
+        content.styles.forEach(style => {
+          const styleEl = document.createElement('style');
+          styleEl.textContent = style;
+          document.head.appendChild(styleEl);
+        });
+      }
+      
       // Update content area
       // Use a temporary container to sanitize any remaining script tags
       const tempContainer = document.createElement('div');
@@ -673,6 +750,11 @@
         script.remove();
       });
       contentArea.innerHTML = tempContainer.innerHTML;
+      
+      // Show content area now that styles are loaded
+      contentArea.style.opacity = '1';
+      contentArea.style.visibility = 'visible';
+      contentArea.setAttribute('data-route-loaded', 'true');
       
       // Force a reflow to ensure DOM is updated before scripts run
       void contentArea.offsetHeight;
@@ -748,15 +830,6 @@
       // Load scripts
       if (content.scripts.length > 0) {
         await loadScripts(content.scripts);
-      }
-      
-      // Inject inline styles if any
-      if (content.styles.length > 0) {
-        content.styles.forEach(style => {
-          const styleEl = document.createElement('style');
-          styleEl.textContent = style;
-          document.head.appendChild(styleEl);
-        });
       }
       
       // Trigger initialization for dynamically loaded scripts
@@ -869,6 +942,33 @@
               }
             }
             
+            // Financial page
+            if (path.includes('financial') && window.initFinancial) {
+              console.log('Calling initFinancial');
+              // Ensure content is injected before calling init
+              const contentArea = document.querySelector('.content-area');
+              if (contentArea && contentArea.innerHTML.trim()) {
+                // Force reflow
+                void contentArea.offsetHeight;
+                try {
+                  window.initFinancial();
+                } catch (e) {
+                  console.error('Error calling initFinancial:', e);
+                }
+              } else {
+                console.warn('Router: Content area not ready for financial page, retrying...');
+                setTimeout(() => {
+                  if (window.initFinancial) {
+                    try { 
+                      window.initFinancial(); 
+                    } catch (e) { 
+                      console.error('Error calling initFinancial (retry):', e); 
+                    }
+                  }
+                }, 200);
+              }
+            }
+            
             // Residents page - check for both 'resident' and 'residents'
             // Check multiple variations to catch all cases
             const isResidentsPage = (path.includes('resident') || path.includes('residents')) && 
@@ -921,6 +1021,16 @@
       isLoading = false;
       loadingPath = null;
       
+      // Remove the inline hide style if it exists
+      const hideStyle = document.getElementById('router-hide-style');
+      if (hideStyle) {
+        hideStyle.remove();
+      }
+      
+      // Show body after content and styles are loaded (but before scripts finish)
+      // This prevents FOUC while allowing scripts to initialize
+      document.body.classList.add('router-ready');
+      
       // Ensure modals are still closed after scripts load
       setTimeout(() => {
         const allModals = document.querySelectorAll('.modal, .status-modal, .drawer');
@@ -943,18 +1053,22 @@
       isLoading = false;
       loadingPath = null;
       console.error('Error loading page:', error);
-      console.error('Path:', path);
+      console.error('Path:', normalizedPath);
       console.error('File path:', filePath);
       contentArea.innerHTML = `
         <div style="padding: 40px; text-align: center;">
           <h2>Error loading page</h2>
           <p style="color: #dc2626; margin: 10px 0;">${error.message}</p>
-          <p style="color: #6b7280; font-size: 14px; margin: 10px 0;">Path: ${path}</p>
+          <p style="color: #6b7280; font-size: 14px; margin: 10px 0;">Path: ${normalizedPath}</p>
           <p style="color: #6b7280; font-size: 14px; margin: 10px 0;">File: ${filePath || 'N/A'}</p>
           <button onclick="window.router.reload()" class="btn btn-primary" style="margin-top: 20px; padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 8px; cursor: pointer;">Retry</button>
           <button onclick="location.reload()" class="btn" style="margin-top: 10px; padding: 10px 20px; background: #e5e7eb; color: #374151; border: none; border-radius: 8px; cursor: pointer; margin-left: 10px;">Reload Page</button>
         </div>
       `;
+      // Show body even on error so user can see the error message
+      contentArea.style.opacity = '1';
+      contentArea.style.visibility = 'visible';
+      document.body.classList.add('router-ready');
     }
   }
   
@@ -1038,13 +1152,22 @@
       // If it's the dashboard route, don't reload - use existing content
       if (initialPath === basePath + '/dashboard') {
         console.log('Dashboard route - using existing content');
+        // Remove the inline hide style if it exists
+        const hideStyle = document.getElementById('router-hide-style');
+        if (hideStyle) {
+          hideStyle.remove();
+        }
+        // Ensure content area is visible for dashboard
+        contentArea.style.opacity = '1';
+        contentArea.style.visibility = 'visible';
+        contentArea.setAttribute('data-route-loaded', 'true');
+        // Show body for dashboard route
+        document.body.classList.add('router-ready');
       } else {
         // Load the page content - always load on refresh to ensure fresh content
         console.log('Loading page content for:', initialPath);
-        // Small delay to ensure DOM is fully ready
-        setTimeout(() => {
-          loadPage(initialPath);
-        }, 50);
+        // Load immediately without delay to prevent dashboard flash
+        loadPage(initialPath);
       }
     } else {
       console.warn('Path does not match user/admin pattern:', initialPath);

@@ -39,6 +39,20 @@
 })();
 </script>
 
+<script>
+/* Hide body and content-area immediately for non-dashboard routes to prevent flash */
+(function() {
+  var path = window.location.pathname;
+  if (path !== '/user/dashboard') {
+    // Add inline style to hide body and content-area before body loads
+    var style = document.createElement('style');
+    style.id = 'router-hide-style';
+    style.textContent = 'body { visibility: hidden !important; opacity: 0 !important; } .content-area { opacity: 0 !important; visibility: hidden !important; }';
+    document.head.appendChild(style);
+  }
+})();
+</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">

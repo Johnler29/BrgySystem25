@@ -561,9 +561,9 @@
               'prenatal': { icon: '🤰', label: 'Pre-natal', color: '#8e44ad' },
               'infant': { icon: '👶', label: 'Infant', color: '#e67e22' },
               'health': { icon: '🏥', label: 'Health', color: '#27ae60' },
-              'general': { icon: '👤', label: 'General', color: '#2980b9' }
+              'general': { icon: '<i class="fas fa-user"></i>', label: 'General', color: '#2980b9' }
             };
-            const typeInfo = typeMap[(r.type || '').toLowerCase()] || { icon: '📋', label: (r.type || '').toString(), color: '#7f8c8d' };
+            const typeInfo = typeMap[(r.type || '').toLowerCase()] || { icon: '<i class="fas fa-clipboard-list"></i>', label: (r.type || '').toString(), color: '#7f8c8d' };
             const formatDate = (date) => {
               if (!date) return 'N/A';
               const d = new Date(date);
@@ -1335,9 +1335,9 @@
         'prenatal': { icon: '🤰', label: 'Pre-natal' },
         'infant': { icon: '👶', label: 'Infant' },
         'health': { icon: '🏥', label: 'Health' },
-        'general': { icon: '👤', label: 'General' }
+        'general': { icon: '<i class="fas fa-user"></i>', label: 'General' }
       };
-      const typeInfo = typeMap[(record.type || '').toLowerCase()] || { icon: '📋', label: record.type || 'N/A' };
+      const typeInfo = typeMap[(record.type || '').toLowerCase()] || { icon: '<i class="fas fa-clipboard-list"></i>', label: record.type || 'N/A' };
       detailsHTML += `
         <div class="drawer-section">
           <h4>Schedule Information</h4>

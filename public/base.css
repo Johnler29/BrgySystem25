@@ -10,7 +10,19 @@
 
 /* Reset & base */
 *{box-sizing:border-box} html,body{height:100%}
-body{margin:0;background:var(--bg);font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:var(--text)}
+body{
+  margin:0;
+  background:var(--bg);
+  font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+  color:var(--text);
+  visibility:hidden;
+  opacity:0;
+  transition:opacity 0.2s ease, visibility 0.2s ease;
+}
+body.router-ready{
+  visibility:visible;
+  opacity:1;
+}
 img{max-width:100%;display:block} a{text-decoration:none;color:inherit} button{font:inherit}
 
 /* Layout */
@@ -96,7 +108,17 @@ img{max-width:100%;display:block} a{text-decoration:none;color:inherit} button{f
 .notif-item{padding:10px 12px;border-bottom:1px dashed var(--border)}.notif-item:last-child{border-bottom:0}
 
 /* Content area & hero */
-.content-area{flex:1;padding:22px;overflow-y:auto}
+.content-area{
+  flex:1;
+  padding:22px;
+  overflow-y:auto;
+  transition:opacity 0.2s ease, visibility 0.2s ease;
+}
+/* Hide content area initially for non-dashboard routes to prevent flash */
+.content-area:not([data-route-loaded]){
+  opacity:0;
+  visibility:hidden;
+}
 .hero{position:relative;height:200px;border-radius:12px;margin-bottom:22px;overflow:hidden;box-shadow:var(--shadow-md);background-position:center;background-size:cover;animation:fadeUp .45s ease both}
 .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.25),rgba(0,0,0,.05))}
 .hero-badge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:64px;height:64px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:20px;background:rgba(62,188,238,.92);box-shadow:0 10px 24px rgba(0,0,0,.18);animation:pulse 2.4s ease-in-out infinite}

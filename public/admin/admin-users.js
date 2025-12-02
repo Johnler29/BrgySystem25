@@ -18,7 +18,7 @@
       return;
     }
     
-    msgEl.textContent = message;
+    msgEl.innerHTML = message;
     msgEl.style.display = 'block';
     msgEl.className = type === 'success' ? 'success' : 'error';
     
@@ -34,24 +34,82 @@
     const btn = $id('createBtn');
     const form = $id('createUserForm');
     
-    const userData = {
-      firstName: $id('firstName').value.trim(),
-      middleName: $id('middleName').value.trim() || '',
-      lastName: $id('lastName').value.trim(),
-      username: $id('username').value.trim(),
-      email: $id('email').value.trim(),
-      password: $id('password').value,
-      address: $id('address').value.trim(),
-      role: $id('role').value,
-      verified: $id('verified').checked
-    };
-
-    // Validation
-    if (!userData.firstName || !userData.lastName || !userData.username || 
-        !userData.email || !userData.password || !userData.address) {
-      showMessage('Please fill all required fields.', 'error');
+    if (!form) {
+      showMessage('Form not found. Please refresh the page.', 'error');
       return;
     }
+    
+    // Check HTML5 form validity first
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+    
+    // Get form elements with null checks - use form.querySelector to ensure we get elements within the form
+    const firstNameEl = form.querySelector('#firstName');
+    const middleNameEl = form.querySelector('#middleName');
+    const lastNameEl = form.querySelector('#lastName');
+    const usernameEl = form.querySelector('#username');
+    const emailEl = form.querySelector('#email');
+    const passwordEl = form.querySelector('#password');
+    const addressEl = form.querySelector('#address');
+    const roleEl = form.querySelector('#role');
+    const verifiedEl = form.querySelector('#verified');
+    
+    // Check if all required elements exist
+    if (!firstNameEl || !lastNameEl || !usernameEl || !emailEl || !passwordEl || !addressEl || !roleEl) {
+      showMessage('Form elements not found. Please refresh the page.', 'error');
+      console.error('Missing form elements:', { firstNameEl, lastNameEl, usernameEl, emailEl, passwordEl, addressEl, roleEl });
+      return;
+    }
+    
+    // Get values and trim (password should not be trimmed)
+    const firstName = (firstNameEl.value || '').trim();
+    const middleName = (middleNameEl?.value || '').trim();
+    const lastName = (lastNameEl.value || '').trim();
+    const username = (usernameEl.value || '').trim();
+    const email = (emailEl.value || '').trim();
+    const password = passwordEl.value || '';
+    const address = (addressEl.value || '').trim();
+    const role = roleEl.value || '';
+    const verified = verifiedEl?.checked || false;
+    
+    // Detailed validation with specific error messages
+    const missingFields = [];
+    if (!firstName) missingFields.push('First Name');
+    if (!lastName) missingFields.push('Last Name');
+    if (!username) missingFields.push('Username');
+    if (!email) missingFields.push('Email');
+    if (!password) missingFields.push('Password');
+    if (!address) missingFields.push('Address');
+    if (!role) missingFields.push('Role');
+    
+    if (missingFields.length > 0) {
+      showMessage(`Please fill the following required fields: ${missingFields.join(', ')}`, 'error');
+      console.log('Validation failed. Missing fields:', missingFields);
+      console.log('Field values:', { firstName, lastName, username, email, password: password ? '***' : '', address, role });
+      return;
+    }
+    
+    // Username pattern validation (client-side check)
+    const usernamePattern = /^[a-zA-Z0-9._-]{3,20}$/;
+    if (!usernamePattern.test(username)) {
+      showMessage('Username must be 3-20 characters and contain only letters, numbers, dots, underscores, or hyphens.', 'error');
+      usernameEl.focus();
+      return;
+    }
+    
+    const userData = {
+      firstName,
+      middleName,
+      lastName,
+      username,
+      email,
+      password,
+      address,
+      role,
+      verified
+    };
 
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
@@ -69,7 +127,7 @@
       const data = await response.json();
 
       if (data.ok) {
-        showMessage(`✅ Account created successfully! Username: ${data.user.username}, Role: ${data.user.role}`, 'success');
+        showMessage(`<i class="fas fa-check-circle"></i> Account created successfully! Username: ${data.user.username}, Role: ${data.user.role}`, 'success');
         form.reset();
         loadUsers(); // Refresh user list
       } else {
@@ -239,9 +297,9 @@
         const user = userData.users?.find(u => u.username === username);
         
         if (user && user.role === 'user' && user.linkedToResident) {
-          showMessage(`✅ Account verified and resident record created! Please complete resident details in Resident Management.`, 'success');
+          showMessage(`<i class="fas fa-check-circle"></i> Account verified and resident record created! Please complete resident details in Resident Management.`, 'success');
         } else {
-          showMessage(`✅ Account verified successfully!`, 'success');
+          showMessage(`<i class="fas fa-check-circle"></i> Account verified successfully!`, 'success');
         }
         
         loadUsers(); // Refresh user list
@@ -303,7 +361,7 @@
       const data = await response.json();
 
       if (data.ok) {
-        showMessage(`✅ User role updated successfully!`, 'success');
+        showMessage(`<i class="fas fa-check-circle"></i> User role updated successfully!`, 'success');
         closeEditModal();
         loadUsers(); // Refresh user list
       } else {

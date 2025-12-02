@@ -173,9 +173,9 @@
         </div>
 
         <div class="dropdown" id="userMenu">
-          <div class="item" id="goProfile">👤 Profile</div>
-          <div class="item" id="goSettings">⚙️ Settings</div>
-          <div class="item" id="doLogout">🚪 Log out</div>
+          <div class="item" id="goProfile"><i class="fas fa-user"></i> Profile</div>
+          <div class="item" id="goSettings"><i class="fas fa-cog"></i> Settings</div>
+          <div class="item" id="doLogout"><i class="fas fa-sign-out-alt"></i> Log out</div>
         </div>
       </div>
     </header>
@@ -187,15 +187,15 @@
         <!-- Left: nav -->
         <aside class="bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius)] shadow-[var(--shadow-sm)] p-4 sticky top-5 h-fit">
           <h3 class="font-semibold text-[0.9rem] leading-tight text-[var(--muted)] uppercase tracking-wider mb-2.5">Settings</h3>
-          <div class="settings-nav-item active flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold bg-[color-mix(in_oklab,var(--brand)_12%,var(--surface))] border border-[var(--brand)]" data-section="general">⚙️ General</div>
-          <div class="settings-nav-item flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold hover:bg-[color-mix(in_oklab,var(--surface)_90%,#000_0%)] transition-colors" data-section="appearance">🎨 Appearance</div>
-          <div class="settings-nav-item flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold hover:bg-[color-mix(in_oklab,var(--surface)_90%,#000_0%)] transition-colors" data-section="account">👤 Account</div>
-          <div class="settings-nav-item flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold hover:bg-[color-mix(in_oklab,var(--surface)_90%,#000_0%)] transition-colors" data-section="security">🔒 Security & Privacy</div>
+          <div class="settings-nav-item active flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold bg-[color-mix(in_oklab,var(--brand)_12%,var(--surface))] border border-[var(--brand)]" data-section="general"><i class="fas fa-cog"></i> General</div>
+          <div class="settings-nav-item flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold hover:bg-[color-mix(in_oklab,var(--surface)_90%,#000_0%)] transition-colors" data-section="appearance"><i class="fas fa-palette"></i> Appearance</div>
+          <div class="settings-nav-item flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold hover:bg-[color-mix(in_oklab,var(--surface)_90%,#000_0%)] transition-colors" data-section="account"><i class="fas fa-user"></i> Account</div>
+          <div class="settings-nav-item flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold hover:bg-[color-mix(in_oklab,var(--surface)_90%,#000_0%)] transition-colors" data-section="security"><i class="fas fa-shield-alt"></i> Security & Privacy</div>
           <div class="settings-nav-item flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold hover:bg-[color-mix(in_oklab,var(--surface)_90%,#000_0%)] transition-colors" data-section="notifications">🔔 Notifications</div>
           <div class="settings-nav-item flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold hover:bg-[color-mix(in_oklab,var(--surface)_90%,#000_0%)] transition-colors" data-section="data">💾 Data Management</div>
-          <div class="settings-nav-item flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold hover:bg-[color-mix(in_oklab,var(--surface)_90%,#000_0%)] transition-colors" data-section="system" id="systemNav">🖥️ System</div>
-          <div class="settings-nav-item flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold hover:bg-[color-mix(in_oklab,var(--surface)_90%,#000_0%)] transition-colors" data-section="backup">📦 Backup & Restore</div>
-          <div class="settings-nav-item flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold hover:bg-[color-mix(in_oklab,var(--surface)_90%,#000_0%)] transition-colors" data-section="about">ℹ️ About</div>
+          <div class="settings-nav-item flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold hover:bg-[color-mix(in_oklab,var(--surface)_90%,#000_0%)] transition-colors" data-section="system" id="systemNav"><i class="fas fa-desktop"></i> System</div>
+          <div class="settings-nav-item flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold hover:bg-[color-mix(in_oklab,var(--surface)_90%,#000_0%)] transition-colors" data-section="backup"><i class="fas fa-box"></i> Backup & Restore</div>
+          <div class="settings-nav-item flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer text-[var(--text)] font-semibold hover:bg-[color-mix(in_oklab,var(--surface)_90%,#000_0%)] transition-colors" data-section="about"><i class="fas fa-info-circle"></i> About</div>
         </aside>
 
         <!-- Right: sections -->
@@ -402,7 +402,7 @@
 
             <div class="mb-5.5">
               <h3 class="m-0 mb-2.5 text-base font-semibold text-[var(--text)]">Active Sessions</h3>
-              <div class="px-3 py-3 rounded-xl mb-2.5 border-l-4 border-[var(--brand)] bg-[color-mix(in_oklab,var(--brand)_10%,var(--surface))]">ℹ️ You have 2 active sessions. Your current session is from 192.168.1.100</div>
+              <div class="px-3 py-3 rounded-xl mb-2.5 border-l-4 border-[var(--brand)] bg-[color-mix(in_oklab,var(--brand)_10%,var(--surface))]"><i class="fas fa-info-circle"></i> You have 2 active sessions. Your current session is from 192.168.1.100</div>
               <button class="px-4 py-2.5 rounded-xl font-bold bg-[var(--danger)] text-white hover:opacity-90 transition-opacity shadow-sm" id="btnLogoutAll">Logout All Other Sessions</button>
             </div>
 
@@ -455,7 +455,7 @@
 
             <div class="mb-5.5">
               <h3 class="m-0 mb-2.5 text-base font-semibold text-[var(--text)]">Clear Data</h3>
-              <div class="px-3 py-3 rounded-xl mb-2.5 border-l-4 border-[var(--warn)] bg-[color-mix(in_oklab,var(--warn)_10%,var(--surface))]">⚠️ Clearing data is permanent and cannot be undone. Backup first.</div>
+              <div class="px-3 py-3 rounded-xl mb-2.5 border-l-4 border-[var(--warn)] bg-[color-mix(in_oklab,var(--warn)_10%,var(--surface))]"><i class="fas fa-exclamation-triangle"></i> Clearing data is permanent and cannot be undone. Backup first.</div>
               <div class="flex gap-2.5 flex-wrap">
                 <button class="px-4 py-2.5 rounded-xl font-bold bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] hover:opacity-90 transition-opacity" id="clearCache">Clear Cache</button>
                 <button class="px-4 py-2.5 rounded-xl font-bold bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] hover:opacity-90 transition-opacity" id="clearLogs">Clear Logs</button>
@@ -523,7 +523,7 @@
 
             <div class="mb-5.5">
               <h3 class="m-0 mb-2.5 text-base font-semibold text-[var(--text)]">Restore Data</h3>
-              <div class="px-3 py-3 rounded-xl mb-2.5 border-l-4 border-[var(--warn)] bg-[color-mix(in_oklab,var(--warn)_10%,var(--surface))]">⚠️ Restoring will replace current data. Backup first.</div>
+              <div class="px-3 py-3 rounded-xl mb-2.5 border-l-4 border-[var(--warn)] bg-[color-mix(in_oklab,var(--warn)_10%,var(--surface))]"><i class="fas fa-exclamation-triangle"></i> Restoring will replace current data. Backup first.</div>
               <div class="flex gap-2.5 items-center flex-wrap">
                 <input type="file" id="restoreFile" accept=".backup,.zip,.json" class="hidden">
                 <button class="px-4 py-2.5 rounded-xl font-bold bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] hover:opacity-90 transition-opacity" onclick="document.getElementById('restoreFile').click()">Choose Backup File</button>

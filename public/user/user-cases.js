@@ -202,16 +202,12 @@
       btnAdd.parentNode.replaceChild(newBtnAdd, btnAdd);
       newBtnAdd.onclick=()=>{
         console.log('User cases: Report New Case button clicked');
-        if (frm) frm.reset();
+        if (frm) {
+          frm.reset();
+        }
         if (msg) msg.textContent='';
         const dlgTitle = document.getElementById('dlgTitle');
         if (dlgTitle) dlgTitle.textContent='Report New Case';
-        const hw = document.getElementById('harassmentTypeWrap');
-        const mw = document.getElementById('medicoWrap');
-        const vw = document.getElementById('vandalWrap');
-        if (hw) hw.classList.add('hidden');
-        if (mw) mw.classList.add('hidden');
-        if (vw) vw.classList.add('hidden');
         
         // Open modal with pointer-events enabled
         const currentModal = document.getElementById('modal');
@@ -229,6 +225,12 @@
           if (dialog) {
             dialog.style.setProperty('pointer-events', 'auto', 'important');
           }
+          
+          // IMPORTANT: Update form fields after modal opens to ensure correct visibility
+          // Use setTimeout to ensure DOM is ready
+          setTimeout(() => {
+            updateFormFields();
+          }, 50);
           
           console.log('User cases: Modal opened');
         } else {
@@ -268,10 +270,21 @@
         if (!frm) return;
         const fd = new FormData(frm);
         const body = Object.fromEntries(fd.entries());
+        
+        // Check required fields
         if (!body.typeOfCase || !body.complainantName || !body.complainantAddress || !body.description || !body.dateOfIncident) {
           if (msg) msg.textContent='Please fill all required fields.';
           return;
         }
+        
+        // If Harassment is selected, harassmentType is required
+        if (body.typeOfCase === 'Harassment' && !body.harassmentType) {
+          if (msg) msg.textContent='Please select a Harassment Type.';
+          const harassmentTypeSelect = document.getElementById('harassmentType');
+          if (harassmentTypeSelect) harassmentTypeSelect.focus();
+          return;
+        }
+        
         const files = document.getElementById('evidenceFiles');
         if (!files || !files.files || files.files.length < 3) {
           if (msg) msg.textContent='Please upload at least 3 evidence files.';
@@ -301,41 +314,78 @@
       };
     }
 
+    // Function to update form fields based on case type (accessible globally in this scope)
+    const updateFormFields = () => {
+      const typeSelect = document.getElementById('typeOfCase');
+      if (!typeSelect) return;
+      
+      const v = typeSelect.value || '';
+      const isHarass = v === 'Harassment';
+      const isAssault = v === 'Physical Assault';
+      const isVandal = v === 'Vandalism';
+      const hw = document.getElementById('harassmentTypeWrap');
+      const mw = document.getElementById('medicoWrap');
+      const vw = document.getElementById('vandalWrap');
+      const harassmentTypeSelect = document.getElementById('harassmentType');
+      
+      // Harassment Type field - ONLY show when Harassment is selected
+      if (hw) {
+        if (isHarass) {
+          hw.classList.remove('hidden');
+          hw.style.display = '';
+          // Make required when visible
+          if (harassmentTypeSelect) {
+            harassmentTypeSelect.required = true;
+          }
+        } else {
+          hw.classList.add('hidden');
+          hw.style.display = 'none';
+          // Remove required and clear value when hidden
+          if (harassmentTypeSelect) {
+            harassmentTypeSelect.required = false;
+            harassmentTypeSelect.value = '';
+          }
+        }
+      }
+      
+      // Medico-Legal field
+      if (mw) {
+        if (isAssault) {
+          mw.classList.remove('hidden');
+          mw.style.display = '';
+        } else {
+          mw.classList.add('hidden');
+          mw.style.display = 'none';
+          const medicoFile = document.getElementById('medicoLegalFile');
+          if (medicoFile) medicoFile.value = '';
+        }
+      }
+      
+      // Vandalism Image field
+      if (vw) {
+        if (isVandal) {
+          vw.classList.remove('hidden');
+          vw.style.display = '';
+        } else {
+          vw.classList.add('hidden');
+          vw.style.display = 'none';
+          const vandalFile = document.getElementById('vandalismImage');
+          if (vandalFile) vandalFile.value = '';
+        }
+      }
+    };
+    
     // Type selector - dynamic form behaviour
     if (typeSel) {
       const newTypeSel = typeSel.cloneNode(true);
       typeSel.parentNode.replaceChild(newTypeSel, typeSel);
       typeSel = newTypeSel;
-      newTypeSel.addEventListener('change', () => {
-        const v = newTypeSel.value || '';
-        const isHarass = v === 'Harassment';
-        const isAssault = v === 'Physical Assault';
-        const isVandal = v === 'Vandalism';
-        const hw = document.getElementById('harassmentTypeWrap');
-        const mw = document.getElementById('medicoWrap');
-        const vw = document.getElementById('vandalWrap');
-        if (hw) {
-          if (isHarass) {
-            hw.classList.remove('hidden');
-          } else {
-            hw.classList.add('hidden');
-          }
-        }
-        if (mw) {
-          if (isAssault) {
-            mw.classList.remove('hidden');
-          } else {
-            mw.classList.add('hidden');
-          }
-        }
-        if (vw) {
-          if (isVandal) {
-            vw.classList.remove('hidden');
-          } else {
-            vw.classList.add('hidden');
-          }
-        }
-      });
+      
+      // Set initial state (should hide all conditional fields)
+      updateFormFields();
+      
+      // Listen for changes
+      newTypeSel.addEventListener('change', updateFormFields);
     }
 
     // Table actions - use event delegation on tbody
@@ -686,6 +736,25 @@
     
     // Load case types
     await loadCaseTypes();
+    
+    // Ensure conditional fields are hidden on initial load
+    setTimeout(() => {
+      const hw = document.getElementById('harassmentTypeWrap');
+      const mw = document.getElementById('medicoWrap');
+      const vw = document.getElementById('vandalWrap');
+      if (hw) {
+        hw.classList.add('hidden');
+        hw.style.display = 'none';
+      }
+      if (mw) {
+        mw.classList.add('hidden');
+        mw.style.display = 'none';
+      }
+      if (vw) {
+        vw.classList.add('hidden');
+        vw.style.display = 'none';
+      }
+    }, 100);
     
     // Load data
     load();

@@ -125,9 +125,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
+    font-size: 16px;
     margin-bottom: 0;
     background: #f3f4f6;
+    color: #6b7280;
+  }
+  .health-stat-icon i {
+    font-size: 16px;
   }
   
   .health-stat-label {
@@ -570,11 +574,14 @@
     border: none;
   }
   .health-table-wrap .health-table tbody tr:only-child td[colspan]:before {
-    content: '📋';
+    content: '\f0cb';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
     display: block;
     font-size: 2rem;
     margin-bottom: 8px;
     opacity: 0.5;
+    color: #9ca3af;
   }
   
   /* Loading Skeleton */
@@ -1038,7 +1045,7 @@
         </div>
 
         <div class="dropdown" id="userMenu">
-          <div class="item" id="goProfile">👤 Profile</div>
+          <div class="item" id="goProfile"><i class="fas fa-user"></i> Profile</div>
           <div class="item" id="goSettings"><i class="fas fa-cog"></i> Settings</div>
           <div class="item" id="doLogout"><i class="fas fa-sign-out-alt"></i> Log out</div>
         </div>
@@ -1049,27 +1056,27 @@
       <!-- Enhanced Statistics -->
       <div class="health-stats-grid">
         <div class="health-stat-card">
-          <div class="health-stat-icon">👥</div>
+          <div class="health-stat-icon"><i class="fas fa-users"></i></div>
           <p class="health-stat-label">Total Patients</p>
           <h3 class="health-stat-value" id="sTotal">0</h3>
         </div>
         <div class="health-stat-card">
-          <div class="health-stat-icon">📋</div>
+          <div class="health-stat-icon"><i class="fas fa-clipboard-list"></i></div>
           <p class="health-stat-label">Active Programs</p>
           <h3 class="health-stat-value" id="sActive">0</h3>
         </div>
         <div class="health-stat-card">
-          <div class="health-stat-icon">📅</div>
+          <div class="health-stat-icon"><i class="fas fa-calendar-alt"></i></div>
           <p class="health-stat-label">Scheduled</p>
           <h3 class="health-stat-value" id="sScheduled">0</h3>
         </div>
         <div class="health-stat-card">
-          <div class="health-stat-icon">✅</div>
+          <div class="health-stat-icon"><i class="fas fa-check-circle"></i></div>
           <p class="health-stat-label">Completed</p>
           <h3 class="health-stat-value" id="sCompleted">0</h3>
         </div>
         <div class="health-stat-card">
-          <div class="health-stat-icon">⚠️</div>
+          <div class="health-stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
           <p class="health-stat-label">Overdue</p>
           <h3 class="health-stat-value" id="sOverdue">0</h3>
         </div>
@@ -1110,7 +1117,7 @@
               <option value="Pending">Pending</option>
               <option value="Overdue">Overdue</option>
             </select>
-            <button class="btn-health-secondary" id="btnFilter">🔍 Apply Filter</button>
+            <button class="btn-health-secondary" id="btnFilter"><i class="fas fa-filter"></i> Apply Filter</button>
             <div style="flex:1"></div>
             <button class="btn-health-secondary" id="btnExport">📥 Export CSV</button>
           </div>
@@ -1129,7 +1136,7 @@
           <!-- Enhanced Calendar -->
           <div class="health-calendar" id="healthCalendarSection">
             <div class="health-calendar-header">
-              <strong class="health-calendar-title">📅 Schedules Calendar</strong>
+              <strong class="health-calendar-title"><i class="fas fa-calendar-alt"></i> Schedules Calendar</strong>
               <div class="health-calendar-nav">
                 <button id="calPrev">← Prev</button>
                 <span class="health-calendar-month" id="calLabel">&nbsp;</span>

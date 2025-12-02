@@ -65,7 +65,7 @@
       <div class="post-title">${p.title||''}</div>
       ${p.body ? `<div class="post-body">${p.body}</div>` : ''}
       ${p.imageUrl ? `<img class="post-image" src="${p.imageUrl}" alt="">` : ''}
-      ${isEvent && p.event ? `<div class="post-meta">📅 ${p.event.startDate ? new Date(p.event.startDate).toLocaleDateString() : ''} – ${p.event.endDate ? new Date(p.event.endDate).toLocaleDateString() : ''} • 📍 ${p.event.location||''}</div>`:''}
+      ${isEvent && p.event ? `<div class="post-meta"><i class="fas fa-calendar-alt"></i> ${p.event.startDate ? new Date(p.event.startDate).toLocaleDateString() : ''} – ${p.event.endDate ? new Date(p.event.endDate).toLocaleDateString() : ''} • <i class="fas fa-map-marker-alt"></i> ${p.event.location||''}</div>`:''}
 
       <div class="actions">
         <button class="btn like">${liked?'💙 Liked':'👍 Like'} (${likes})</button>

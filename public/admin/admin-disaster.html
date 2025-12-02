@@ -103,9 +103,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
+    font-size: 16px;
     margin-bottom: 0;
     background: #f3f4f6;
+    color: #6b7280;
+  }
+  .disaster-stat-icon i {
+    font-size: 16px;
   }
   
   .disaster-stat-label {
@@ -561,7 +565,9 @@
     animation: fadeInRow 0.3s ease both;
   }
   .disaster-table-wrap .table tbody tr:only-child td[colspan]:before {
-    content: '📋';
+    content: '\f0cb';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
     display: block;
     font-size: 2rem;
     margin-bottom: 8px;
@@ -953,9 +959,9 @@
         </div>
 
         <div class="dropdown" id="userMenu">
-          <div class="item" id="goProfile">👤 Profile</div>
-          <div class="item" id="goSettings">⚙️ Settings</div>
-          <div class="item" id="doLogout">🚪 Log out</div>
+          <div class="item" id="goProfile"><i class="fas fa-user"></i> Profile</div>
+          <div class="item" id="goSettings"><i class="fas fa-cog"></i> Settings</div>
+          <div class="item" id="doLogout"><i class="fas fa-sign-out-alt"></i> Log out</div>
         </div>
       </div>
     </header>
@@ -978,40 +984,40 @@
       <!-- Quick Actions -->
       <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;">
         <button class="quick-action-btn emergency" id="btnEmergency">🚨 Report Emergency</button>
-        <button class="quick-action-btn incident" id="btnIncident">⚠️ Log Incident</button>
-        <button class="quick-action-btn coordination" id="btnCoordination">📞 Request Coordination</button>
-        <button class="quick-action-btn preparedness" id="btnPreparedness">📋 View Plans</button>
+        <button class="quick-action-btn incident" id="btnIncident"><i class="fas fa-exclamation-triangle"></i> Log Incident</button>
+        <button class="quick-action-btn coordination" id="btnCoordination"><i class="fas fa-phone-alt"></i> Request Coordination</button>
+        <button class="quick-action-btn preparedness" id="btnPreparedness"><i class="fas fa-clipboard-list"></i> View Plans</button>
       </div>
 
       <!-- Statistics -->
       <div class="disaster-stats-grid">
         <div class="disaster-stat-card">
-          <div class="disaster-stat-icon">📊</div>
+          <div class="disaster-stat-icon"><i class="fas fa-chart-bar"></i></div>
           <p class="disaster-stat-label">Total Incidents</p>
           <h3 class="disaster-stat-value" id="sTotal">0</h3>
         </div>
         <div class="disaster-stat-card">
-          <div class="disaster-stat-icon">🚨</div>
+          <div class="disaster-stat-icon"><i class="fas fa-exclamation-circle"></i></div>
           <p class="disaster-stat-label">Critical</p>
           <h3 class="disaster-stat-value" id="sCritical">0</h3>
         </div>
         <div class="disaster-stat-card">
-          <div class="disaster-stat-icon">⏳</div>
+          <div class="disaster-stat-icon"><i class="fas fa-clock"></i></div>
           <p class="disaster-stat-label">Ongoing</p>
           <h3 class="disaster-stat-value" id="sOngoing">0</h3>
         </div>
         <div class="disaster-stat-card">
-          <div class="disaster-stat-icon">✅</div>
+          <div class="disaster-stat-icon"><i class="fas fa-check-circle"></i></div>
           <p class="disaster-stat-label">Resolved</p>
           <h3 class="disaster-stat-value" id="sResolved">0</h3>
         </div>
         <div class="disaster-stat-card">
-          <div class="disaster-stat-icon">👥</div>
+          <div class="disaster-stat-icon"><i class="fas fa-users"></i></div>
           <p class="disaster-stat-label">Affected Residents</p>
           <h3 class="disaster-stat-value" id="sAffected">0</h3>
         </div>
         <div class="disaster-stat-card">
-          <div class="disaster-stat-icon">👷</div>
+          <div class="disaster-stat-icon"><i class="fas fa-hard-hat"></i></div>
           <p class="disaster-stat-label">Response Teams</p>
           <h3 class="disaster-stat-value" id="sTeams">0</h3>
         </div>
@@ -1020,22 +1026,22 @@
       <!-- Population Summary -->
       <div class="disaster-stats-grid">
         <div class="disaster-stat-card">
-          <div class="disaster-stat-icon">👪</div>
+          <div class="disaster-stat-icon"><i class="fas fa-users"></i></div>
           <p class="disaster-stat-label">Total Population</p>
           <h3 class="disaster-stat-value" id="popTotal">0</h3>
         </div>
         <div class="disaster-stat-card">
-          <div class="disaster-stat-icon">👴</div>
+          <div class="disaster-stat-icon"><i class="fas fa-user-clock"></i></div>
           <p class="disaster-stat-label">Seniors (60+)</p>
           <h3 class="disaster-stat-value" id="popSeniors">0</h3>
         </div>
         <div class="disaster-stat-card">
-          <div class="disaster-stat-icon">👶</div>
+          <div class="disaster-stat-icon"><i class="fas fa-baby"></i></div>
           <p class="disaster-stat-label">Minors (&lt;18)</p>
           <h3 class="disaster-stat-value" id="popMinors">0</h3>
         </div>
         <div class="disaster-stat-card">
-          <div class="disaster-stat-icon">🐾</div>
+          <div class="disaster-stat-icon"><i class="fas fa-paw"></i></div>
           <p class="disaster-stat-label">Household Pets</p>
           <h3 class="disaster-stat-value" id="popPets">0</h3>
         </div>
@@ -1062,7 +1068,7 @@
           <div class="disaster-toolbar">
             <div class="search-wrapper">
               <input id="fQ" placeholder="Search incidents, locations..." type="search">
-              <span class="search-icon">🔍</span>
+              <span class="search-icon"><i class="fas fa-search"></i></span>
             </div>
             <input id="fFrom" type="date">
             <input id="fTo" type="date">

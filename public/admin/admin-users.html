@@ -347,7 +347,9 @@
     border: none;
   }
   .table-modern tbody tr:only-child td[colspan]:before {
-    content: '👥';
+    content: '\f0c0';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
     display: block;
     font-size: 3rem;
     margin-bottom: 12px;
@@ -584,7 +586,7 @@
       <div class="user-info" id="userChip">
         <button class="btn btn-outline" id="notifBtn" title="Notifications"><i class="fas fa-bell"></i></button>
         <div class="user-avatar" id="avatar">U</div>
-        <span id="username" class="user-name">Admin</span>
+        <span id="adminUsername" class="user-name">Admin</span>
 
         <div class="notif-panel" id="notifPanel">
           <div class="notif-head">Notifications</div>
@@ -621,7 +623,7 @@
             </div>
             <div class="form-field-modern">
               <label>Username <span class="required">*</span></label>
-              <input type="text" id="username" required placeholder="john.doe" pattern="^[a-zA-Z0-9._-]{3,20}$">
+              <input type="text" id="username" required placeholder="john.doe">
               <small>3-20 characters: letters, numbers, . _ - only</small>
             </div>
             <div class="form-field-modern">

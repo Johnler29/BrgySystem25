@@ -119,7 +119,7 @@
     if (!rows.length) {
       tb.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:3rem 1rem;">
         <div style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;color:#777;">
-          <div style="font-size:3rem;opacity:0.5;">📋</div>
+          <div style="font-size:3rem;opacity:0.5;color:#9ca3af;"><i class="fas fa-clipboard-list"></i></div>
           <div style="font-weight:500;color:#666;">No document requests found.</div>
           <div style="font-size:0.875rem;color:#999;">Click "+ Add New" to create a document request.</div>
         </div>
@@ -209,7 +209,7 @@
       if (tb) {
         tb.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:3rem 1rem;">
           <div style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;color:#888;">
-            <div style="font-size:3rem;opacity:0.5;">📄</div>
+            <div style="font-size:3rem;opacity:0.5;color:#9ca3af;"><i class="fas fa-file-alt"></i></div>
             <div style="font-weight:500;color:#666;">Unable to load data.</div>
             <div style="font-size:0.875rem;color:#999;">Please refresh the page or contact support if the issue persists.</div>
           </div>
